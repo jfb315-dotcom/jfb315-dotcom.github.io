@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -102,6 +101,39 @@
 
     .big { font-size: 1.25rem; font-weight: 700; }
     .muted { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+
+    /* Popup */
+    #screenshotPopup {
+      display:none;
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:rgba(0,0,0,0.85);
+      justify-content:center;
+      align-items:center;
+      z-index:9999;
+    }
+    #popupCard {
+      background:#181a1f;
+      padding:20px;
+      border-radius:12px;
+      width:90%;
+      max-width:380px;
+      text-align:center;
+      border:1px solid #262932;
+      color:white;
+    }
+    #popupCard button {
+      background:var(--accent);
+      color:#111;
+      border:none;
+      padding:10px 20px;
+      border-radius:8px;
+      font-size:16px;
+      margin-top:14px;
+      cursor:pointer;
+      width:100%;
+    }
   </style>
 </head>
 
@@ -179,17 +211,16 @@
       </div>
     </div>
 
-<button onclick="calc()">Calculate Payment</button>
+    <button onclick="calc()">Calculate Payment</button>
 
-<div class="card" id="results" style="display:none;">
-  <img src="email-logo.png" style="width:140px; display:block; margin:0 auto 10px;" />
-  <h3>Payment Breakdown</h3>
-  
-<div class="line">
-  <span id="valueLabel"></span>
-  <span id="valueOut"></span>
-</div>
+    <div class="card" id="results" style="display:none;">
+      <img src="email-logo.png" style="width:140px; display:block; margin:0 auto 10px;" />
+      <h3>Payment Breakdown</h3>
 
+      <div class="line">
+        <span id="valueLabel"></span>
+        <span id="valueOut"></span>
+      </div>
 
       <div class="line"><span>Loan Type</span><span id="loanTypeOut"></span></div>
       <div class="line"><span>Loan-to-Value (LTV)</span><span id="ltvOut"></span></div>
@@ -214,9 +245,21 @@
     </button>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <!-- Popup -->
+  <div id="screenshotPopup">
+    <div id="popupCard">
+      <p style="margin-bottom:14px; font-size:1rem;">
+        Screenshot copied. You can paste it into Messages or Email.
+      </p>
+      <img id="screenshotImage" src="" style="max-width:100%; border-radius:8px; margin-bottom:14px;">
+      <button onclick="closeScreenshotPopup()">OK</button>
+    </div>
+  </div>
 
-
+<script>
+  // -----------------------------
+  // Calculator + Formatting Logic
+  // -----------------------------
   let mode = "purchase";
   let isSyncing = false;
 
@@ -372,74 +415,4 @@
       homeValue = parseNum(document.getElementById("homeValue").value);
       baseLoan = parseIntNum(document.getElementById("refiLoanAmt").value);
       ufmipAmt = baseLoan * getUFMIP(loanType);
-      loanAmt = baseLoan + ufmipAmt;
-
-      document.getElementById("valueLabel").textContent = "Home Value (Estimated)";
-      document.getElementById("valueOut").textContent = fmt(homeValue);
-    }
-
-    let ltv;
-    if (/FHA|VA/i.test(loanType)) {
-      ltv = homeValue > 0 ? baseLoan / homeValue : 0;
-    } else {
-      ltv = homeValue > 0 ? loanAmt / homeValue : 0;
-    }
-
-    let miFactor;
-    if (loanType === "Conventional") {
-      miFactor = (+document.getElementById("manualMi").value || 0) / 100;
-    } else {
-      miFactor = getMIFactor(loanType);
-    }
-
-    const rateMo = rateAnnual / 12;
-    const pi = calcPI(rateMo, totalPayments, loanAmt);
-
-    const miMo = (loanAmt * miFactor) / 12;
-    const taxMo = taxesYr / 12;
-    const insMo = insYr / 12;
-
-    const totalMo = pi + miMo + taxMo + insMo;
-
-    document.getElementById("loanTypeOut").textContent = loanType;
-    document.getElementById("ltvOut").textContent = pct(ltv);
-
-    document.getElementById("loanBaseOut").textContent = fmt(baseLoan);
-    document.getElementById("ufmipOut").textContent = fmt(ufmipAmt);
-    document.getElementById("loanAmtOut").textContent = fmt(loanAmt);
-
-    document.getElementById("piOut").textContent = fmt(pi);
-    document.getElementById("miOut").textContent = fmt(miMo);
-    document.getElementById("taxMoOut").textContent = fmt(taxMo);
-    document.getElementById("insMoOut").textContent = fmt(insMo);
-    document.getElementById("pitiOut").textContent = fmt(totalMo);
-
-    document.getElementById("results").style.display = "block";
-    document.getElementById("saveShotBtn").style.display = "block";
-  }
-
-  function saveScreenshot() {
-    const results = document.getElementById("results");
-
-    html2canvas(results).then(canvas => {
-      const imgData = canvas.toDataURL("image/png");
-      document.getElementById("screenshotImage").src = imgData;
-      document.getElementById("screenshotPopup").style.display = "flex";
-    });
-  }
-
-  function closeScreenshotPopup() {
-    document.getElementById("screenshotPopup").style.display = "none";
-  }
-</script>
-
-<div id="screenshotPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:9999;">
-  <div style="background:#fff; padding:20px; border-radius:10px; max-width:90%; text-align:center;">
-    <img id="screenshotImage" src="" style="max-width:100%; border-radius:8px;">
-    <br><br>
-    <button onclick="closeScreenshotPopup()" style="padding:10px 20px; border:none; background:#ff6600; color:#fff; border-radius:5px; font-size:16px;">Close</button>
-  </div>
-</div>
-
-</body>
-</html>
+      loanAmt = baseLoan + uf
