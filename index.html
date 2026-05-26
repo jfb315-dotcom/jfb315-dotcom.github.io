@@ -534,9 +534,45 @@ function autoFillMI(ltv) {
 
   const miInput = document.getElementById("manualMi");
 
+  // If user manually typed something, do NOT overwrite it
   if (miInput.dataset.userEdited === "true") return;
 
-  const credit = mode === "purchase"
+  // Determine credit score tier
+  const credit = (mode === "purchase")
+    ? parseInt(document.getElementById("creditScore").value)
+    : parseInt(document.getElementById("creditScoreRefi").value);
+
+  // Determine LTV tier
+  let ltvTier = "";
+  if (ltv <= 0.80) ltvTier = "80";
+  else if (ltv <= 0.85) ltvTier = "81-85";
+  else if (ltv <= 0.90) ltvTier = "86-90";
+  else if (ltv <= 0.95) ltvTier = "91-95";
+  else ltvTier = ">95";
+
+  // MI Matrix
+  const miMatrix = {
+    760: { "81-85": 0.19, "86-90": 0.25, "91-95": 0.37, ">95": 0.44 },
+    740: { "81-85": 0.21, "86-90": 0.28, "91-95": 0.41, ">95": 0.48 },
+    720: { "81-85": 0.23, "86-90": 0.32, "91-95": 0.46, ">95": 0.54 },
+    700: { "81-85": 0.26, "86-90": 0.36, "91-95": 0.52, ">95": 0.61 },
+    680: { "81-85": 0.30, "86-90": 0.42, "91-95": 0.60, ">95": 0.70 },
+    660: { "81-85": 0.36, "86-90": 0.50, "91-95": 0.72, ">95": 0.84 },
+    640: { "81-85": 0.44, "86-90": 0.61, "91-95": 0.88, ">95": 1.03 },
+    600: { "81-85": 0.70, "86-90": 0.90, "91-95": 1.15, ">95": 1.40 }
+  };
+
+  // Default MI = 0 unless LTV > 80%
+  let suggested = 0;
+
+  if (ltvTier !== "80") {
+    suggested = miMatrix[credit][ltvTier];
+  }
+
+  // Apply MI to input
+  miInput.value = suggested.toFixed(2);
+}
+
     ? parseInt(document.getElementById("creditScore").value)
     : parseInt(document.getElementById("creditScoreRefi").value);
 
@@ -612,14 +648,15 @@ function calc() {
     ltv = value > 0 ? totalLoan / value : 0;
   }
 
-  document.getElementById("ltvOut").textContent = pct(ltv);
+ document.getElementById("ltvOut").textContent = pct(ltv);
 
-  autoFillMI(ltv);
+// REMOVE autoFillMI(ltv); — MI is now handled live
 
-  document.getElementById("miDisclaimer").style.display =
-    loanType === "Conventional" ? "block" : "none";
+document.getElementById("miDisclaimer").style.display =
+  loanType === "Conventional" ? "block" : "none";
 
-  if (loanType === "Conventional") {
+if (loanType === "Conventional") {
+
     const scoreText = mode === "purchase"
       ? document.getElementById("creditScore").selectedOptions[0].textContent
       : document.getElementById("creditScoreRefi").selectedOptions[0].textContent;
@@ -658,20 +695,31 @@ function calc() {
   document.getElementById("results").style.display = "block";
   document.getElementById("saveShotBtn").style.display = "block";
 
-  document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
+ document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
 }
+
+/* ---------------------------------------------------------
+   EVENT LISTENERS FOR LIVE MI UPDATES
+--------------------------------------------------------- */
+document.getElementById("loanType").onchange = liveUpdateMI;
+
+// PURCHASE MODE
+document.getElementById("price").oninput = liveUpdateMI;
+document.getElementById("downPct").oninput = liveUpdateMI;
+document.getElementById("creditScore").onchange = liveUpdateMI;
+
+// REFI MODE
+document.getElementById("homeValue").oninput = liveUpdateMI;
+document.getElementById("refiLoanAmt").oninput = liveUpdateMI;
+document.getElementById("refiLtv").oninput = liveUpdateMI;
+document.getElementById("creditScoreRefi").onchange = liveUpdateMI;
 
 
 /* ---------------------------------------------------------
    SCREENSHOT → POPUP CARD → LONG‑PRESS SHARE
 --------------------------------------------------------- */
 async function saveScreenshot() {
-  const results = document.getElementById("results");
 
-  const canvas = await html2canvas(results, {
-    scale: 2,
-    backgroundColor: "#111217"
-  });
 
   const dataUrl = canvas.toDataURL("image/png");
 
