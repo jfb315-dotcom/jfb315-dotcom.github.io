@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +5,7 @@
   <title>HMS Mortgage Calculator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<style>
+  <style>
     :root {
       --bg: #0f1012;
       --card: #181a1f;
@@ -132,7 +131,7 @@
       from { opacity: 0; transform: scale(0.92); }
       to { opacity: 1; transform: scale(1); }
     }
-</style>
+  </style>
 </head>
 
 <body>
@@ -209,6 +208,12 @@
       </div>
     </div>
 
+    <label>Annual Taxes ($)</label>
+    <input id="taxes" type="text" inputmode="decimal" value="3,000" oninput="formatNumber(this)" />
+
+    <label>Annual Insurance ($)</label>
+    <input id="ins" type="text" inputmode="decimal" value="1,200" oninput="formatNumber(this)" />
+
     <label>Loan Type</label>
     <select id="loanType" onchange="toggleManualMI()">
       <option value="FHA">FHA</option>
@@ -244,33 +249,71 @@
         <span id="valueOut"></span>
       </div>
 
-      <div class="line"><span>Loan Type</span><span id="loanTypeOut"></span></div>
-      <div class="line"><span>Loan-to-Value (LTV)</span><span id="ltvOut"></span></div>
+      <div class="line">
+        <span>Loan Type</span>
+        <span id="loanTypeOut"></span>
+      </div>
+
+      <div class="line">
+        <span>Loan-to-Value (LTV)</span>
+        <span id="ltvOut"></span>
+      </div>
 
       <div class="line" id="scoreRow" style="display:none; font-weight:600;">
         <span>Estimated Credit Score</span>
         <span id="scoreOut"></span>
       </div>
 
-      <div class="line"><span>Base Loan Amount</span><span id="loanBaseOut"></span></div>
-      <div class="line"><span>UFMIP Added</span><span id="ufmipOut"></span></div>
-      <div class="line"><span>Total Loan Amount</span><span id="loanAmtOut"></span></div>
+      <div class="line">
+        <span>Base Loan Amount</span>
+        <span id="loanBaseOut"></span>
+      </div>
 
-      <hr style="border:0;border-top:1px solid var(--border);margin:8px 0;">
-      <div class="line"><span>P&I Payment</span><span id="piOut"></span></div>
-      <div class="line"><span>Monthly MI</span><span id="miOut"></span></div>
-      <div class="line"><span>Monthly Taxes</span><span id="taxMoOut"></span></div>
-      <div class="line"><span>Monthly Insurance</span><span id="insMoOut"></span></div>
+      <div class="line">
+        <span>UFMIP Added</span>
+        <span id="ufmipOut"></span>
+      </div>
 
-      <hr style="border:0;border-top:1px solid var(--border);margin:8px 0;">
+      <div class="line">
+        <span>Total Loan Amount</span>
+        <span id="loanAmtOut"></span>
+      </div>
 
-      <div class="line big"><span>Total Monthly Payment</span><span id="pitiOut"></span></div>
+      <hr style="border:0; border-top:1px solid var(--border); margin:8px 0;">
+
+      <div class="line">
+        <span>P&I Payment</span>
+        <span id="piOut"></span>
+      </div>
+
+      <div class="line">
+        <span>Monthly MI</span>
+        <span id="miOut"></span>
+      </div>
+
+      <div class="line">
+        <span>Monthly Taxes</span>
+        <span id="taxMoOut"></span>
+      </div>
+
+      <div class="line">
+        <span>Monthly Insurance</span>
+        <span id="insMoOut"></span>
+      </div>
+
+      <hr style="border:0; border-top:1px solid var(--border); margin:8px 0;">
+
+      <div class="line big">
+        <span>Total Monthly Payment</span>
+        <span id="pitiOut"></span>
+      </div>
     </div>
 
     <button id="saveShotBtn" style="display:none; margin-top:12px;" onclick="saveScreenshot()">
       Share Results
     </button>
-  </div>
+
+  </div> <!-- end .app -->
 
   <div id="previewOverlay" style="
     position: fixed;
@@ -318,9 +361,10 @@
     </div>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
+
+<script>
 /* ---------------------------------------------------------
    MODE SWITCHING (Purchase / Refi)
 --------------------------------------------------------- */
@@ -338,7 +382,7 @@ function setMode(m) {
 }
 
 /* ---------------------------------------------------------
-   INPUT FORMATTING
+   INPUT FORMATTING HELPERS
 --------------------------------------------------------- */
 function formatNumber(input) {
   const start = input.selectionStart;
@@ -417,7 +461,7 @@ function getUFMIP(type) {
 }
 
 /* ---------------------------------------------------------
-   PAYMENT CALCULATION HELPERS
+   PAYMENT CALC HELPERS
 --------------------------------------------------------- */
 function calcPI(r, n, loan) {
   if (r === 0) return loan / n;
@@ -482,7 +526,7 @@ function onRefiLtvChange() {
 }
 
 /* ---------------------------------------------------------
-   MI MATRIX AUTO-FILL (Conventional Only)
+   MI MATRIX (Conventional Only)
 --------------------------------------------------------- */
 function autoFillMI(ltv) {
   const loanType = document.getElementById("loanType").value;
@@ -521,6 +565,103 @@ function autoFillMI(ltv) {
 
   miInput.value = suggested.toFixed(2);
 }
+
+/* ---------------------------------------------------------
+   MAIN CALCULATION
+--------------------------------------------------------- */
+function calc() {
+  const rate = (parseFloat(document.getElementById("rate").value) || 0) / 100;
+  const term = parseInt(document.getElementById("term").value) || 30;
+  const taxes = parseNum(document.getElementById("taxes").value);
+  const ins = parseNum(document.getElementById("ins").value);
+  const loanType = document.getElementById("loanType").value;
+
+  const n = term * 12;
+
+  let baseLoan = 0;
+  let ufmip = 0;
+  let totalLoan = 0;
+  let value = 0;
+
+  if (mode === "purchase") {
+    const price = parseNum(document.getElementById("price").value);
+    const downPct = (parseFloat(document.getElementById("downPct").value) || 0) / 100;
+    baseLoan = price - (price * downPct);
+    ufmip = baseLoan * getUFMIP(loanType);
+    totalLoan = baseLoan + ufmip;
+    value = price;
+
+    document.getElementById("valueLabel").textContent = "Purchase Price";
+    document.getElementById("valueOut").textContent = fmt(price);
+  }
+
+  if (mode === "refi") {
+    value = parseNum(document.getElementById("homeValue").value);
+    baseLoan = parseIntNum(document.getElementById("refiLoanAmt").value);
+    ufmip = baseLoan * getUFMIP(loanType);
+    totalLoan = baseLoan + ufmip;
+
+    document.getElementById("valueLabel").textContent = "Home Value (Estimated)";
+    document.getElementById("valueOut").textContent = fmt(value);
+  }
+
+  let ltv;
+  if (/FHA|VA/i.test(loanType)) {
+    ltv = value > 0 ? baseLoan / value : 0;
+  } else {
+    ltv = value > 0 ? totalLoan / value : 0;
+  }
+
+  document.getElementById("ltvOut").textContent = pct(ltv);
+
+  autoFillMI(ltv);
+
+  document.getElementById("miDisclaimer").style.display =
+    loanType === "Conventional" ? "block" : "none";
+
+  if (loanType === "Conventional") {
+    const scoreText = mode === "purchase"
+      ? document.getElementById("creditScore").selectedOptions[0].textContent
+      : document.getElementById("creditScoreRefi").selectedOptions[0].textContent;
+
+    document.getElementById("scoreOut").textContent = scoreText;
+    document.getElementById("scoreRow").style.display = "flex";
+  } else {
+    document.getElementById("scoreRow").style.display = "none";
+  }
+
+  let miAnnual;
+  if (loanType === "Conventional") {
+    miAnnual = (parseFloat(document.getElementById("manualMi").value) || 0) / 100;
+  } else {
+    miAnnual = getMIFactor(loanType);
+  }
+
+  const r = rate / 12;
+  const pi = calcPI(r, n, totalLoan);
+  const mi = (totalLoan * miAnnual) / 12;
+  const taxMo = taxes / 12;
+  const insMo = ins / 12;
+  const piti = pi + mi + taxMo + insMo;
+
+  document.getElementById("loanTypeOut").textContent = loanType;
+  document.getElementById("loanBaseOut").textContent = fmt(baseLoan);
+  document.getElementById("ufmipOut").textContent = fmt(ufmip);
+  document.getElementById("loanAmtOut").textContent = fmt(totalLoan);
+
+  document.getElementById("piOut").textContent = fmt(pi);
+  document.getElementById("miOut").textContent = fmt(mi);
+  document.getElementById("taxMoOut").textContent = fmt(taxMo);
+  document.getElementById("insMoOut").textContent = fmt(insMo);
+  document.getElementById("pitiOut").textContent = fmt(piti);
+
+  document.getElementById("results").style.display = "block";
+  document.getElementById("saveShotBtn").style.display = "block";
+
+  document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+
 /* ---------------------------------------------------------
    SCREENSHOT → POPUP CARD → LONG‑PRESS SHARE
 --------------------------------------------------------- */
@@ -562,4 +703,11 @@ async function saveScreenshot() {
 
 </body>
 </html>
+
+
+
+
+
+
+
 
