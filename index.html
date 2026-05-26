@@ -212,22 +212,39 @@
     </button>
   </div>
 
-<!-- Toast Popup -->
-<div id="toast" style="
+<!-- Floating Fullscreen Preview -->
+<div id="previewOverlay" style="
   position: fixed;
-  bottom: -80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #ff8200;
-  color: #111;
-  padding: 14px 20px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: all 0.4s ease;
-  z-index: 9999;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
 ">
-  Your results are ready. Choose Messages or Email.
+  <img id="previewImage" style="
+    width: 90%;
+    max-width: 380px;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  " />
+</div>
+
+<!-- Small Floating Thumbnail -->
+<div id="thumbPreview" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 120px;
+  height: auto;
+  border-radius: 12px;
+  overflow: hidden;
+  display: none;
+  z-index: 99998;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  cursor: pointer;
+">
+  <img id="thumbImage" style="width: 100%; height: auto;" />
 </div>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -432,64 +449,48 @@ function calc() {
   document.getElementById("results").style.display = "block";
   document.getElementById("saveShotBtn").style.display = "block";
 }
+</script>
+<script>
+// FLOATING PREVIEW + FULLSCREEN PREVIEW SYSTEM
+// --------------------------------------------
 
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.style.bottom = "30px";
-
-  setTimeout(() => {
-    t.style.bottom = "-80px";
-  }, 2000);
-}
-
+// This function is called when the user taps "Share Results"
 async function saveScreenshot() {
   const results = document.getElementById("results");
 
-  // Toast BEFORE screenshot
-  showToast("Your results are ready. Choose Messages or Email.");
-
-  await new Promise(res => setTimeout(res, 300));
-
+  // Capture screenshot of results card
   const canvas = await html2canvas(results, {
     scale: 2,
     backgroundColor: "#111217"
   });
 
   const dataUrl = canvas.toDataURL("image/png");
-  const blob = await (await fetch(dataUrl)).blob();
-  const file = new File([blob], "mortgage-results.png", { type: "image/png" });
 
-  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({
-        title: "Mortgage Calculator Results",
-        text: "Here are the results:",
-        files: [file]
-      });
-      return;
-    } catch (err) {
-      console.log("Share canceled", err);
+  // --- SMALL FLOATING THUMBNAIL ---
+  const thumb = document.getElementById("thumbPreview");
+  const thumbImg = document.getElementById("thumbImage");
+  thumbImg.src = dataUrl;
+  thumb.style.display = "block";
+
+  // --- FULLSCREEN PREVIEW ---
+  const overlay = document.getElementById("previewOverlay");
+  const fullImg = document.getElementById("previewImage");
+  fullImg.src = dataUrl;
+
+  // Tap thumbnail → open fullscreen preview
+  thumb.onclick = () => {
+    overlay.style.display = "flex";
+  };
+
+  // Tap outside fullscreen image → close preview
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      overlay.style.display = "none";
     }
-  }
+  };
 
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: "Mortgage Calculator Results",
-        text: "Here are the results:",
-        url: dataUrl
-      });
-      return;
-    } catch (err) {
-      console.log("Share canceled", err);
-    }
-  }
-
-  const link = document.createElement("a");
-  link.href = dataUrl;
-  link.download = "mortgage-results.png";
-  link.click();
+  // Long‑press on thumbnail or full image → iPhone shows native share menu
+  // (No code needed — iPhone handles this automatically)
 }
 </script>
 
