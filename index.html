@@ -505,23 +505,6 @@ function onRefiLoanChange() {
     const ltv = (baseLoan / homeValue) * 100;
     document.getElementById("refiLtv").value = ltv || 0;
   }
-
-  isSyncing = false;
-}
-
-function onRefiLtvChange() {
-  if (isSyncing) return;
-  isSyncing = true;
-
-  const homeValue = parseNum(document.getElementById("homeValue").value);
-  const ltvVal = parseFloat(document.getElementById("refiLtv").value) || 0;
-
-  if (homeValue > 0 && ltvVal > 0) {
-    const baseLoan = Math.round(homeValue * (ltvVal / 100));
-    const loanInput = document.getElementById("refiLoanAmt");
-    loanInput.value = baseLoan.toLocaleString("en-US");
-  }
-
   isSyncing = false;
 }
 
@@ -573,35 +556,6 @@ function autoFillMI(ltv) {
   miInput.value = suggested.toFixed(2);
 }
 
-    ? parseInt(document.getElementById("creditScore").value)
-    : parseInt(document.getElementById("creditScoreRefi").value);
-
-  let ltvTier = "";
-  if (ltv <= 0.80) ltvTier = "80";
-  else if (ltv <= 0.85) ltvTier = "81-85";
-  else if (ltv <= 0.90) ltvTier = "86-90";
-  else if (ltv <= 0.95) ltvTier = "91-95";
-  else ltvTier = ">95";
-
-  const miMatrix = {
-    760: { "81-85": 0.19, "86-90": 0.25, "91-95": 0.37, ">95": 0.44 },
-    740: { "81-85": 0.21, "86-90": 0.28, "91-95": 0.41, ">95": 0.48 },
-    720: { "81-85": 0.23, "86-90": 0.32, "91-95": 0.46, ">95": 0.54 },
-    700: { "81-85": 0.26, "86-90": 0.36, "91-95": 0.52, ">95": 0.61 },
-    680: { "81-85": 0.30, "86-90": 0.42, "91-95": 0.60, ">95": 0.70 },
-    660: { "81-85": 0.36, "86-90": 0.50, "91-95": 0.72, ">95": 0.84 },
-    640: { "81-85": 0.44, "86-90": 0.61, "91-95": 0.88, ">95": 1.03 },
-    600: { "81-85": 0.70, "86-90": 0.90, "91-95": 1.15, ">95": 1.40 }
-  };
-
-  let suggested = 0;
-  if (ltvTier !== "80") {
-    suggested = miMatrix[credit][ltvTier];
-  }
-
-  miInput.value = suggested.toFixed(2);
-}
-
 /* ---------------------------------------------------------
    MAIN CALCULATION
 --------------------------------------------------------- */
@@ -648,15 +602,13 @@ function calc() {
     ltv = value > 0 ? totalLoan / value : 0;
   }
 
- document.getElementById("ltvOut").textContent = pct(ltv);
+  document.getElementById("ltvOut").textContent = pct(ltv);
 
-// REMOVE autoFillMI(ltv); — MI is now handled live
+  // MI now handled live, not here
+  document.getElementById("miDisclaimer").style.display =
+    loanType === "Conventional" ? "block" : "none";
 
-document.getElementById("miDisclaimer").style.display =
-  loanType === "Conventional" ? "block" : "none";
-
-if (loanType === "Conventional") {
-
+  if (loanType === "Conventional") {
     const scoreText = mode === "purchase"
       ? document.getElementById("creditScore").selectedOptions[0].textContent
       : document.getElementById("creditScoreRefi").selectedOptions[0].textContent;
@@ -695,7 +647,42 @@ if (loanType === "Conventional") {
   document.getElementById("results").style.display = "block";
   document.getElementById("saveShotBtn").style.display = "block";
 
- document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
+  document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* ---------------------------------------------------------
+   LIVE MI UPDATE (runs instantly as user types)
+--------------------------------------------------------- */
+function liveUpdateMI() {
+  const loanType = document.getElementById("loanType").value;
+
+  // Only applies to Conventional loans
+  if (loanType !== "Conventional") {
+    document.getElementById("miDisclaimer").style.display = "none";
+    return;
+  }
+
+  let value, loan;
+
+  if (mode === "purchase") {
+    value = parseNum(document.getElementById("price").value);
+    const downPct = (parseFloat(document.getElementById("downPct").value) || 0) / 100;
+    loan = value - (value * downPct);
+  } else {
+    value = parseNum(document.getElementById("homeValue").value);
+    loan = parseIntNum(document.getElementById("refiLoanAmt").value);
+  }
+
+  if (value <= 0 || loan <= 0) return;
+
+  const ltv = loan / value;
+
+  // Auto-fill MI immediately
+  autoFillMI(ltv);
+
+  // Show disclaimer only when MI is being estimated
+  document.getElementById("miDisclaimer").style.display =
+    ltv > 0.80 ? "block" : "none";
 }
 
 /* ---------------------------------------------------------
