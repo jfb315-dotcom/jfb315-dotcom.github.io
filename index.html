@@ -719,7 +719,12 @@ document.getElementById("creditScoreRefi").onchange = liveUpdateMI;
    SCREENSHOT → POPUP CARD → LONG‑PRESS SHARE
 --------------------------------------------------------- */
 async function saveScreenshot() {
+  const results = document.getElementById("results");
 
+  const canvas = await html2canvas(results, {
+    scale: 2,
+    backgroundColor: "#111217"
+  });
 
   const dataUrl = canvas.toDataURL("image/png");
 
@@ -748,6 +753,7 @@ async function saveScreenshot() {
 }
 
 </script>
+
 
 </body>
 </html>
