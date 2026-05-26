@@ -5,7 +5,7 @@
   <title>HMS Mortgage Calculator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <style>
+<style>
     :root {
       --bg: #0f1012;
       --card: #181a1f;
@@ -16,6 +16,26 @@
     }
 
     * { box-sizing: border-box; }
+
+    /* 🔥 Pulsing Glow Animation for Instruction Pill */
+    @keyframes pulseGlow {
+      0% {
+        box-shadow:
+          0 0 14px rgba(255,130,0,0.75),
+          0 0 28px rgba(255,130,0,0.45);
+      }
+      50% {
+        box-shadow:
+          0 0 22px rgba(255,130,0,1),
+          0 0 38px rgba(255,130,0,0.65);
+      }
+      100% {
+        box-shadow:
+          0 0 14px rgba(255,130,0,0.75),
+          0 0 28px rgba(255,130,0,0.45);
+      }
+    }
+
 
     body {
       margin: 0;
