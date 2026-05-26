@@ -193,11 +193,21 @@
 
 
   <label>Purchase Price ($)</label>
-  <input id="price" type="text" inputmode="decimal" value="350,000" oninput="formatNumber(this)" />
+  <input id="price" type="text" inputmode="decimal" value="350,000" oninput="formatNumber(this); updatePurchaseCalcs()" />
 
-  <label>Down Payment %</label>
-  <input id="downPct" type="text" inputmode="decimal" value="3.5" />
+<label>Down Payment %</label>
+<input id="downPct" type="text" inputmode="decimal" value="3.5" oninput="updatePurchaseCalcs()" />
+
+<label>Down Payment ($)</label>
+<input id="downAmt" type="text" readonly />
+
+<label>Loan Amount ($)</label>
+<input id="loanAmt" type="text" readonly />
+
+<label>LTV %</label>
+<input id="purchaseLtv" type="text" inputmode="decimal" oninput="updatePurchaseCalcs()" />
 </div>
+
 
 <div id="refiInputs" style="display:none;">
   <h2>Refinance Inputs</h2>
@@ -620,6 +630,30 @@ async function saveScreenshot() {
       overlay.style.display = "none";
     }, 150);
   });
+}
+  
+  /* === Purchase Down Payment / LTV Sync Function === */
+function updatePurchaseCalcs() {
+  const price = parseFloat(document.getElementById("price").value.replace(/,/g, "")) || 0;
+  const pct = parseFloat(document.getElementById("downPct").value);
+  const ltvInput = parseFloat(document.getElementById("purchaseLtv").value);
+
+  let downAmt, loanAmt, ltv;
+
+  if (!isNaN(ltvInput)) {
+    loanAmt = price * (ltvInput / 100);
+    downAmt = price - loanAmt;
+    ltv = ltvInput;
+    document.getElementById("downPct").value = ((downAmt / price) * 100).toFixed(2);
+  } else {
+    downAmt = price * ((pct || 0) / 100);
+    loanAmt = price - downAmt;
+    ltv = (loanAmt / price) * 100;
+    document.getElementById("purchaseLtv").value = ltv.toFixed(2);
+  }
+
+  document.getElementById("downAmt").value = downAmt.toLocaleString();
+  document.getElementById("loanAmt").value = loanAmt.toLocaleString();
 }
 </script>
 
