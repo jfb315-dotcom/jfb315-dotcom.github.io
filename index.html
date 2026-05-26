@@ -17,7 +17,6 @@
 
     * { box-sizing: border-box; }
 
-    /* 🔥 Pulsing Glow Animation for Instruction Pill */
     @keyframes pulseGlow {
       0% {
         box-shadow:
@@ -35,7 +34,6 @@
           0 0 28px rgba(255,130,0,0.45);
       }
     }
-
 
     body {
       margin: 0;
@@ -92,6 +90,17 @@
       appearance: none;
     }
 
+    /* ⭐ Enhanced Credit Score Dropdown Style (Option B) */
+    .credit-score-select {
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--accent);
+      background: #1a1b20;
+      color: var(--accent);
+    }
+
     input:focus, select:focus {
       outline: 1px solid var(--accent);
       border-color: var(--accent);
@@ -131,18 +140,11 @@
     .big { font-size: 1.25rem; font-weight: 700; }
     .muted { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
 
-    /* ⭐ Fade‑in animation for popup card */
     @keyframes fadeInPopup {
-      from {
-        opacity: 0;
-        transform: scale(0.92);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
     }
-  </style>
+</style>
 </head>
 
 <body>
@@ -157,6 +159,7 @@
       <div id="btnRefi" class="toggle-btn" onclick="setMode('refi')">Refinance</div>
     </div>
 
+    <!-- PURCHASE INPUTS -->
     <div id="purchaseInputs">
       <h2>Purchase Inputs</h2>
 
@@ -165,8 +168,22 @@
 
       <label>Down Payment %</label>
       <input id="downPct" type="text" inputmode="decimal" value="3.5" />
+
+      <!-- ⭐ NEW CREDIT SCORE DROPDOWN -->
+      <label>Estimated Credit Score</label>
+      <select id="creditScore" class="credit-score-select">
+        <option value="760">760+</option>
+        <option value="740">740–759</option>
+        <option value="720">720–739</option>
+        <option value="700">700–719</option>
+        <option value="680">680–699</option>
+        <option value="660">660–679</option>
+        <option value="640">640–659</option>
+        <option value="600">600–620</option>
+      </select>
     </div>
 
+    <!-- REFI INPUTS -->
     <div id="refiInputs" style="display:none;">
       <h2>Refinance Inputs</h2>
 
@@ -178,6 +195,19 @@
 
       <label>LTV %</label>
       <input id="refiLtv" type="text" inputmode="decimal" value="80" oninput="onRefiLtvChange()" />
+
+      <!-- ⭐ NEW CREDIT SCORE DROPDOWN -->
+      <label>Estimated Credit Score</label>
+      <select id="creditScoreRefi" class="credit-score-select">
+        <option value="760">760+</option>
+        <option value="740">740–759</option>
+        <option value="720">720–739</option>
+        <option value="700">700–719</option>
+        <option value="680">680–699</option>
+        <option value="660">660–679</option>
+        <option value="640">640–659</option>
+        <option value="600">600–620</option>
+      </select>
     </div>
 
     <h2>Loan Details</h2>
@@ -203,20 +233,20 @@
 
     <div id="manualMiBlock" style="display:none;">
       <label>Manual MI % (Annual)</label>
-      <input id="manualMi" type="text" inputmode="decimal" placeholder="0.62" />
+      <input id="manualMi" type="text" inputmode="decimal" placeholder="0.62" oninput="this.dataset.userEdited='true'">
     </div>
 
-    <h2>Annual Property Costs</h2>
-
-    <div class="row">
-      <div>
-        <label>Property Taxes ($)</label>
-        <input id="taxes" type="text" inputmode="decimal" value="1,200" oninput="formatNumber(this)" />
-      </div>
-      <div>
-        <label>Home Insurance ($)</label>
-        <input id="ins" type="text" inputmode="decimal" value="1,200" oninput="formatNumber(this)" />
-      </div>
+    <!-- ⭐ DISCLAIMER + RESULTS + JS WILL CONTINUE IN PART 2 -->
+    <!-- ⭐ GLOWING, PULSING MI DISCLAIMER -->
+    <div id="miDisclaimer" style="
+      margin-top: 12px;
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--accent);
+      animation: pulseGlow 1.8s ease-in-out infinite;
+      display: none;
+    ">
+      MI for Conventional loans is only an estimate based on LTV and Credit Score.
     </div>
 
     <button onclick="calc()">Calculate Payment</button>
@@ -232,6 +262,12 @@
 
       <div class="line"><span>Loan Type</span><span id="loanTypeOut"></span></div>
       <div class="line"><span>Loan-to-Value (LTV)</span><span id="ltvOut"></span></div>
+
+      <!-- ⭐ NEW: Estimated Credit Score (slightly bold) -->
+      <div class="line" id="scoreRow" style="display:none; font-weight:600;">
+        <span>Estimated Credit Score</span>
+        <span id="scoreOut"></span>
+      </div>
 
       <div class="line"><span>Base Loan Amount</span><span id="loanBaseOut"></span></div>
       <div class="line"><span>UFMIP Added</span><span id="ufmipOut"></span></div>
@@ -253,7 +289,7 @@
     </button>
   </div>
 
-  <!-- ⭐ Centered Rounded Popup Card -->
+  <!-- ⭐ POPUP OVERLAY (unchanged) -->
   <div id="previewOverlay" style="
     position: fixed;
     inset: 0;
@@ -275,22 +311,20 @@
       box-shadow: 0 8px 20px rgba(0,0,0,0.45);
     ">
       <div id="pressMessage" style="
-  background: rgba(255,130,0,0.28);
-  color: var(--accent);
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 16px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  /* Glow + Pulse Animation */
-  animation: pulseGlow 1.8s ease-in-out infinite;
-">
+        background: rgba(255,130,0,0.28);
+        color: var(--accent);
+        padding: 10px 18px;
+        border-radius: 999px;
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        animation: pulseGlow 1.8s ease-in-out infinite;
+      ">
         Long‑press the image to copy or share your results.
       </div>
 
@@ -301,10 +335,53 @@
       " />
     </div>
   </div>
+
 <!-- HTML2Canvas -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
+
+/* ---------------------------------------------------------
+   MI MATRIX AUTO-FILL (Conventional Only)
+--------------------------------------------------------- */
+function autoFillMI(ltv) {
+  const loanType = document.getElementById("loanType").value;
+  if (loanType !== "Conventional") return;
+
+  const miInput = document.getElementById("manualMi");
+
+  // Do not override manual entry
+  if (miInput.dataset.userEdited === "true") return;
+
+  const credit = mode === "purchase"
+    ? parseInt(document.getElementById("creditScore").value)
+    : parseInt(document.getElementById("creditScoreRefi").value);
+
+  let ltvTier = "";
+  if (ltv <= 0.80) ltvTier = "80";
+  else if (ltv <= 0.85) ltvTier = "81-85";
+  else if (ltv <= 0.90) ltvTier = "86-90";
+  else if (ltv <= 0.95) ltvTier = "91-95";
+  else ltvTier = ">95";
+
+  const miMatrix = {
+    760: { "81-85": 0.19, "86-90": 0.25, "91-95": 0.37, ">95": 0.44 },
+    740: { "81-85": 0.21, "86-90": 0.28, "91-95": 0.41, ">95": 0.48 },
+    720: { "81-85": 0.23, "86-90": 0.32, "91-95": 0.46, ">95": 0.54 },
+    700: { "81-85": 0.26, "86-90": 0.36, "91-95": 0.52, ">95": 0.61 },
+    680: { "81-85": 0.30, "86-90": 0.42, "91-95": 0.60, ">95": 0.70 },
+    660: { "81-85": 0.36, "86-90": 0.50, "91-95": 0.72, ">95": 0.84 },
+    640: { "81-85": 0.44, "86-90": 0.61, "91-95": 0.88, ">95": 1.03 },
+    600: { "81-85": 0.70, "86-90": 0.90, "91-95": 1.15, ">95": 1.40 }
+  };
+
+  let suggested = 0;
+  if (ltvTier !== "80") {
+    suggested = miMatrix[credit][ltvTier];
+  }
+
+  miInput.value = suggested.toFixed(2);
+}
 /* ---------------------------------------------------------
    MODE SWITCHING (Purchase / Refi)
 --------------------------------------------------------- */
@@ -401,7 +478,7 @@ function getUFMIP(type) {
 }
 
 /* ---------------------------------------------------------
-   PAYMENT CALCULATION
+   PAYMENT CALCULATION HELPERS
 --------------------------------------------------------- */
 function calcPI(r, n, loan) {
   if (r === 0) return loan / n;
@@ -466,7 +543,7 @@ function onRefiLtvChange() {
 }
 
 /* ---------------------------------------------------------
-   MAIN CALCULATION
+   MAIN CALCULATION (PATCHED WITH MI MATRIX + SCORE OUTPUT)
 --------------------------------------------------------- */
 function calc() {
   const rateAnnual = (+document.getElementById("rate").value || 0) / 100;
@@ -517,6 +594,30 @@ function calc() {
     ltv = homeValue > 0 ? loanAmt / homeValue : 0;
   }
 
+  document.getElementById("ltvOut").textContent = pct(ltv);
+
+  // ⭐ Auto-fill MI for Conventional
+  autoFillMI(ltv);
+
+  // ⭐ Show glowing disclaimer only for Conventional
+  document.getElementById("miDisclaimer").style.display =
+    loanType === "Conventional" ? "block" : "none";
+
+  // ⭐ Show Estimated Credit Score in results
+  let scoreUsed = "";
+
+  if (loanType === "Conventional") {
+    scoreUsed = mode === "purchase"
+      ? document.getElementById("creditScore").selectedOptions[0].textContent
+      : document.getElementById("creditScoreRefi").selectedOptions[0].textContent;
+
+    document.getElementById("scoreOut").textContent = scoreUsed;
+    document.getElementById("scoreRow").style.display = "flex";
+  } else {
+    document.getElementById("scoreRow").style.display = "none";
+  }
+
+  // MI factor
   let miFactor;
   if (loanType === "Conventional") {
     miFactor = (+document.getElementById("manualMi").value || 0) / 100;
@@ -534,8 +635,6 @@ function calc() {
   const totalMo = pi + miMo + taxMo + insMo;
 
   document.getElementById("loanTypeOut").textContent = loanType;
-  document.getElementById("ltvOut").textContent = pct(ltv);
-
   document.getElementById("loanBaseOut").textContent = fmt(baseLoan);
   document.getElementById("ufmipOut").textContent = fmt(ufmipAmt);
   document.getElementById("loanAmtOut").textContent = fmt(loanAmt);
@@ -546,15 +645,16 @@ function calc() {
   document.getElementById("insMoOut").textContent = fmt(insMo);
   document.getElementById("pitiOut").textContent = fmt(totalMo);
 
-document.getElementById("results").style.display = "block";
-document.getElementById("saveShotBtn").style.display = "block";
+  document.getElementById("results").style.display = "block";
+  document.getElementById("saveShotBtn").style.display = "block";
 
-document.getElementById("results").scrollIntoView({
-  behavior: "smooth",
-  block: "start"
-});
+  document.getElementById("results").scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
 }
 </script>
+
 <script>
 /* ---------------------------------------------------------
    SCREENSHOT → POPUP CARD → LONG‑PRESS SHARE
@@ -562,7 +662,6 @@ document.getElementById("results").scrollIntoView({
 async function saveScreenshot() {
   const results = document.getElementById("results");
 
-  // Capture screenshot of the results card
   const canvas = await html2canvas(results, {
     scale: 2,
     backgroundColor: "#111217"
@@ -570,33 +669,24 @@ async function saveScreenshot() {
 
   const dataUrl = canvas.toDataURL("image/png");
 
-  // Elements
   const overlay = document.getElementById("previewOverlay");
   const fullImg = document.getElementById("previewImage");
   const msg = document.getElementById("pressMessage");
 
-  // Set screenshot
   fullImg.src = dataUrl;
-
-  // Show message
   msg.style.display = "block";
 
-  // Show popup with fade‑in animation
   overlay.style.display = "flex";
   overlay.style.animation = "fadeInPopup 0.25s ease-out";
 
-  // Tap outside → close popup
   overlay.onclick = (e) => {
     if (e.target === overlay) {
       overlay.style.display = "none";
     }
   };
 
-  // AUTO‑HIDE message + AUTO‑CLOSE popup after long‑press
   fullImg.addEventListener("touchend", () => {
-    msg.style.display = "none"; // hide message
-
-    // Close popup right after iOS/Android share menu appears
+    msg.style.display = "none";
     setTimeout(() => {
       overlay.style.display = "none";
     }, 150);
@@ -606,4 +696,6 @@ async function saveScreenshot() {
 
 </body>
 </html>
+
+
 
