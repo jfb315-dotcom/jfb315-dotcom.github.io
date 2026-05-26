@@ -522,6 +522,20 @@ function autoFillMI(ltv) {
 
   // Determine credit score tier
   const credit = (mode === "purchase")
+  /* ---------------------------------------------------------
+   MI MATRIX (Conventional Only)
+--------------------------------------------------------- */
+function autoFillMI(ltv) {
+  const loanType = document.getElementById("loanType").value;
+  if (loanType !== "Conventional") return;
+
+  const miInput = document.getElementById("manualMi");
+
+  // If user manually typed something, do NOT overwrite it
+  if (miInput.dataset.userEdited === "true") return;
+
+  // Determine credit score tier
+  const credit = (mode === "purchase")
     ? parseInt(document.getElementById("creditScore").value)
     : parseInt(document.getElementById("creditScoreRefi").value);
 
@@ -556,13 +570,6 @@ function autoFillMI(ltv) {
   miInput.value = suggested.toFixed(2);
 }
 
-/* ---------------------------------------------------------
-   MAIN CALCULATION
---------------------------------------------------------- */
-function calc() {
-  const rate = (parseFloat(document.getElementById("rate").value) || 0) / 100;
-  const term = parseInt(document.getElementById("term").value) || 30;
-  const taxes = parseNum(document.getElementById("taxes").value);
   const ins = parseNum(document.getElementById("ins").value);
   const loanType = document.getElementById("loanType").value;
 
