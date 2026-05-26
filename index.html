@@ -155,10 +155,26 @@
     <div class="toggle-row">
       <div id="btnPurchase" class="toggle-btn active" onclick="setMode('purchase')">Purchase</div>
       <div id="btnRefi" class="toggle-btn" onclick="setMode('refi')">Refinance</div>
-    </div>
+</div>
 
-    <div id="purchaseInputs">
-      <h2>Purchase Inputs</h2>
+<!-- Estimated Credit Score -->
+<div class="input-group">
+  <label for="creditScore">Estimated Credit Score</label>
+  <select id="creditScore">
+    <option value="760">760+</option>
+    <option value="740">740–759</option>
+    <option value="720">720–739</option>
+    <option value="700">700–719</option>
+    <option value="680">680–699</option>
+    <option value="660">660–679</option>
+    <option value="640">640–659</option>
+    <option value="600">600–639</option>
+  </select>
+</div>
+
+<div id="purchaseInputs">
+  <h2>Purchase Inputs</h2>
+
 
       <label>Purchase Price ($)</label>
       <input id="price" type="text" inputmode="decimal" value="350,000" oninput="formatNumber(this)" />
