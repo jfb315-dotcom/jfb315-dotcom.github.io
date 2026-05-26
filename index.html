@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,21 +19,9 @@
     * { box-sizing: border-box; }
 
     @keyframes pulseGlow {
-      0% {
-        box-shadow:
-          0 0 14px rgba(255,130,0,0.75),
-          0 0 28px rgba(255,130,0,0.45);
-      }
-      50% {
-        box-shadow:
-          0 0 22px rgba(255,130,0,1),
-          0 0 38px rgba(255,130,0,0.65);
-      }
-      100% {
-        box-shadow:
-          0 0 14px rgba(255,130,0,0.75),
-          0 0 28px rgba(255,130,0,0.45);
-      }
+      0% { box-shadow: 0 0 14px rgba(255,130,0,0.75), 0 0 28px rgba(255,130,0,0.45); }
+      50% { box-shadow: 0 0 22px rgba(255,130,0,1), 0 0 38px rgba(255,130,0,0.65); }
+      100% { box-shadow: 0 0 14px rgba(255,130,0,0.75), 0 0 28px rgba(255,130,0,0.45); }
     }
 
     body {
@@ -468,119 +457,70 @@ function onRefiLoanChange() {
   const homeValue = parseNum(document.getElementById("homeValue").value);
   const baseLoan = parseIntNum(loanInput.value);
 
-  if (homeValue > 0)
-/* ---------------------------------------------------------
-   MAIN CALCULATION
---------------------------------------------------------- */
-function calc() {
-  const rateAnnual = (+document.getElementById("rate").value || 0) / 100;
-  const termYears = +document.getElementById("term").value || 30;
-
-  const taxesYr = parseNum(document.getElementById("taxes").value);
-  const insYr = parseNum(document.getElementById("ins").value);
-
-  const loanType = document.getElementById("loanType").value;
-  const totalPayments = termYears * 12;
-
-  let baseLoan = 0;
-  let loanAmt = 0;
-  let homeValue = 0;
-  let ufmipAmt = 0;
-
-  if (mode === "purchase") {
-    const price = parseNum(document.getElementById("price").value);
-    const downPct = (+document.getElementById("downPct").value || 0) / 100;
-
-    const downAmt = price * downPct;
-    baseLoan = price - downAmt;
-
-    ufmipAmt = baseLoan * getUFMIP(loanType);
-    loanAmt = baseLoan + ufmipAmt;
-
-    homeValue = price;
-
-    document.getElementById("valueLabel").textContent = "Purchase Price";
-    document.getElementById("valueOut").textContent = fmt(price);
+  if (homeValue > 0) {
+    const ltv = (baseLoan / homeValue) * 100;
+    document.getElementById("refiLtv").value = ltv || 0;
   }
 
-  if (mode === "refi") {
-    homeValue = parseNum(document.getElementById("homeValue").value);
-    baseLoan = parseIntNum(document.getElementById("refiLoanAmt").value);
-
-    ufmipAmt = baseLoan * getUFMIP(loanType);
-    loanAmt = baseLoan + ufmipAmt;
-
-    document.getElementById("valueLabel").textContent = "Home Value (Estimated)";
-    document.getElementById("valueOut").textContent = fmt(homeValue);
-  }
-
-  let ltv;
-  if (/FHA|VA/i.test(loanType)) {
-    ltv = homeValue > 0 ? baseLoan / homeValue : 0;
-  } else {
-    ltv = homeValue > 0 ? loanAmt / homeValue : 0;
-  }
-
-  document.getElementById("ltvOut").textContent = pct(ltv);
-
-  // ⭐ Auto-fill MI for Conventional
-  autoFillMI(ltv);
-
-  // ⭐ Show glowing disclaimer only for Conventional
-  document.getElementById("miDisclaimer").style.display =
-    loanType === "Conventional" ? "block" : "none";
-
-  // ⭐ Estimated Credit Score in results
-  let scoreUsed = "";
-
-  if (loanType === "Conventional") {
-    scoreUsed = mode === "purchase"
-      ? document.getElementById("creditScore").selectedOptions[0].textContent
-      : document.getElementById("creditScoreRefi").selectedOptions[0].textContent;
-
-    document.getElementById("scoreOut").textContent = scoreUsed;
-    document.getElementById("scoreRow").style.display = "flex";
-  } else {
-    document.getElementById("scoreRow").style.display = "none";
-  }
-
-  // MI factor
-  let miFactor;
-  if (loanType === "Conventional") {
-    miFactor = (+document.getElementById("manualMi").value || 0) / 100;
-  } else {
-    miFactor = getMIFactor(loanType);
-  }
-
-  const rateMo = rateAnnual / 12;
-  const pi = calcPI(rateMo, totalPayments, loanAmt);
-
-  const miMo = (loanAmt * miFactor) / 12;
-  const taxMo = taxesYr / 12;
-  const insMo = insYr / 12;
-
-  const totalMo = pi + miMo + taxMo + insMo;
-
-  document.getElementById("loanTypeOut").textContent = loanType;
-  document.getElementById("loanBaseOut").textContent = fmt(baseLoan);
-  document.getElementById("ufmipOut").textContent = fmt(ufmipAmt);
-  document.getElementById("loanAmtOut").textContent = fmt(loanAmt);
-
-  document.getElementById("piOut").textContent = fmt(pi);
-  document.getElementById("miOut").textContent = fmt(miMo);
-  document.getElementById("taxMoOut").textContent = fmt(taxMo);
-  document.getElementById("insMoOut").textContent = fmt(insMo);
-  document.getElementById("pitiOut").textContent = fmt(totalMo);
-
-  document.getElementById("results").style.display = "block";
-  document.getElementById("saveShotBtn").style.display = "block";
-
-  document.getElementById("results").scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
+  isSyncing = false;
 }
 
+function onRefiLtvChange() {
+  if (isSyncing) return;
+  isSyncing = true;
+
+  const homeValue = parseNum(document.getElementById("homeValue").value);
+  const ltvVal = parseFloat(document.getElementById("refiLtv").value) || 0;
+
+  if (homeValue > 0 && ltvVal > 0) {
+    const baseLoan = Math.round(homeValue * (ltvVal / 100));
+    const loanInput = document.getElementById("refiLoanAmt");
+    loanInput.value = baseLoan.toLocaleString("en-US");
+  }
+
+  isSyncing = false;
+}
+
+/* ---------------------------------------------------------
+   MI MATRIX AUTO-FILL (Conventional Only)
+--------------------------------------------------------- */
+function autoFillMI(ltv) {
+  const loanType = document.getElementById("loanType").value;
+  if (loanType !== "Conventional") return;
+
+  const miInput = document.getElementById("manualMi");
+
+  if (miInput.dataset.userEdited === "true") return;
+
+  const credit = mode === "purchase"
+    ? parseInt(document.getElementById("creditScore").value)
+    : parseInt(document.getElementById("creditScoreRefi").value);
+
+  let ltvTier = "";
+  if (ltv <= 0.80) ltvTier = "80";
+  else if (ltv <= 0.85) ltvTier = "81-85";
+  else if (ltv <= 0.90) ltvTier = "86-90";
+  else if (ltv <= 0.95) ltvTier = "91-95";
+  else ltvTier = ">95";
+
+  const miMatrix = {
+    760: { "81-85": 0.19, "86-90": 0.25, "91-95": 0.37, ">95": 0.44 },
+    740: { "81-85": 0.21, "86-90": 0.28, "91-95": 0.41, ">95": 0.48 },
+    720: { "81-85": 0.23, "86-90": 0.32, "91-95": 0.46, ">95": 0.54 },
+    700: { "81-85": 0.26, "86-90": 0.36, "91-95": 0.52, ">95": 0.61 },
+    680: { "81-85": 0.30, "86-90": 0.42, "91-95": 0.60, ">95": 0.70 },
+    660: { "81-85": 0.36, "86-90": 0.50, "91-95": 0.72, ">95": 0.84 },
+    640: { "81-85": 0.44, "86-90": 0.61, "91-95": 0.88, ">95": 1.03 },
+    600: { "81-85": 0.70, "86-90": 0.90, "91-95": 1.15, ">95": 1.40 }
+  };
+
+  let suggested = 0;
+  if (ltvTier !== "80") {
+    suggested = miMatrix[credit][ltvTier];
+  }
+
+  miInput.value = suggested.toFixed(2);
+}
 /* ---------------------------------------------------------
    SCREENSHOT → POPUP CARD → LONG‑PRESS SHARE
 --------------------------------------------------------- */
@@ -622,3 +562,4 @@ async function saveScreenshot() {
 
 </body>
 </html>
+
