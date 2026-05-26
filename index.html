@@ -517,11 +517,7 @@ function autoFillMI(ltv) {
 
   const miInput = document.getElementById("manualMi");
 
-  // If user manually typed something, do NOT overwrite it
-  if (miInput.dataset.userEdited === "true") return;
-
-  // Determine credit score tier
-  const credit = (mode === "purchase")
+ 
   /* ---------------------------------------------------------
    MI MATRIX (Conventional Only)
 --------------------------------------------------------- */
