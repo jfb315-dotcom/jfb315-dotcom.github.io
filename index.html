@@ -546,8 +546,13 @@ function calc() {
   document.getElementById("insMoOut").textContent = fmt(insMo);
   document.getElementById("pitiOut").textContent = fmt(totalMo);
 
-  document.getElementById("results").style.display = "block";
-  document.getElementById("saveShotBtn").style.display = "block";
+document.getElementById("results").style.display = "block";
+document.getElementById("saveShotBtn").style.display = "block";
+
+document.getElementById("results").scrollIntoView({
+  behavior: "smooth",
+  block: "start"
+});
 }
 </script>
 <script>
