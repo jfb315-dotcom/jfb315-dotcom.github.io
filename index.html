@@ -172,55 +172,59 @@
   </select>
 </div>
 
+<!-- Loan Type (moved here above Purchase Price) -->
+<div class="input-group">
+  <label for="loanType">Loan Type</label>
+  <select id="loanType" onchange="toggleManualMI()">
+    <option value="FHA">FHA</option>
+    <option value="USDA">USDA</option>
+    <option value="VA">VA</option>
+    <option value="Conventional">Conventional</option>
+  </select>
+</div>
+
+<!-- Manual MI block stays tied to Loan Type -->
+<div id="manualMiBlock" style="display:none;">
+  <label>Manual MI % (Annual)</label>
+  <input id="manualMi" type="text" inputmode="decimal" placeholder="0.62" />
+</div>
+
 <div id="purchaseInputs">
   <h2>Purchase Inputs</h2>
 
+  <label>Purchase Price ($)</label>
+  <input id="price" type="text" inputmode="decimal" value="350,000" oninput="formatNumber(this)" />
 
-      <label>Purchase Price ($)</label>
-      <input id="price" type="text" inputmode="decimal" value="350,000" oninput="formatNumber(this)" />
+  <label>Down Payment %</label>
+  <input id="downPct" type="text" inputmode="decimal" value="3.5" />
+</div>
 
-      <label>Down Payment %</label>
-      <input id="downPct" type="text" inputmode="decimal" value="3.5" />
-    </div>
+<div id="refiInputs" style="display:none;">
+  <h2>Refinance Inputs</h2>
 
-    <div id="refiInputs" style="display:none;">
-      <h2>Refinance Inputs</h2>
+  <label>Home Value ($)</label>
+  <input id="homeValue" type="text" inputmode="decimal" value="400,000" oninput="onHomeValueChange()" />
 
-      <label>Home Value ($)</label>
-      <input id="homeValue" type="text" inputmode="decimal" value="400,000" oninput="onHomeValueChange()" />
+  <label>Loan Amount ($)</label>
+  <input id="refiLoanAmt" type="text" inputmode="numeric" value="320,000" oninput="onRefiLoanChange()" />
 
-      <label>Loan Amount ($)</label>
-      <input id="refiLoanAmt" type="text" inputmode="numeric" value="320,000" oninput="onRefiLoanChange()" />
+  <label>LTV %</label>
+  <input id="refiLtv" type="text" inputmode="decimal" value="80" oninput="onRefiLtvChange()" />
+</div>
 
-      <label>LTV %</label>
-      <input id="refiLtv" type="text" inputmode="decimal" value="80" oninput="onRefiLtvChange()" />
-    </div>
+<h2>Loan Details</h2>
 
-    <h2>Loan Details</h2>
+<div class="row">
+  <div>
+    <label>Interest Rate %</label>
+    <input id="rate" type="text" inputmode="decimal" value="6.25" />
+  </div>
+  <div>
+    <label>Loan Term (Years)</label>
+    <input id="term" type="text" inputmode="numeric" value="30" />
+  </div>
+</div>
 
-    <div class="row">
-      <div>
-        <label>Interest Rate %</label>
-        <input id="rate" type="text" inputmode="decimal" value="6.25" />
-      </div>
-      <div>
-        <label>Loan Term (Years)</label>
-        <input id="term" type="text" inputmode="numeric" value="30" />
-      </div>
-    </div>
-
-    <label>Loan Type</label>
-    <select id="loanType" onchange="toggleManualMI()">
-      <option value="FHA">FHA</option>
-      <option value="USDA">USDA</option>
-      <option value="VA">VA</option>
-      <option value="Conventional">Conventional</option>
-    </select>
-
-    <div id="manualMiBlock" style="display:none;">
-      <label>Manual MI % (Annual)</label>
-      <input id="manualMi" type="text" inputmode="decimal" placeholder="0.62" />
-    </div>
 
     <h2>Annual Property Costs</h2>
 
