@@ -195,19 +195,19 @@
   <input id="price" type="text" inputmode="decimal" value="350,000"
          oninput="formatNumber(this); updatePurchaseCalcs()" />
 
-  <label>Down Payment %</label>
-  <input id="downPct" type="text" inputmode="decimal" value="3.5"
-         oninput="updatePurchaseCalcs('pct')" />
+ <label>Down Payment %</label>
+<input id="downPct" type="text" inputmode="decimal" value="3.5"
+       oninput="updatePurchaseCalcs()" />
 
-  <label>Down Payment ($)</label>
-  <input id="downAmt" type="text" readonly />
+<label>Down Payment ($)</label>
+<input id="downAmt" type="text" readonly />
 
-  <label>Loan Amount ($)</label>
-  <input id="loanAmt" type="text" readonly />
+<label>Loan Amount ($)</label>
+<input id="loanAmt" type="text" readonly />
 
-  <label>LTV %</label>
-  <input id="purchaseLtv" type="text" inputmode="decimal"
-         oninput="updatePurchaseCalcs('ltv')" />
+<label>LTV %</label>
+<input id="purchaseLtv" type="text" inputmode="decimal"
+       oninput="updatePurchaseCalcs()" />
 
 </div>
 
@@ -283,19 +283,10 @@
   <span id="pitiOut"></span>
 </div>
 
-<hr style="margin:10px 0; border:0; border-top:1px solid #ccc;" />
-
-<div class="line big" style="color:green;">
-  <span>Required Down Payment</span>
-  <span id="requiredDownPmt"></span>
-</div>
-
 <button id="saveShotBtn" style="display:none; margin-top:12px;" onclick="saveScreenshot()">
   Share Results
 </button>
 
-    </button>
-  </div>
 
   <!-- ⭐ Centered Rounded Popup Card -->
   <div id="previewOverlay" style="
@@ -647,39 +638,30 @@ async function saveScreenshot() {
   });
 }
   
-/* === Purchase Down Payment / LTV Sync Function (Fixed) === */
-function updatePurchaseCalcs(source) {
+/* === Purchase Down Payment / LTV Sync Function === */
+function updatePurchaseCalcs() {
   const price = parseFloat(document.getElementById("price").value.replace(/,/g, "")) || 0;
-  let pct = parseFloat(document.getElementById("downPct").value);
-  let ltvInput = parseFloat(document.getElementById("purchaseLtv").value);
+  const pct = parseFloat(document.getElementById("downPct").value);
+  const ltvInput = parseFloat(document.getElementById("purchaseLtv").value);
 
   let downAmt, loanAmt, ltv;
 
-  // If user is typing in Down Payment %
-  if (source === "pct") {
-    if (!isNaN(pct)) {
-      downAmt = price * (pct / 100);
-      loanAmt = price - downAmt;
-      ltv = (loanAmt / price) * 100;
-      document.getElementById("purchaseLtv").value = ltv.toFixed(2);
-    }
+  if (!isNaN(ltvInput)) {
+    loanAmt = price * (ltvInput / 100);
+    downAmt = price - loanAmt;
+    ltv = ltvInput;
+    document.getElementById("downPct").value = ((downAmt / price) * 100).toFixed(2);
+  } else {
+    downAmt = price * ((pct || 0) / 100);
+    loanAmt = price - downAmt;
+    ltv = (loanAmt / price) * 100;
+    document.getElementById("purchaseLtv").value = ltv.toFixed(2);
   }
 
-  // If user is typing in LTV %
-  else if (source === "ltv") {
-    if (!isNaN(ltvInput)) {
-      loanAmt = price * (ltvInput / 100);
-      downAmt = price - loanAmt;
-      pct = (downAmt / price) * 100;
-      document.getElementById("downPct").value = pct.toFixed(2);
-    }
-  }
+  document.getElementById("downAmt").value = downAmt.toLocaleString();
+  document.getElementById("loanAmt").value = loanAmt.toLocaleString();
+}
 
-  // Update dollar fields
-  if (!isNaN(price)) {
-    document.getElementById("downAmt").value = (downAmt || 0).toLocaleString();
-    document.getElementById("loanAmt").value = (loanAmt || 0).toLocaleString();
-  }
 
   // NEW — update Required Down Payment line in results
   if (document.getElementById("requiredDownPmt")) {
