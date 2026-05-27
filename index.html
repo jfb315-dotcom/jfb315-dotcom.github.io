@@ -191,24 +191,34 @@
 
 <div id="purchaseInputs">
 
+
   <label>Purchase Price ($)</label>
+  <input id="price" type="text" inputmode="decimal" value="350,000" oninput="formatNumber(this); updatePurchaseCalcs()" />
   <input id="price" type="text" inputmode="decimal" value="350,000"
          oninput="formatNumber(this); updatePurchaseCalcs()" />
 
- <label>Down Payment %</label>
-<input id="downPct" type="text" inputmode="decimal" value="3.5"
-       oninput="updatePurchaseCalcs()" />
+  <label>Down Payment %</label>
+  <input id="downPct" type="text" inputmode="decimal" value="3.5"
+         oninput="updatePurchaseCalcs('pct')" />
+
+<label>Down Payment %</label>
+<input id="downPct" type="text" inputmode="decimal" value="3.5" oninput="updatePurchaseCalcs()" />
+  <label>Down Payment ($)</label>
+  <input id="downAmt" type="text" readonly />
 
 <label>Down Payment ($)</label>
 <input id="downAmt" type="text" readonly />
+  <label>Loan Amount ($)</label>
+  <input id="loanAmt" type="text" readonly />
 
 <label>Loan Amount ($)</label>
 <input id="loanAmt" type="text" readonly />
+  <label>LTV %</label>
+  <input id="purchaseLtv" type="text" inputmode="decimal"
+         oninput="updatePurchaseCalcs('ltv')" />
 
 <label>LTV %</label>
-<input id="purchaseLtv" type="text" inputmode="decimal"
-       oninput="updatePurchaseCalcs()" />
-
+<input id="purchaseLtv" type="text" inputmode="decimal" oninput="updatePurchaseCalcs()" />
 </div>
 
 
@@ -276,17 +286,15 @@
       <div class="line"><span>Monthly Taxes</span><span id="taxMoOut"></span></div>
       <div class="line"><span>Monthly Insurance</span><span id="insMoOut"></span></div>
 
-<hr style="border:0;border-top:1px solid var(--border);margin:8px 0;">
+      <hr style="border:0;border-top:1px solid var(--border);margin:8px 0;">
 
-<div class="line big">
-  <span>Total Monthly Payment</span>
-  <span id="pitiOut"></span>
-</div>
+      <div class="line big"><span>Total Monthly Payment</span><span id="pitiOut"></span></div>
+    </div>
 
-<button id="saveShotBtn" style="display:none; margin-top:12px;" onclick="saveScreenshot()">
-  Share Results
-</button>
-
+    <button id="saveShotBtn" style="display:none; margin-top:12px;" onclick="saveScreenshot()">
+      Share Results
+    </button>
+  </div>
 
   <!-- ⭐ Centered Rounded Popup Card -->
   <div id="previewOverlay" style="
@@ -581,21 +589,23 @@ function calc() {
   document.getElementById("insMoOut").textContent = fmt(insMo);
   document.getElementById("pitiOut").textContent = fmt(totalMo);
 
-  document.getElementById("results").style.display = "block";
-  document.getElementById("saveShotBtn").style.display = "block";
+document.getElementById("results").style.display = "block";
+document.getElementById("saveShotBtn").style.display = "block";
 
-  document.getElementById("results").scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
+document.getElementById("results").scrollIntoView({
+  behavior: "smooth",
+  block: "start"
+});
 }
-
+</script>
+<script>
 /* ---------------------------------------------------------
    SCREENSHOT → POPUP CARD → LONG‑PRESS SHARE
 --------------------------------------------------------- */
 async function saveScreenshot() {
   const results = document.getElementById("results");
 
+  // Capture screenshot of the results card
   const canvas = await html2canvas(results, {
     scale: 2,
     backgroundColor: "#111217"
@@ -603,35 +613,48 @@ async function saveScreenshot() {
 
   const dataUrl = canvas.toDataURL("image/png");
 
+  // Elements
   const overlay = document.getElementById("previewOverlay");
   const fullImg = document.getElementById("previewImage");
   const msg = document.getElementById("pressMessage");
 
+  // Set screenshot
   fullImg.src = dataUrl;
+
+  // Show message
   msg.style.display = "block";
 
+  // Show popup with fade‑in animation
   overlay.style.display = "flex";
   overlay.style.animation = "fadeInPopup 0.25s ease-out";
 
+  // Tap outside → close popup
   overlay.onclick = (e) => {
     if (e.target === overlay) {
       overlay.style.display = "none";
     }
   };
 
+  // AUTO‑HIDE message + AUTO‑CLOSE popup after long‑press
   fullImg.addEventListener("touchend", () => {
-    msg.style.display = "none";
+    msg.style.display = "none"; // hide message
+
+    // Close popup right after iOS/Android share menu appears
     setTimeout(() => {
       overlay.style.display = "none";
     }, 150);
   });
 }
 
-/* === Purchase Down Payment / LTV Sync Function === */
+  /* === Purchase Down Payment / LTV Sync Function === */
 function updatePurchaseCalcs() {
+/* === Purchase Down Payment / LTV Sync Function (Fixed) === */
+function updatePurchaseCalcs(source) {
   const price = parseFloat(document.getElementById("price").value.replace(/,/g, "")) || 0;
   const pct = parseFloat(document.getElementById("downPct").value);
   const ltvInput = parseFloat(document.getElementById("purchaseLtv").value);
+  let pct = parseFloat(document.getElementById("downPct").value);
+  let ltvInput = parseFloat(document.getElementById("purchaseLtv").value);
 
   let downAmt, loanAmt, ltv;
 
@@ -645,16 +668,39 @@ function updatePurchaseCalcs() {
     loanAmt = price - downAmt;
     ltv = (loanAmt / price) * 100;
     document.getElementById("purchaseLtv").value = ltv.toFixed(2);
+  // If user is typing in Down Payment %
+  if (source === "pct") {
+    if (!isNaN(pct)) {
+      downAmt = price * (pct / 100);
+      loanAmt = price - downAmt;
+      ltv = (loanAmt / price) * 100;
+      document.getElementById("purchaseLtv").value = ltv.toFixed(2);
+    }
+  }
+
+  // If user is typing in LTV %
+  else if (source === "ltv") {
+    if (!isNaN(ltvInput)) {
+      loanAmt = price * (ltvInput / 100);
+      downAmt = price - loanAmt;
+      pct = (downAmt / price) * 100;
+      document.getElementById("downPct").value = pct.toFixed(2);
+    }
   }
 
   document.getElementById("downAmt").value = downAmt.toLocaleString();
   document.getElementById("loanAmt").value = loanAmt.toLocaleString();
+  // Update dollar fields
+  if (!isNaN(price)) {
+    document.getElementById("downAmt").value = (downAmt || 0).toLocaleString();
+    document.getElementById("loanAmt").value = (loanAmt || 0).toLocaleString();
+  }
 }
 
 </script>
+
 </body>
 </html>
-
 
 
 
