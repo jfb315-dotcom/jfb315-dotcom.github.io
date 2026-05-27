@@ -276,13 +276,24 @@
       <div class="line"><span>Monthly Taxes</span><span id="taxMoOut"></span></div>
       <div class="line"><span>Monthly Insurance</span><span id="insMoOut"></span></div>
 
-      <hr style="border:0;border-top:1px solid var(--border);margin:8px 0;">
+<hr style="border:0;border-top:1px solid var(--border);margin:8px 0;">
 
-      <div class="line big"><span>Total Monthly Payment</span><span id="pitiOut"></span></div>
-    </div>
+<div class="line big">
+  <span>Total Monthly Payment</span>
+  <span id="pitiOut"></span>
+</div>
 
-    <button id="saveShotBtn" style="display:none; margin-top:12px;" onclick="saveScreenshot()">
-      Share Results
+<hr style="margin:10px 0; border:0; border-top:1px solid #ccc;" />
+
+<div class="line big" style="color:green;">
+  <span>Required Down Payment</span>
+  <span id="requiredDownPmt"></span>
+</div>
+
+<button id="saveShotBtn" style="display:none; margin-top:12px;" onclick="saveScreenshot()">
+  Share Results
+</button>
+
     </button>
   </div>
 
@@ -653,6 +664,30 @@ function updatePurchaseCalcs(source) {
       document.getElementById("purchaseLtv").value = ltv.toFixed(2);
     }
   }
+
+  // If user is typing in LTV %
+  else if (source === "ltv") {
+    if (!isNaN(ltvInput)) {
+      loanAmt = price * (ltvInput / 100);
+      downAmt = price - loanAmt;
+      pct = (downAmt / price) * 100;
+      document.getElementById("downPct").value = pct.toFixed(2);
+    }
+  }
+
+  // Update dollar fields
+  if (!isNaN(price)) {
+    document.getElementById("downAmt").value = (downAmt || 0).toLocaleString();
+    document.getElementById("loanAmt").value = (loanAmt || 0).toLocaleString();
+  }
+
+  // NEW — update Required Down Payment line in results
+  if (document.getElementById("requiredDownPmt")) {
+    document.getElementById("requiredDownPmt").innerText =
+      "$" + (downAmt || 0).toLocaleString();
+  }
+}
+
 
   // If user is typing in LTV %
   else if (source === "ltv") {
