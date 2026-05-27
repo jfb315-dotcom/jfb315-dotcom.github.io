@@ -581,23 +581,21 @@ function calc() {
   document.getElementById("insMoOut").textContent = fmt(insMo);
   document.getElementById("pitiOut").textContent = fmt(totalMo);
 
-document.getElementById("results").style.display = "block";
-document.getElementById("saveShotBtn").style.display = "block";
+  document.getElementById("results").style.display = "block";
+  document.getElementById("saveShotBtn").style.display = "block";
 
-document.getElementById("results").scrollIntoView({
-  behavior: "smooth",
-  block: "start"
-});
+  document.getElementById("results").scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
 }
-</script>
-<script>
+
 /* ---------------------------------------------------------
    SCREENSHOT → POPUP CARD → LONG‑PRESS SHARE
 --------------------------------------------------------- */
 async function saveScreenshot() {
   const results = document.getElementById("results");
 
-  // Capture screenshot of the results card
   const canvas = await html2canvas(results, {
     scale: 2,
     backgroundColor: "#111217"
@@ -605,39 +603,30 @@ async function saveScreenshot() {
 
   const dataUrl = canvas.toDataURL("image/png");
 
-  // Elements
   const overlay = document.getElementById("previewOverlay");
   const fullImg = document.getElementById("previewImage");
   const msg = document.getElementById("pressMessage");
 
-  // Set screenshot
   fullImg.src = dataUrl;
-
-  // Show message
   msg.style.display = "block";
 
-  // Show popup with fade‑in animation
   overlay.style.display = "flex";
   overlay.style.animation = "fadeInPopup 0.25s ease-out";
 
-  // Tap outside → close popup
   overlay.onclick = (e) => {
     if (e.target === overlay) {
       overlay.style.display = "none";
     }
   };
 
-  // AUTO‑HIDE message + AUTO‑CLOSE popup after long‑press
   fullImg.addEventListener("touchend", () => {
-    msg.style.display = "none"; // hide message
-
-    // Close popup right after iOS/Android share menu appears
+    msg.style.display = "none";
     setTimeout(() => {
       overlay.style.display = "none";
     }, 150);
   });
 }
-  
+
 /* === Purchase Down Payment / LTV Sync Function === */
 function updatePurchaseCalcs() {
   const price = parseFloat(document.getElementById("price").value.replace(/,/g, "")) || 0;
@@ -662,36 +651,11 @@ function updatePurchaseCalcs() {
   document.getElementById("loanAmt").value = loanAmt.toLocaleString();
 }
 
-
-  // NEW — update Required Down Payment line in results
-  if (document.getElementById("requiredDownPmt")) {
-    document.getElementById("requiredDownPmt").innerText =
-      "$" + (downAmt || 0).toLocaleString();
-  }
-}
-
-
-  // If user is typing in LTV %
-  else if (source === "ltv") {
-    if (!isNaN(ltvInput)) {
-      loanAmt = price * (ltvInput / 100);
-      downAmt = price - loanAmt;
-      pct = (downAmt / price) * 100;
-      document.getElementById("downPct").value = pct.toFixed(2);
-    }
-  }
-
-  // Update dollar fields
-  if (!isNaN(price)) {
-    document.getElementById("downAmt").value = (downAmt || 0).toLocaleString();
-    document.getElementById("loanAmt").value = (loanAmt || 0).toLocaleString();
-  }
-}
-
 </script>
-
 </body>
 </html>
+
+
 
 
 
