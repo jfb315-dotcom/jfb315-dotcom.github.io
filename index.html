@@ -155,99 +155,56 @@
     <div class="toggle-row">
       <div id="btnPurchase" class="toggle-btn active" onclick="setMode('purchase')">Purchase</div>
       <div id="btnRefi" class="toggle-btn" onclick="setMode('refi')">Refinance</div>
-</div>
+    </div>
 
-<!-- Estimated Credit Score -->
-<div class="input-group">
-  <label for="creditScore">Estimated Credit Score</label>
-  <select id="creditScore">
-    <option value="760">760+</option>
-    <option value="740">740–759</option>
-    <option value="720">720–739</option>
-    <option value="700">700–719</option>
-    <option value="680">680–699</option>
-    <option value="660">660–679</option>
-    <option value="640">640–659</option>
-    <option value="600">600–639</option>
-  </select>
-</div>
+    <div id="purchaseInputs">
+      <h2>Purchase Inputs</h2>
 
-<!-- Loan Type (moved here above Purchase Price) -->
-<div class="input-group">
-  <label for="loanType">Loan Type</label>
-  <select id="loanType" onchange="toggleManualMI()">
-    <option value="FHA">FHA</option>
-    <option value="USDA">USDA</option>
-    <option value="VA">VA</option>
-    <option value="Conventional">Conventional</option>
-  </select>
-</div>
+      <label>Purchase Price ($)</label>
+      <input id="price" type="text" inputmode="decimal" value="350,000" oninput="formatNumber(this)" />
 
-<!-- Manual MI block stays tied to Loan Type -->
-<div id="manualMiBlock" style="display:none;">
-  <label>Manual MI % (Annual)</label>
-  <input id="manualMi" type="text" inputmode="decimal" placeholder="0.62" />
-</div>
+      <label>Down Payment %</label>
+      <input id="downPct" type="text" inputmode="decimal" value="3.5" />
+    </div>
 
-<div id="purchaseInputs">
+    <div id="refiInputs" style="display:none;">
+      <h2>Refinance Inputs</h2>
 
+      <label>Home Value ($)</label>
+      <input id="homeValue" type="text" inputmode="decimal" value="400,000" oninput="onHomeValueChange()" />
 
-  <label>Purchase Price ($)</label>
-  <input id="price" type="text" inputmode="decimal" value="350,000" oninput="formatNumber(this); updatePurchaseCalcs()" />
-  <input id="price" type="text" inputmode="decimal" value="350,000"
-         oninput="formatNumber(this); updatePurchaseCalcs()" />
+      <label>Loan Amount ($)</label>
+      <input id="refiLoanAmt" type="text" inputmode="numeric" value="320,000" oninput="onRefiLoanChange()" />
 
-  <label>Down Payment %</label>
-  <input id="downPct" type="text" inputmode="decimal" value="3.5"
-         oninput="updatePurchaseCalcs('pct')" />
+      <label>LTV %</label>
+      <input id="refiLtv" type="text" inputmode="decimal" value="80" oninput="onRefiLtvChange()" />
+    </div>
 
-<label>Down Payment %</label>
-<input id="downPct" type="text" inputmode="decimal" value="3.5" oninput="updatePurchaseCalcs()" />
-  <label>Down Payment ($)</label>
-  <input id="downAmt" type="text" readonly />
+    <h2>Loan Details</h2>
 
-<label>Down Payment ($)</label>
-<input id="downAmt" type="text" readonly />
-  <label>Loan Amount ($)</label>
-  <input id="loanAmt" type="text" readonly />
+    <div class="row">
+      <div>
+        <label>Interest Rate %</label>
+        <input id="rate" type="text" inputmode="decimal" value="6.25" />
+      </div>
+      <div>
+        <label>Loan Term (Years)</label>
+        <input id="term" type="text" inputmode="numeric" value="30" />
+      </div>
+    </div>
 
-<label>Loan Amount ($)</label>
-<input id="loanAmt" type="text" readonly />
-  <label>LTV %</label>
-  <input id="purchaseLtv" type="text" inputmode="decimal"
-         oninput="updatePurchaseCalcs('ltv')" />
+    <label>Loan Type</label>
+    <select id="loanType" onchange="toggleManualMI()">
+      <option value="FHA">FHA</option>
+      <option value="USDA">USDA</option>
+      <option value="VA">VA</option>
+      <option value="Conventional">Conventional</option>
+    </select>
 
-<label>LTV %</label>
-<input id="purchaseLtv" type="text" inputmode="decimal" oninput="updatePurchaseCalcs()" />
-</div>
-
-
-
-<div id="refiInputs" style="display:none;">
-  <h2>Refinance Inputs</h2>
-
-  <label>Home Value ($)</label>
-  <input id="homeValue" type="text" inputmode="decimal" value="400,000" oninput="onHomeValueChange()" />
-
-  <label>Loan Amount ($)</label>
-  <input id="refiLoanAmt" type="text" inputmode="numeric" value="320,000" oninput="onRefiLoanChange()" />
-
-  <label>LTV %</label>
-  <input id="refiLtv" type="text" inputmode="decimal" value="80" oninput="onRefiLtvChange()" />
-</div>
-
-
-<div class="row">
-  <div>
-    <label>Interest Rate %</label>
-    <input id="rate" type="text" inputmode="decimal" value="6.25" />
-  </div>
-  <div>
-    <label>Loan Term (Years)</label>
-    <input id="term" type="text" inputmode="numeric" value="30" />
-  </div>
-</div>
-
+    <div id="manualMiBlock" style="display:none;">
+      <label>Manual MI % (Annual)</label>
+      <input id="manualMi" type="text" inputmode="decimal" placeholder="0.62" />
+    </div>
 
     <h2>Annual Property Costs</h2>
 
@@ -645,58 +602,6 @@ async function saveScreenshot() {
     }, 150);
   });
 }
-
-  /* === Purchase Down Payment / LTV Sync Function === */
-function updatePurchaseCalcs() {
-/* === Purchase Down Payment / LTV Sync Function (Fixed) === */
-function updatePurchaseCalcs(source) {
-  const price = parseFloat(document.getElementById("price").value.replace(/,/g, "")) || 0;
-  const pct = parseFloat(document.getElementById("downPct").value);
-  const ltvInput = parseFloat(document.getElementById("purchaseLtv").value);
-  let pct = parseFloat(document.getElementById("downPct").value);
-  let ltvInput = parseFloat(document.getElementById("purchaseLtv").value);
-
-  let downAmt, loanAmt, ltv;
-
-  if (!isNaN(ltvInput)) {
-    loanAmt = price * (ltvInput / 100);
-    downAmt = price - loanAmt;
-    ltv = ltvInput;
-    document.getElementById("downPct").value = ((downAmt / price) * 100).toFixed(2);
-  } else {
-    downAmt = price * ((pct || 0) / 100);
-    loanAmt = price - downAmt;
-    ltv = (loanAmt / price) * 100;
-    document.getElementById("purchaseLtv").value = ltv.toFixed(2);
-  // If user is typing in Down Payment %
-  if (source === "pct") {
-    if (!isNaN(pct)) {
-      downAmt = price * (pct / 100);
-      loanAmt = price - downAmt;
-      ltv = (loanAmt / price) * 100;
-      document.getElementById("purchaseLtv").value = ltv.toFixed(2);
-    }
-  }
-
-  // If user is typing in LTV %
-  else if (source === "ltv") {
-    if (!isNaN(ltvInput)) {
-      loanAmt = price * (ltvInput / 100);
-      downAmt = price - loanAmt;
-      pct = (downAmt / price) * 100;
-      document.getElementById("downPct").value = pct.toFixed(2);
-    }
-  }
-
-  document.getElementById("downAmt").value = downAmt.toLocaleString();
-  document.getElementById("loanAmt").value = loanAmt.toLocaleString();
-  // Update dollar fields
-  if (!isNaN(price)) {
-    document.getElementById("downAmt").value = (downAmt || 0).toLocaleString();
-    document.getElementById("loanAmt").value = (loanAmt || 0).toLocaleString();
-  }
-}
-
 </script>
 
 </body>
