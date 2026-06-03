@@ -2,40 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>HMS Mortgage Calculator</title>
+  <title>HMS Mortgage Calculator Pro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <style>
     :root {
-      --bg: #0f1012;
-      --card: #181a1f;
-      --border: #262932;
-      --accent: #ff8200;
-      --text: #ffffff;
-      --muted: #a0a4b0;
+      --bg: #002240;       
+      --card: #00335c;     
+      --border: #1a4a73;   
+      --accent: #005a9c;   
+      --text: #ffffff;     
+      --muted: #8cb1d0;    
     }
 
     * { box-sizing: border-box; }
 
-    /* 🔥 Pulsing Glow Animation for Instruction Pill */
     @keyframes pulseGlow {
-      0% {
-        box-shadow:
-          0 0 14px rgba(255,130,0,0.75),
-          0 0 28px rgba(255,130,0,0.45);
-      }
-      50% {
-        box-shadow:
-          0 0 22px rgba(255,130,0,1),
-          0 0 38px rgba(255,130,0,0.65);
-      }
-      100% {
-        box-shadow:
-          0 0 14px rgba(255,130,0,0.75),
-          0 0 28px rgba(255,130,0,0.45);
-      }
+      0% { box-shadow: 0 0 14px rgba(0,90,156,0.75), 0 0 28px rgba(0,90,156,0.45); }
+      50% { box-shadow: 0 0 22px rgba(0,90,156,1), 0 0 38px rgba(0,90,156,0.65); }
+      100% { box-shadow: 0 0 14px rgba(0,90,156,0.75), 0 0 28px rgba(0,90,156,0.45); }
     }
 
+    /* Eye-catching pulse/glow animation for the high-intent callout button */
+    @keyframes featureGlow {
+      0% {
+        box-shadow: 0 0 4px rgba(226, 190, 74, 0.4), inset 0 0 4px rgba(226, 190, 74, 0.2);
+        border-color: #c9a33b;
+      }
+      50% {
+        box-shadow: 0 0 16px rgba(226, 190, 74, 0.85), inset 0 0 8px rgba(226, 190, 74, 0.4);
+        border-color: #fff;
+      }
+      100% {
+        box-shadow: 0 0 4px rgba(226, 190, 74, 0.4), inset 0 0 4px rgba(226, 190, 74, 0.2);
+        border-color: #c9a33b;
+      }
+    }
 
     body {
       margin: 0;
@@ -50,51 +52,94 @@
       padding: 20px 16px 40px;
     }
 
-    h1 { font-size: 1.6rem; margin: 0 0 4px; }
-    .subtitle { font-size: 0.8rem; color: var(--muted); margin-bottom: 16px; }
-    h2 { font-size: 1.05rem; margin: 20px 0 8px; color: var(--accent); }
+    h1 { font-size: 1.5rem; margin: 0 0 4px; font-weight: 700; text-align: center; }
+    .subtitle { font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; text-align: center; }
+    h2 { font-size: 1.05rem; margin: 24px 0 10px; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
 
-    label { display: block; font-size: 0.8rem; margin-bottom: 4px; }
+    label { display: block; font-size: 0.8rem; margin-bottom: 4px; font-weight: 600; color: var(--muted); }
 
     .toggle-row {
       display: flex;
-      gap: 10px;
+      gap: 6px;
       margin-bottom: 16px;
     }
 
     .toggle-btn {
       flex: 1;
-      padding: 12px;
+      padding: 10px 2px;
       text-align: center;
-      border-radius: 10px;
+      border-radius: 8px;
       border: 1px solid var(--border);
-      background: #14151a;
-      color: var(--text);
+      background: rgba(0, 34, 64, 0.5);
+      color: var(--muted);
+      font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
+      transition: all 0.2s ease;
     }
 
     .toggle-btn.active {
       background: var(--accent);
-      color: #111;
-      border-color: var(--accent);
+      color: #fff;
+      border-color: #fff;
     }
 
-    input, select {
+    /* Target specific standalone style for the active glowing feature mode */
+    .toggle-btn.glow-accent {
+      animation: featureGlow 2.5s infinite ease-in-out;
+      color: #fff;
+      font-weight: 700;
+    }
+    .toggle-btn.glow-accent.active {
+      background: #b58f16;
+      animation: none;
+      box-shadow: 0 0 14px rgba(226, 190, 74, 0.6);
+      border-color: #fff;
+    }
+
+    input[type="text"], input[type="email"], input[type="tel"], select {
       width: 100%;
       padding: 10px 12px;
-      border-radius: 10px;
+      border-radius: 8px;
       border: 1px solid var(--border);
-      background: #14151a;
+      background: #00172d;
       color: var(--text);
       font-size: 0.95rem;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
       appearance: none;
     }
 
     input:focus, select:focus {
-      outline: 1px solid var(--accent);
-      border-color: var(--accent);
+      outline: 1px solid var(--text);
+      border-color: var(--text);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: transparent;
+      margin-bottom: 18px;
+    }
+
+    input[type="range"]:focus { outline: none; }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      background: var(--text);
+      border: 2px solid var(--accent);
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -7px;
     }
 
     .row { display: flex; gap: 10px; }
@@ -102,508 +147,1030 @@
 
     button {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       margin-top: 8px;
-      border-radius: 999px;
-      border: none;
+      border-radius: 8px;
+      border: 1px solid var(--border);
       background: var(--accent);
-      color: #111;
+      color: #fff;
       font-weight: 600;
       font-size: 1rem;
       cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
+    button:hover { background: #006ec2; }
+
     .card {
-      margin-top: 18px;
-      padding: 14px 12px;
-      border-radius: 14px;
+      margin-top: 24px;
+      padding: 24px 18px;
+      border-radius: 12px;
       background: var(--card);
-      border: 1px solid var(--border);
+      border: 2px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
     }
 
     .line {
       display: flex;
       justify-content: space-between;
       font-size: 0.9rem;
-      margin: 2px 0;
+      margin: 7px 0;
+      color: #e2ecf5;
     }
 
-    .big { font-size: 1.25rem; font-weight: 700; }
-    .muted { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+    .big { font-size: 1.3rem; font-weight: 700; margin-top: 12px; color: #fff; }
+    .muted { font-size: 0.78rem; color: var(--muted); text-align: center; margin-top: 14px; letter-spacing: 0.5px; }
 
-    /* ⭐ Fade‑in animation for popup card */
-    @keyframes fadeInPopup {
-      from {
-        opacity: 0;
-        transform: scale(0.92);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
+    .chart-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 22px 0;
     }
-  </style>
+
+    .donut-ring {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) 0%, var(--accent) 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .donut-hole {
+      width: 92px;
+      height: 92px;
+      background: var(--card);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 4px;
+    }
+
+    .donut-total {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    .legend-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-size: 0.8rem;
+      margin-bottom: 16px;
+      padding: 0 6px;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 8px; color: #e2ecf5; }
+    .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+
+    /* Workspace Configurator */
+    .scenario-bank {
+      display: flex;
+      flex-direction: column;
+      background: rgba(0,23,45,0.6);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .scenario-row {
+      display: flex;
+      gap: 6px;
+    }
+    .scenario-btn {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 6px;
+      text-align: center;
+      margin-top: 0;
+      box-shadow: none;
+      transition: all 0.2s ease;
+    }
+    .scenario-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: #fff;
+    }
+
+    /* Side-by-Side Table Layout */
+    .comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #e2ecf5;
+    }
+    .comp-table th {
+      background: #00172d;
+      color: #fff;
+      font-weight: 600;
+      padding: 8px;
+      border: 1px solid var(--border);
+    }
+    .comp-table td {
+      padding: 8px;
+      border: 1px solid var(--border);
+    }
+    .comp-table tr:nth-child(even) {
+      background: rgba(0,0,0,0.1);
+    }
+    .comp-highlight {
+      font-weight: 700;
+      color: #fff;
+      background: rgba(0, 90, 156, 0.2);
+    }
+
+    .action-grid {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .action-grid button { margin-top: 0; flex: 1; min-width: 120px; }
+
+    /* Contact Pop-up Overlay styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,34,64,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      padding: 20px;
+    }
+    .modal-box {
+      background: #00335c;
+      padding: 24px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      border: 2px solid var(--border);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    }
+    .modal-box h3 { margin-top: 0; margin-bottom: 12px; color: #fff; font-size: 1.2rem; text-align: center; }
+</style>
 </head>
 
 <body>
   <div class="app">
-    <img src="email-logo.png" style="width:160px; display:block; margin:0 auto 20px;" />
-
-    <h1>HMS Mortgage Calculator</h1>
-    <div class="subtitle">Mobile Quick Calc • Estimates only</div>
+    <img src="email-logo.png" style="width:100%; max-width:280px; display:block; margin: 0 auto 16px; border-radius: 4px;" alt="Home Mortgage Solutions Logo" />
+<button onclick="window.location.reload();" style="width: 100%; margin-bottom: 20px; padding: 10px; background: #1a4a73; border: 1px solid #ffffff; color: #fff; font-size: 0.8rem; cursor: pointer; border-radius: 8px;">
+  ↻ Refresh / Reset Calculator
+</button>
+    <h1>Mortgage Calculator</h1>
+    <div class="subtitle">Home Mortgage Solutions, LLC</div>
 
     <div class="toggle-row">
-      <div id="btnPurchase" class="toggle-btn active" onclick="setMode('purchase')">Purchase</div>
-      <div id="btnRefi" class="toggle-btn" onclick="setMode('refi')">Refinance</div>
+      <div id="btnPurchase" class="toggle-btn active" onclick="setMode('purchase'); calc()">Purchase</div>
+      <div id="btnRefi" class="toggle-btn" onclick="setMode('refi'); calc()">Refinance</div>
+      <div id="btnTarget" class="toggle-btn glow-accent" onclick="setMode('target'); calc()">What Can I Afford?</div>
+    </div>
+
+    <div class="scenario-bank">
+      <label style="margin-bottom:2px; text-align:center;">Compare multiple products</label>
+      <div class="scenario-row">
+        <div id="scenA" class="scenario-btn active" onclick="switchActiveSlot('A')">Scenario A</div>
+        <div id="scenB" class="scenario-btn" onclick="switchActiveSlot('B')">Scenario B</div>
+      </div>
+    </div>
+
+    <div id="creditScoreBlock">
+      <label>Estimated Credit Score</label>
+      <select id="creditScore" onchange="syncAndCalc()">
+        <option value="760">760+ (Excellent)</option>
+        <option value="720">720 - 759 (Very Good)</option>
+        <option value="680">680 - 719 (Good)</option>
+        <option value="640">640 - 679 (Fair)</option>
+        <option value="620">620 - 639 (Subprime)</option>
+      </select>
     </div>
 
     <div id="purchaseInputs">
       <h2>Purchase Inputs</h2>
-
       <label>Purchase Price ($)</label>
-      <input id="price" type="text" inputmode="decimal" value="350,000" oninput="formatNumber(this)" />
+      <input id="price" type="text" inputmode="decimal" value="400,000" oninput="onPriceTextChange(); syncAndCalc()" />
+      <input id="priceSlider" type="range" min="50000" max="1500000" step="5000" value="400000" oninput="onPriceSliderChange(); syncAndCalc()" />
 
-      <label>Down Payment %</label>
-      <input id="downPct" type="text" inputmode="decimal" value="3.5" />
+      <div class="row">
+        <div>
+          <label>Down Payment ($)</label>
+          <input id="downCash" type="text" inputmode="decimal" value="40,000" oninput="onDownCashTextChange(); syncAndCalc()" />
+        </div>
+        <div>
+          <label>Down Payment %</label>
+          <input id="downPct" type="text" inputmode="decimal" value="10" oninput="onDownPctTextChange(); syncAndCalc()" />
+        </div>
+      </div>
+      <input id="downPctSlider" type="range" min="0" max="50" step="0.5" value="10" oninput="onDownPctSliderChange(); syncAndCalc()" />
     </div>
 
     <div id="refiInputs" style="display:none;">
       <h2>Refinance Inputs</h2>
-
       <label>Home Value ($)</label>
-      <input id="homeValue" type="text" inputmode="decimal" value="400,000" oninput="onHomeValueChange()" />
+      <input id="homeValue" type="text" inputmode="decimal" value="400,000" oninput="onHomeValueChange(); syncAndCalc()" />
+      <input id="homeValueSlider" type="range" min="50000" max="1500000" step="5000" value="400000" oninput="syncSliderToText('homeValueSlider', 'homeValue'); onHomeValueChange(); syncAndCalc()" />
 
       <label>Loan Amount ($)</label>
-      <input id="refiLoanAmt" type="text" inputmode="numeric" value="320,000" oninput="onRefiLoanChange()" />
+      <input id="refiLoanAmt" type="text" inputmode="numeric" value="360,000" oninput="onRefiLoanChange(); syncAndCalc()" />
+      <input id="refiLoanSlider" type="range" min="30000" max="1400000" step="5000" value="360000" oninput="syncSliderToText('refiLoanSlider', 'refiLoanAmt'); onRefiLoanChange(); syncAndCalc()" />
 
       <label>LTV %</label>
-      <input id="refiLtv" type="text" inputmode="decimal" value="80" oninput="onRefiLtvChange()" />
+      <input id="refiLtv" type="text" inputmode="decimal" value="90" oninput="onRefiLtvChange(); syncAndCalc()" />
+      <input id="refiLtvSlider" type="range" min="10" max="100" step="0.5" value="90" oninput="syncSliderToText('refiLtvSlider', 'refiLtv'); onRefiLtvChange(); syncAndCalc()" />
+    </div>
+
+    <div id="targetInputs" style="display:none;">
+      <h2>What Can I Afford? (Target Budget Mode)</h2>
+      <label>Target Maximum Monthly Payment ($)</label>
+      <input id="targetPiti" type="text" inputmode="decimal" value="2,500" oninput="syncTextToSlider('targetPiti', 'targetPitiSlider'); syncAndCalc()" />
+      <input id="targetPitiSlider" type="range" min="500" max="10000" step="50" value="2500" oninput="syncSliderToText('targetPitiSlider', 'targetPiti'); syncAndCalc()" />
+      
+      <label>Down Payment Cash Target ($)</label>
+      <input id="targetDownCash" type="text" inputmode="decimal" value="25,000" oninput="syncTextToSlider('targetDownCash', 'targetDownCashSlider'); syncAndCalc()" />
+      <input id="targetDownCashSlider" type="range" min="0" max="300000" step="1000" value="25000" oninput="syncSliderToText('targetDownCashSlider', 'targetDownCash'); syncAndCalc()" />
     </div>
 
     <h2>Loan Details</h2>
-
     <div class="row">
       <div>
         <label>Interest Rate %</label>
-        <input id="rate" type="text" inputmode="decimal" value="6.25" />
+        <input id="rate" type="text" inputmode="decimal" value="6.5" oninput="syncTextToSlider('rate', 'rateSlider'); syncAndCalc()" />
+        <input id="rateSlider" type="range" min="2" max="12" step="0.125" value="6.5" oninput="syncSliderToText('rateSlider', 'rate'); syncAndCalc()" />
       </div>
       <div>
         <label>Loan Term (Years)</label>
-        <input id="term" type="text" inputmode="numeric" value="30" />
+        <select id="term" onchange="syncAndCalc()">
+          <option value="30">30 Years</option>
+          <option value="20">20 Years</option>
+          <option value="15">15 Years</option>
+          <option value="10">10 Years</option>
+        </select>
       </div>
     </div>
 
     <label>Loan Type</label>
-    <select id="loanType" onchange="toggleManualMI()">
-      <option value="FHA">FHA</option>
-      <option value="USDA">USDA</option>
-      <option value="VA">VA</option>
+    <select id="loanType" onchange="updateProgramInputs(); syncAndCalc()">
       <option value="Conventional">Conventional</option>
+      <option value="FHA">FHA</option>
+      <option value="VA">VA</option>
+      <option value="USDA">USDA</option>
     </select>
 
+    <div id="vaStatusBlock" style="display:none;">
+      <label>VA Funding Fee Status</label>
+      <select id="vaStatus" onchange="syncAndCalc()">
+        <option value="first">First Time Use</option>
+        <option value="subsequent">Subsequent Use</option>
+        <option value="exempt">Exempt (VA Disability Drawn - 0%)</option>
+      </select>
+    </div>
+
     <div id="manualMiBlock" style="display:none;">
-      <label>Manual MI % (Annual)</label>
-      <input id="manualMi" type="text" inputmode="decimal" placeholder="0.62" />
+      -- Override MI % (Annual - Optional) --
+      <input id="manualMi" type="text" inputmode="decimal" placeholder="Auto-calculated" oninput="syncAndCalc()" />
     </div>
 
     <h2>Annual Property Costs</h2>
-
     <div class="row">
       <div>
-        <label>Property Taxes ($)</label>
-        <input id="taxes" type="text" inputmode="decimal" value="1,200" oninput="formatNumber(this)" />
+        <label>Property Taxes ($/Year)</label>
+        <input id="taxes" type="text" inputmode="decimal" value="2,400" oninput="syncTextToSlider('taxes', 'taxesSlider'); syncAndCalc()" />
+        <input id="taxesSlider" type="range" min="0" max="12000" step="100" value="2400" oninput="syncSliderToText('taxesSlider', 'taxes'); syncAndCalc()" />
       </div>
       <div>
-        <label>Home Insurance ($)</label>
-        <input id="ins" type="text" inputmode="decimal" value="1,200" oninput="formatNumber(this)" />
+        <label>Home Insurance ($/Year)</label>
+        <input id="ins" type="text" inputmode="decimal" value="1,500" oninput="syncTextToSlider('ins', 'insSlider'); syncAndCalc()" />
+        <input id="insSlider" type="range" min="0" max="6000" step="100" value="1500" oninput="syncSliderToText('insSlider', 'ins'); syncAndCalc()" />
       </div>
     </div>
 
-    <button onclick="calc()">Calculate Payment</button>
+    <button onclick="scrollToResults()">Review calculations below</button>
 
-    <div class="card" id="results" style="display:none;">
-      <img src="email-logo.png" style="width:140px; display:block; margin:0 auto 10px;" />
-      <h3>Payment Breakdown</h3>
+    <div class="card" id="results">
+      <img src="email-logo.png" style="width:100%; max-width:200px; display:block; margin:0 auto 12px; border-radius: 4px;" alt="Home Mortgage Solutions Logo" />
+      <h3 id="cardHeaderTitle" style="text-align:center; margin-bottom:12px; font-size:1.1rem; color:#fff;">Payment Breakdown Estimate</h3>
 
-      <div class="line">
-        <span id="valueLabel"></span>
-        <span id="valueOut"></span>
+      <div id="standardOutputViews">
+        <div class="chart-container">
+          <div id="donutRing" class="donut-ring">
+            <div class="donut-hole">
+              <span id="donutCenterLabel">Total PITI</span>
+              <span id="donutTotalText" class="donut-total">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend-grid">
+          <div class="legend-item"><span class="dot" style="background:var(--accent);"></span>P&I</div>
+          <div class="legend-item"><span class="dot" style="background:#4ae290;"></span>Monthly MI</div>
+          <div class="legend-item"><span class="dot" style="background:#e2be4a;"></span>Taxes</div>
+          <div class="legend-item"><span class="dot" style="background:#e24a4a;"></span>Insurance</div>
+        </div>
+
+        <div class="line"><span>Credit Score Target</span><span id="creditScoreOut">-</span></div>
+        <div class="line"><span id="valueLabel">Purchase Price</span><span id="valueOut">$0.00</span></div>
+        <div class="line"><span>Loan Type</span><span id="loanTypeOut">-</span></div>
+        <div class="line"><span>Loan-to-Value (LTV)</span><span id="ltvOut">0.00%</span></div>
+        <div class="line"><span>Base Loan Amount</span><span id="loanBaseOut">$0.00</span></div>
+        <div class="line"><span>Upfront Fee Financed</span><span id="ufmipOut">$0.00</span></div>
+        <div class="line"><span>Total Loan Amount</span><span id="loanAmtOut">$0.00</span></div>
+
+        <hr style="border:0;border-top:1px solid var(--border);margin:12px 0;">
+        
+        <div class="line"><span>P&I Payment</span><span id="piOut">$0.00</span></div>
+        <div class="line"><span>Monthly MI</span><span id="miOut">$0.00</span></div>
+        <div class="line"><span>Monthly Taxes</span><span id="taxMoOut">$0.00</span></div>
+        <div class="line"><span>Monthly Insurance</span><span id="insMoOut">$0.00</span></div>
+
+        <hr style="border:0;border-top:1px solid var(--border);margin:12px 0;">
+
+        <div class="line big">
+          <span id="totalLabelText">Total Monthly Payment</span>
+          <span id="pitiOut" style="color:#fff;">$0.00</span>
+        </div>
       </div>
 
-      <div class="line"><span>Loan Type</span><span id="loanTypeOut"></span></div>
-      <div class="line"><span>Loan-to-Value (LTV)</span><span id="ltvOut"></span></div>
+      <div id="sideBySideMatrixView" style="display:none; margin-top:10px;">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Scenario A</th>
+              <th>Scenario B</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Credit Score</td><td id="tdScoreA">-</td><td id="tdScoreB">-</td></tr>
+            <tr><td>Mode</td><td id="tdModeA">-</td><td id="tdModeB">-</td></tr>
+            <tr><td>Property Size / Value</td><td id="tdValA">-</td><td id="tdValB">-</td></tr>
+            <tr><td>Program</td><td id="tdProgA">-</td><td id="tdProgB">-</td></tr>
+            <tr><td>Interest Rate</td><td id="tdRateA">-</td><td id="tdRateB">-</td></tr>
+            <tr><td>Total Financing</td><td id="tdLoanA">-</td><td id="tdLoanB">-</td></tr>
+            <tr><td>P&I Payment</td><td id="tdPiA">-</td><td id="tdPiB">-</td></tr>
+            <tr><td>Monthly MI</td><td id="tdMiA">-</td><td id="tdMiB">-</td></tr>
+            <tr><td>Escrows (Tax/Ins)</td><td id="tdEscrowA">-</td><td id="tdEscrowB">-</td></tr>
+            <tr class="comp-highlight"><td>Total PITI</td><td id="tdPitiA">-</td><td id="tdPitiB">-</td></tr>
+          </tbody>
+        </table>
+      </div>
 
-      <div class="line"><span>Base Loan Amount</span><span id="loanBaseOut"></span></div>
-      <div class="line"><span>UFMIP Added</span><span id="ufmipOut"></span></div>
-      <div class="line"><span>Total Loan Amount</span><span id="loanAmtOut"></span></div>
-
-      <hr style="border:0;border-top:1px solid var(--border);margin:8px 0;">
-      <div class="line"><span>P&I Payment</span><span id="piOut"></span></div>
-      <div class="line"><span>Monthly MI</span><span id="miOut"></span></div>
-      <div class="line"><span>Monthly Taxes</span><span id="taxMoOut"></span></div>
-      <div class="line"><span>Monthly Insurance</span><span id="insMoOut"></span></div>
-
-      <hr style="border:0;border-top:1px solid var(--border);margin:8px 0;">
-
-      <div class="line big"><span>Total Monthly Payment</span><span id="pitiOut"></span></div>
+      <div class="muted" style="color: var(--muted); border-top: 1px solid var(--border); padding-top: 12px; margin-top: 16px;">
+        Home Mortgage Solutions, LLC • Quick Quote Estimate
+      </div>
     </div>
 
-    <button id="saveShotBtn" style="display:none; margin-top:12px;" onclick="saveScreenshot()">
-      Share Results
-    </button>
+    <div class="action-grid">
+      <button id="saveShotBtn" style="background: #002240; border-color: var(--border);" onclick="saveScreenshot()">
+        Share Image
+      </button>
+      <button id="toggleCompBtn" style="background: #5c3b00; border-color: #8f5d00;" onclick="toggleComparisonDisplay()">
+        Compare Side-by-Side
+      </button>
+      <button id="copyTxtBtn" style="background: #115330; border-color: #1a7343;" onclick="copyTextSummary()">
+        Copy Text
+      </button>
+    </div>
+
+    <h2>Connect With a Loan Officer</h2>
+    <div class="action-grid">
+      <button style="background: #005a9c; border-color: #fff; font-weight: bold;" onclick="openContactModal('John Bischof', '4235059811')">
+        Text John Bischof
+      </button>
+      <button style="background: #005a9c; border-color: #fff; font-weight: bold;" onclick="openContactModal('Darrell Whitaker', '4235051376')">
+        Text Darrell Whitaker
+      </button>
+    </div>
   </div>
 
-  <!-- ⭐ Centered Rounded Popup Card -->
-  <div id="previewOverlay" style="
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.55);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 99999;
-    padding: 20px;
-    animation: fadeInPopup 0.25s ease-out;
-  ">
-    <div style="
-      background: #1c1e24;
-      padding: 18px;
-      border-radius: 16px;
-      width: 92%;
-      max-width: 420px;
-      text-align: center;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.45);
-    ">
-      <div id="pressMessage" style="
-  background: rgba(255,130,0,0.28);
-  color: var(--accent);
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 16px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  /* Glow + Pulse Animation */
-  animation: pulseGlow 1.8s ease-in-out infinite;
-">
-        Long‑press the image to copy or share your results.
+  <div id="previewOverlay" style="position: fixed; inset: 0; background: rgba(0,34,64,0.85); display: none; justify-content: center; align-items: center; z-index: 99999; padding: 20px;">
+    <div style="background: #00335c; padding: 20px; border-radius: 12px; width: 94%; max-width: 420px; text-align: center; border: 1px solid var(--border);">
+      <div id="pressMessage" style="background: var(--accent); color: #fff; padding: 10px 18px; border-radius: 6px; font-size: 0.9rem; font-weight: 700; margin-bottom: 16px; animation: pulseGlow 1.8s ease-in-out infinite;">
+        Long‑press image to save or share!
       </div>
-
-      <img id="previewImage" style="
-        width: 100%;
-        border-radius: 12px;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.35);
-      " />
+      <img id="previewImage" style="width: 100%; border-radius: 8px;" alt="Preview"/>
     </div>
   </div>
-<!-- HTML2Canvas -->
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
+  <div id="contactModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3 id="modalTitle">Contact Officer</h3>
+      <p style="font-size: 0.8rem; color: var(--muted); text-align: center; margin-top:-6px; margin-bottom:16px;">
+        Enter your details to instantly format your quote and text it over.
+      </p>
+      
+      <label>Your Full Name</label>
+      <input id="clientName" type="text" placeholder="John Doe" />
+
+      <label>Your Phone Number</label>
+      <input id="clientPhone" type="tel" placeholder="(423) 555-0123" />
+
+      <label>Your Email Address</label>
+      <input id="clientEmail" type="email" placeholder="name@example.com" />
+
+      <div class="row" style="margin-top:14px;">
+        <button style="background:transparent; border-color:var(--border); color:var(--muted);" onclick="closeContactModal()">
+          Cancel
+        </button>
+        <button style="background:#115330; border-color:#1a7343;" onclick="executeSmsRedirect()">
+          Send Text
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
-/* ---------------------------------------------------------
-   MODE SWITCHING (Purchase / Refi)
---------------------------------------------------------- */
 let mode = "purchase";
 let isSyncing = false;
+let currentScenarioSlot = "A";
+let viewingComparison = false;
+
+let activeTargetOfficerName = "";
+let activeTargetOfficerPhone = "";
+
+let calculatedOutputs = {
+  A: null,
+  B: null
+};
+
+let scenarios = {
+  A: { mode: "purchase", price: "400,000", downCash: "40,000", downPct: "10", homeValue: "400,000", refiLoanAmt: "360,000", refiLtv: "90", rate: "6.5", term: "30", loanType: "Conventional", creditScore: "760", vaStatus: "first", manualMi: "", taxes: "2,400", ins: "1,500", targetPiti: "2,500", targetDownCash: "25,000" },
+  B: { mode: "purchase", price: "400,000", downCash: "14,000", downPct: "3.5", homeValue: "400,000", refiLoanAmt: "386,000", refiLtv: "96.5", rate: "6.5", term: "30", loanType: "FHA", creditScore: "720", vaStatus: "first", manualMi: "", taxes: "2,400", ins: "1,500", targetPiti: "2,500", targetDownCash: "25,000" }
+};
+
+const pmiMatrix = {
+  "760": { over95: 0.0046, over90: 0.0038, over85: 0.0028, over80: 0.0018 },
+  "720": { over95: 0.0065, over90: 0.0053, over85: 0.0038, over80: 0.0024 },
+  "680": { over95: 0.0094, over90: 0.0074, over85: 0.0054, over80: 0.0034 },
+  "640": { over95: 0.0141, over90: 0.0110, over85: 0.0076, over80: 0.0048 },
+  "620": { over95: 0.0163, over90: 0.0132, over85: 0.0094, over80: 0.0058 }
+};
 
 function setMode(m) {
   mode = m;
-
   document.getElementById("btnPurchase").classList.toggle("active", m === "purchase");
   document.getElementById("btnRefi").classList.toggle("active", m === "refi");
-
+  document.getElementById("btnTarget").classList.toggle("active", m === "target");
+  
   document.getElementById("purchaseInputs").style.display = m === "purchase" ? "block" : "none";
   document.getElementById("refiInputs").style.display = m === "refi" ? "block" : "none";
+  document.getElementById("targetInputs").style.display = m === "target" ? "block" : "none";
 }
 
-/* ---------------------------------------------------------
-   INPUT FORMATTING
---------------------------------------------------------- */
+function switchActiveSlot(slot) {
+  currentScenarioSlot = slot;
+  document.getElementById("scenA").classList.toggle("active", slot === "A");
+  document.getElementById("scenB").classList.toggle("active", slot === "B");
+  
+  const data = scenarios[slot];
+  setMode(data.mode);
+  
+  document.getElementById("price").value = data.price;
+  document.getElementById("downCash").value = data.downCash;
+  document.getElementById("downPct").value = data.downPct;
+  document.getElementById("homeValue").value = data.homeValue;
+  document.getElementById("refiLoanAmt").value = data.refiLoanAmt;
+  document.getElementById("refiLtv").value = data.refiLtv;
+  document.getElementById("rate").value = data.rate;
+  document.getElementById("term").value = data.term;
+  document.getElementById("loanType").value = data.loanType;
+  document.getElementById("creditScore").value = data.creditScore;
+  document.getElementById("vaStatus").value = data.vaStatus;
+  document.getElementById("manualMi").value = data.manualMi;
+  document.getElementById("taxes").value = data.taxes;
+  document.getElementById("ins").value = data.ins;
+  document.getElementById("targetPiti").value = data.targetPiti;
+  document.getElementById("targetDownCash").value = data.targetDownCash;
+
+  document.getElementById("priceSlider").value = parseNum(data.price);
+  document.getElementById("downPctSlider").value = parseFloat(data.downPct) || 0;
+  document.getElementById("homeValueSlider").value = parseNum(data.homeValue);
+  document.getElementById("refiLoanSlider").value = parseNum(data.refiLoanAmt);
+  document.getElementById("refiLtvSlider").value = parseFloat(data.refiLtv) || 90;
+  document.getElementById("rateSlider").value = parseFloat(data.rate) || 6.5;
+  document.getElementById("taxesSlider").value = parseNum(data.taxes);
+  document.getElementById("insSlider").value = parseNum(data.ins);
+  document.getElementById("targetPitiSlider").value = parseNum(data.targetPiti);
+  document.getElementById("targetDownCashSlider").value = parseNum(data.targetDownCash);
+
+  updateProgramInputs();
+  calc();
+}
+
+function autoSaveCurrentInputs() {
+  scenarios[currentScenarioSlot] = {
+    mode: mode,
+    price: document.getElementById("price").value,
+    downCash: document.getElementById("downCash").value,
+    downPct: document.getElementById("downPct").value,
+    homeValue: document.getElementById("homeValue").value,
+    refiLoanAmt: document.getElementById("refiLoanAmt").value,
+    refiLtv: document.getElementById("refiLtv").value,
+    rate: document.getElementById("rate").value,
+    term: document.getElementById("term").value,
+    loanType: document.getElementById("loanType").value,
+    creditScore: document.getElementById("creditScore").value,
+    vaStatus: document.getElementById("vaStatus").value,
+    manualMi: document.getElementById("manualMi").value,
+    taxes: document.getElementById("taxes").value,
+    ins: document.getElementById("ins").value,
+    targetPiti: document.getElementById("targetPiti").value,
+    targetDownCash: document.getElementById("targetDownCash").value
+  };
+}
+
+function syncAndCalc() {
+  autoSaveCurrentInputs();
+  calc();
+}
+
+function toggleComparisonDisplay() {
+  viewingComparison = !viewingComparison;
+  const standardViews = document.getElementById("standardOutputViews");
+  const matrixView = document.getElementById("sideBySideMatrixView");
+  const compBtn = document.getElementById("toggleCompBtn");
+
+  if (viewingComparison) {
+    document.getElementById("cardHeaderTitle").textContent = "Scenario Comparison Matrix";
+    standardViews.style.display = "none";
+    matrixView.style.display = "block";
+    compBtn.textContent = "Show Standard Card";
+    compBtn.style.background = "#005a9c";
+    compBtn.style.borderColor = "#1a4a73";
+  } else {
+    standardViews.style.display = "block";
+    matrixView.style.display = "none";
+    compBtn.textContent = "Compare Side-by-Side";
+    compBtn.style.background = "#5c3b00";
+    compBtn.style.borderColor = "#8f5d00";
+    calc(); 
+  }
+}
+
+function updateProgramInputs() {
+  const type = document.getElementById("loanType").value;
+  document.getElementById("vaStatusBlock").style.display = (type === "VA") ? "block" : "none";
+  document.getElementById("manualMiBlock").style.display = (type === "Conventional") ? "block" : "none";
+}
+
+function onPriceTextChange() {
+  const priceInput = document.getElementById("price");
+  formatNumber(priceInput);
+  const price = parseNum(priceInput.value);
+  document.getElementById("priceSlider").value = price;
+  updateDownCashFromPct();
+}
+function onPriceSliderChange() {
+  const price = parseFloat(document.getElementById("priceSlider").value);
+  const priceInput = document.getElementById("price");
+  priceInput.value = price;
+  formatNumber(priceInput);
+  updateDownCashFromPct();
+}
+function onDownPctTextChange() {
+  let pctVal = parseFloat(document.getElementById("downPct").value) || 0;
+  if (pctVal > 50) pctVal = 50;
+  document.getElementById("downPctSlider").value = pctVal;
+  updateDownCashFromPct();
+}
+function onDownPctSliderChange() {
+  const pctVal = parseFloat(document.getElementById("downPctSlider").value);
+  document.getElementById("downPct").value = pctVal;
+  updateDownCashFromPct();
+}
+function onDownCashTextChange() {
+  const cashInput = document.getElementById("downCash");
+  formatNumber(cashInput);
+  const cash = parseNum(cashInput.value);
+  const price = parseNum(document.getElementById("price").value);
+  if (price > 0) {
+    let computedPct = (cash / price) * 100;
+    if (computedPct > 50) computedPct = 50;
+    document.getElementById("downPct").value = computedPct.toFixed(2);
+    document.getElementById("downPctSlider").value = computedPct;
+  }
+}
+function updateDownCashFromPct() {
+  const price = parseNum(document.getElementById("price").value);
+  const pctVal = parseFloat(document.getElementById("downPct").value) || 0;
+  const cashAmount = Math.round(price * (pctVal / 100));
+  const cashInput = document.getElementById("downCash");
+  cashInput.value = cashAmount;
+  formatNumber(cashInput);
+}
+function syncSliderToText(sliderId, textId) {
+  if (isSyncing) return;
+  isSyncing = true;
+  const val = document.getElementById(sliderId).value;
+  const textInput = document.getElementById(textId);
+  textInput.value = val;
+  if (["price","homeValue","refiLoanAmt","taxes","ins","targetPiti","targetDownCash"].includes(textId)) formatNumber(textInput);
+  isSyncing = false;
+}
+function syncTextToSlider(textId, sliderId) {
+  if (isSyncing) return;
+  isSyncing = true;
+  const textInput = document.getElementById(textId);
+  formatNumber(textInput);
+  const num = parseNum(textInput.value);
+  const slider = document.getElementById(sliderId);
+  if (num >= slider.min && num <= slider.max) slider.value = num;
+  isSyncing = false;
+}
 function formatNumber(input) {
   const start = input.selectionStart;
-  const end = input.selectionEnd;
-
+  const oldLength = input.value.length;
   let raw = input.value.replace(/,/g, "");
   if (raw === "" || isNaN(raw)) return;
-
   const parts = raw.split(".");
-  let intPart = parts[0];
-  let decPart = parts[1] || "";
-
-  decPart = decPart.substring(0, 2);
-  intPart = parseInt(intPart, 10).toLocaleString("en-US");
-
-  const formatted = decPart.length > 0 ? intPart + "." + decPart : intPart;
-
-  const oldLength = input.value.length;
+  parts[0] = parseInt(parts[0], 10).toLocaleString("en-US");
+  const formatted = parts.join(".");
   input.value = formatted;
-  const newLength = formatted.length;
-  const diff = newLength - oldLength;
-
-  input.setSelectionRange(start + diff, end + diff);
+  const diff = formatted.length - oldLength;
+  if (start !== null) input.setSelectionRange(start + diff, start + diff);
 }
+function parseNum(str) { return parseFloat(str.replace(/,/g, "")) || 0; }
 
-function formatInteger(input) {
-  const start = input.selectionStart;
-  const end = input.selectionEnd;
-
-  let raw = input.value.replace(/,/g, "").replace(/[^\d]/g, "");
-  if (raw === "") {
-    input.value = "";
-    return;
-  }
-
-  const intVal = parseInt(raw, 10);
-  const formatted = intVal.toLocaleString("en-US");
-
-  const oldLength = input.value.length;
-  input.value = formatted;
-  const newLength = formatted.length;
-  const diff = newLength - oldLength;
-
-  input.setSelectionRange(start + diff, end + diff);
-}
-
-function parseNum(str) {
-  return parseFloat(str.replace(/,/g, "")) || 0;
-}
-
-function parseIntNum(str) {
-  return parseInt(str.replace(/,/g, ""), 10) || 0;
-}
-
-/* ---------------------------------------------------------
-   LOAN TYPE LOGIC
---------------------------------------------------------- */
-function toggleManualMI() {
-  const type = document.getElementById("loanType").value;
-  document.getElementById("manualMiBlock").style.display =
-    type === "Conventional" ? "block" : "none";
-}
-
-function getMIFactor(type) {
-  if (/FHA/i.test(type)) return 0.0055;
-  if (/USDA/i.test(type)) return 0.0035;
-  if (/VA/i.test(type)) return 0;
-  return 0;
-}
-
-function getUFMIP(type) {
-  if (/FHA/i.test(type)) return 0.0175;
-  if (/USDA/i.test(type)) return 0.01;
-  if (/VA/i.test(type)) return 0.0215;
-  return 0;
-}
-
-/* ---------------------------------------------------------
-   PAYMENT CALCULATION
---------------------------------------------------------- */
-function calcPI(r, n, loan) {
-  if (r === 0) return loan / n;
-  const pow = Math.pow(1 + r, n);
-  return (loan * r * pow) / (pow - 1);
-}
-
-function fmt(n) {
-  return "$" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-function pct(n) {
-  return (n * 100).toFixed(2) + "%";
-}
-
-/* ---------------------------------------------------------
-   REFINANCE LTV SYNCING
---------------------------------------------------------- */
 function onHomeValueChange() {
   formatNumber(document.getElementById("homeValue"));
-
-  const ltvStr = document.getElementById("refiLtv").value;
-  const ltvVal = parseFloat(ltvStr) || 0;
-
-  if (ltvVal > 0) {
-    onRefiLtvChange();
-  }
+  const hVal = parseNum(document.getElementById("homeValue").value);
+  document.getElementById("homeValueSlider").value = hVal;
+  if (parseFloat(document.getElementById("refiLtv").value) > 0) onRefiLtvChange();
 }
-
 function onRefiLoanChange() {
   if (isSyncing) return;
   isSyncing = true;
-
   const loanInput = document.getElementById("refiLoanAmt");
-  formatInteger(loanInput);
-
+  formatNumber(loanInput);
+  const baseLoan = parseNum(loanInput.value);
+  document.getElementById("refiLoanSlider").value = baseLoan;
   const homeValue = parseNum(document.getElementById("homeValue").value);
-  const baseLoan = parseIntNum(loanInput.value);
-
   if (homeValue > 0) {
-    const ltv = (baseLoan / homeValue) * 100;
-    document.getElementById("refiLtv").value = ltv || 0;
+    const ltvComputed = ((baseLoan / homeValue) * 100).toFixed(2);
+    document.getElementById("refiLtv").value = ltvComputed;
+    document.getElementById("refiLtvSlider").value = ltvComputed;
   }
-
   isSyncing = false;
 }
-
 function onRefiLtvChange() {
   if (isSyncing) return;
   isSyncing = true;
-
-  const homeValue = parseNum(document.getElementById("homeValue").value);
   const ltvVal = parseFloat(document.getElementById("refiLtv").value) || 0;
-
+  document.getElementById("refiLtvSlider").value = ltvVal;
+  const homeValue = parseNum(document.getElementById("homeValue").value);
   if (homeValue > 0 && ltvVal > 0) {
     const baseLoan = Math.round(homeValue * (ltvVal / 100));
-    const loanInput = document.getElementById("refiLoanAmt");
-    loanInput.value = baseLoan.toLocaleString("en-US");
+    document.getElementById("refiLoanAmt").value = baseLoan.toLocaleString("en-US");
+    document.getElementById("refiLoanSlider").value = baseLoan;
   }
-
   isSyncing = false;
 }
 
-/* ---------------------------------------------------------
-   MAIN CALCULATION
---------------------------------------------------------- */
-function calc() {
-  const rateAnnual = (+document.getElementById("rate").value || 0) / 100;
-  const termYears = +document.getElementById("term").value || 30;
-
-  const taxesYr = parseNum(document.getElementById("taxes").value);
-  const insYr = parseNum(document.getElementById("ins").value);
-
-  const loanType = document.getElementById("loanType").value;
+function runEngineCoreCalculations(data) {
+  const rateAnnual = (parseFloat(data.rate) || 0) / 100;
+  const termYears = parseInt(data.term, 10) || 30;
+  const taxesYr = parseNum(data.taxes);
+  const insYr = parseNum(data.ins);
+  const loanType = data.loanType;
   const totalPayments = termYears * 12;
+  const rateMo = rateAnnual / 12;
 
-  let baseLoan = 0;
-  let loanAmt = 0;
-  let homeValue = 0;
-  let ufmipAmt = 0;
+  let baseLoan = 0, loanAmt = 0, homeValue = 0, upfrontFeeAmt = 0, downPct = 0;
+  let taxMo = taxesYr / 12;
+  let insMo = insYr / 12;
+
+  if (data.mode === "purchase") {
+    const price = parseNum(data.price);
+    downPct = parseFloat(data.downPct) || 0;
+    baseLoan = price - parseNum(data.downCash);
+    homeValue = price;
+  } 
+  else if (data.mode === "refi") {
+    homeValue = parseNum(data.homeValue);
+    baseLoan = parseNum(data.refiLoanAmt);
+    const ltvVal = parseFloat(data.refiLtv) || 0;
+    downPct = 100 - ltvVal;
+  } 
+  else if (data.mode === "target") {
+    const targetPiti = parseNum(data.targetPiti);
+    const targetDown = parseNum(data.targetDownCash);
+    let targetPiPool = targetPiti - taxMo - insMo;
+    if (targetPiPool < 50) targetPiPool = 50; 
+
+    let computedMaxLoan = 0;
+    if (rateMo > 0) {
+      const pow = Math.pow(1 + rateMo, totalPayments);
+      computedMaxLoan = (targetPiPool * (pow - 1)) / (rateMo * pow);
+    } else {
+      computedMaxLoan = targetPiPool * totalPayments;
+    }
+    baseLoan = Math.round(computedMaxLoan);
+    homeValue = baseLoan + targetDown;
+    downPct = homeValue > 0 ? (targetDown / homeValue) * 100 : 0;
+  }
+
+  let feeFactor = 0;
+  if (loanType === "FHA") feeFactor = 0.0175;
+  if (loanType === "USDA") feeFactor = 0.0100;
+  if (loanType === "VA" && data.vaStatus !== "exempt") {
+    if (data.vaStatus === "first") {
+      feeFactor = downPct >= 10 ? 0.0125 : (downPct >= 5 ? 0.0140 : 0.0215);
+    } else {
+      feeFactor = downPct >= 10 ? 0.0125 : (downPct >= 5 ? 0.0140 : 0.0330);
+    }
+  }
+
+  upfrontFeeAmt = baseLoan * feeFactor;
+  loanAmt = baseLoan + upfrontFeeAmt;
+  let ltvPercent = homeValue > 0 ? (baseLoan / homeValue) * 100 : 0;
+
+  let miFactor = 0;
+  if (loanType === "Conventional") {
+    const manualMiInput = parseFloat(data.manualMi);
+    if (!isNaN(manualMiInput)) {
+      miFactor = manualMiInput / 100;
+    } else {
+      const row = pmiMatrix[data.creditScore || "760"];
+      if (ltvPercent > 95) miFactor = row.over95;
+      else if (ltvPercent > 90) miFactor = row.over90;
+      else if (ltvPercent > 85) miFactor = row.over85;
+      else if (ltvPercent > 80) miFactor = row.over80;
+    }
+  } else if (loanType === "FHA") {
+    miFactor = (downPct >= 5) ? 0.0050 : 0.0055;
+  } else if (loanType === "USDA") {
+    miFactor = 0.0035;
+  }
+
+  let pi = 0;
+  if (rateMo > 0) {
+    const pow = Math.pow(1 + rateMo, totalPayments);
+    pi = (loanAmt * rateMo * pow) / (pow - 1);
+  } else {
+    pi = loanAmt / totalPayments;
+  }
+  
+  const miMo = (loanAmt * miFactor) / 12;
+  const totalPiti = pi + miMo + taxMo + insMo;
+
+  return {
+    mode: data.mode,
+    homeValue,
+    loanType,
+    ltvPercent,
+    baseLoan,
+    upfrontFeeAmt,
+    loanAmt,
+    pi,
+    miMo,
+    taxMo,
+    insMo,
+    totalPiti,
+    rate: data.rate,
+    term: data.term,
+    targetPiti: data.targetPiti,
+    creditScore: data.creditScore
+  };
+}
+
+function calc() {
+  calculatedOutputs.A = runEngineCoreCalculations(scenarios.A);
+  calculatedOutputs.B = runEngineCoreCalculations(scenarios.B);
+
+  const activeCalc = runEngineCoreCalculations(scenarios[currentScenarioSlot]);
+
+  updateMatrixComparisonUI();
+
+  if (viewingComparison) return; 
 
   if (mode === "purchase") {
-    const price = parseNum(document.getElementById("price").value);
-    const downPct = (+document.getElementById("downPct").value || 0) / 100;
-
-    const downAmt = price * downPct;
-    baseLoan = price - downAmt;
-
-    ufmipAmt = baseLoan * getUFMIP(loanType);
-    loanAmt = baseLoan + ufmipAmt;
-
-    homeValue = price;
-
+    document.getElementById("cardHeaderTitle").textContent = "Payment Breakdown Estimate";
+    document.getElementById("donutCenterLabel").textContent = "Total PITI";
+    document.getElementById("totalLabelText").textContent = "Total Monthly Payment";
     document.getElementById("valueLabel").textContent = "Purchase Price";
-    document.getElementById("valueOut").textContent = fmt(price);
+    document.getElementById("valueOut").textContent = fmt(activeCalc.homeValue);
+  } else if (mode === "refi") {
+    document.getElementById("cardHeaderTitle").textContent = "Payment Breakdown Estimate";
+    document.getElementById("donutCenterLabel").textContent = "Total PITI";
+    document.getElementById("totalLabelText").textContent = "Total Monthly Payment";
+    document.getElementById("valueLabel").textContent = "Estimated Home Value";
+    document.getElementById("valueOut").textContent = fmt(activeCalc.homeValue);
+  } else if (mode === "target") {
+    document.getElementById("cardHeaderTitle").textContent = "Maximum Target Qualification";
+    document.getElementById("donutCenterLabel").textContent = "Max Price";
+    document.getElementById("totalLabelText").textContent = "Target PITI Limit";
+    document.getElementById("valueLabel").textContent = "Calculated Max Purchase Price";
+    document.getElementById("valueOut").textContent = fmt(activeCalc.homeValue);
   }
 
-  if (mode === "refi") {
-    homeValue = parseNum(document.getElementById("homeValue").value);
-    baseLoan = parseIntNum(document.getElementById("refiLoanAmt").value);
+  const scoreLabels = {
+    "760": "760+ (Excellent)",
+    "720": "720 - 759 (Very Good)",
+    "680": "680 - 719 (Good)",
+    "640": "640 - 679 (Fair)",
+    "620": "620 - 639 (Subprime)"
+  };
+  document.getElementById("creditScoreOut").textContent = scoreLabels[activeCalc.creditScore] || activeCalc.creditScore;
 
-    ufmipAmt = baseLoan * getUFMIP(loanType);
-    loanAmt = baseLoan + ufmipAmt;
-
-    document.getElementById("valueLabel").textContent = "Home Value (Estimated)";
-    document.getElementById("valueOut").textContent = fmt(homeValue);
-  }
-
-  let ltv;
-  if (/FHA|VA/i.test(loanType)) {
-    ltv = homeValue > 0 ? baseLoan / homeValue : 0;
+  document.getElementById("loanTypeOut").textContent = activeCalc.loanType;
+  document.getElementById("ltvOut").textContent = activeCalc.ltvPercent.toFixed(2) + "%";
+  document.getElementById("loanBaseOut").textContent = fmt(activeCalc.baseLoan);
+  document.getElementById("ufmipOut").textContent = fmt(activeCalc.upfrontFeeAmt);
+  document.getElementById("loanAmtOut").textContent = fmt(activeCalc.loanAmt);
+  document.getElementById("piOut").textContent = fmt(activeCalc.pi);
+  document.getElementById("miOut").textContent = fmt(activeCalc.miMo);
+  document.getElementById("taxMoOut").textContent = fmt(activeCalc.taxMo);
+  document.getElementById("insMoOut").textContent = fmt(activeCalc.insMo);
+  
+  if (mode === "target") {
+    document.getElementById("pitiOut").textContent = fmt(parseNum(scenarios[currentScenarioSlot].targetPiti));
+    document.getElementById("donutTotalText").textContent = fmt(activeCalc.homeValue);
   } else {
-    ltv = homeValue > 0 ? loanAmt / homeValue : 0;
+    document.getElementById("pitiOut").textContent = fmt(activeCalc.totalPiti);
+    document.getElementById("donutTotalText").textContent = fmt(activeCalc.totalPiti);
   }
 
-  let miFactor;
-  if (loanType === "Conventional") {
-    miFactor = (+document.getElementById("manualMi").value || 0) / 100;
-  } else {
-    miFactor = getMIFactor(loanType);
+  if (activeCalc.totalPiti > 0) {
+    const piSeg = (activeCalc.pi / activeCalc.totalPiti) * 100;
+    const miSeg = piSeg + ((activeCalc.miMo / activeCalc.totalPiti) * 100);
+    const taxSeg = miSeg + ((activeCalc.taxMo / activeCalc.totalPiti) * 100);
+    
+    document.getElementById("donutRing").style.background = `conic-gradient(
+      var(--accent) 0%, var(--accent) ${piSeg}%, 
+      #4ae290 ${piSeg}%, #4ae290 ${miSeg}%, 
+      #e2be4a ${miSeg}%, #e2be4a ${taxSeg}%, 
+      #e24a4a ${taxSeg}%, #e24a4a 100%
+    )`;
   }
-
-  const rateMo = rateAnnual / 12;
-  const pi = calcPI(rateMo, totalPayments, loanAmt);
-
-  const miMo = (loanAmt * miFactor) / 12;
-  const taxMo = taxesYr / 12;
-  const insMo = insYr / 12;
-
-  const totalMo = pi + miMo + taxMo + insMo;
-
-  document.getElementById("loanTypeOut").textContent = loanType;
-  document.getElementById("ltvOut").textContent = pct(ltv);
-
-  document.getElementById("loanBaseOut").textContent = fmt(baseLoan);
-  document.getElementById("ufmipOut").textContent = fmt(ufmipAmt);
-  document.getElementById("loanAmtOut").textContent = fmt(loanAmt);
-
-  document.getElementById("piOut").textContent = fmt(pi);
-  document.getElementById("miOut").textContent = fmt(miMo);
-  document.getElementById("taxMoOut").textContent = fmt(taxMo);
-  document.getElementById("insMoOut").textContent = fmt(insMo);
-  document.getElementById("pitiOut").textContent = fmt(totalMo);
-
-document.getElementById("results").style.display = "block";
-document.getElementById("saveShotBtn").style.display = "block";
-
-document.getElementById("results").scrollIntoView({
-  behavior: "smooth",
-  block: "start"
-});
 }
-</script>
-<script>
-/* ---------------------------------------------------------
-   SCREENSHOT → POPUP CARD → LONG‑PRESS SHARE
---------------------------------------------------------- */
+
+function updateMatrixComparisonUI() {
+  const a = calculatedOutputs.A;
+  const b = calculatedOutputs.B;
+
+  if (!a || !b) return;
+
+  const modeLabels = { purchase: "Purchase", refi: "Refinance", target: "What Can I Afford?" };
+
+  document.getElementById("tdScoreA").textContent = a.creditScore + "+";
+  document.getElementById("tdScoreB").textContent = b.creditScore + "+";
+
+  document.getElementById("tdModeA").textContent = modeLabels[a.mode] || a.mode;
+  document.getElementById("tdModeB").textContent = modeLabels[b.mode] || b.mode;
+
+  document.getElementById("tdValA").textContent = fmt(a.homeValue);
+  document.getElementById("tdValB").textContent = fmt(b.homeValue);
+
+  document.getElementById("tdProgA").textContent = `${a.loanType} ${a.term}Yr`;
+  document.getElementById("tdProgB").textContent = `${b.loanType} ${b.term}Yr`;
+
+  document.getElementById("tdRateA").textContent = `${a.rate}%`;
+  document.getElementById("tdRateB").textContent = `${b.rate}%`;
+
+  document.getElementById("tdLoanA").textContent = fmt(a.loanAmt);
+  document.getElementById("tdLoanB").textContent = fmt(b.loanAmt);
+
+  document.getElementById("tdPiA").textContent = fmt(a.pi);
+  document.getElementById("tdPiB").textContent = fmt(b.pi);
+
+  document.getElementById("tdMiA").textContent = fmt(a.miMo);
+  document.getElementById("tdMiB").textContent = fmt(b.miMo);
+
+  document.getElementById("tdEscrowA").textContent = fmt(a.taxMo + a.insMo);
+  document.getElementById("tdEscrowB").textContent = fmt(b.taxMo + b.insMo);
+
+  document.getElementById("tdPitiA").textContent = a.mode === "target" ? fmt(parseNum(scenarios.A.targetPiti)) : fmt(a.totalPiti);
+  document.getElementById("tdPitiB").textContent = b.mode === "target" ? fmt(parseNum(scenarios.B.targetPiti)) : fmt(b.totalPiti);
+}
+
+function fmt(n) { return "$" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+function scrollToResults() { document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" }); }
+
+function generateTextSummaryString() {
+  let summaryText = "";
+  if (viewingComparison) {
+    const a = calculatedOutputs.A;
+    const b = calculatedOutputs.B;
+    const pitiA = a.mode === "target" ? fmt(parseNum(scenarios.A.targetPiti)) : fmt(a.totalPiti);
+    const pitiB = b.mode === "target" ? fmt(parseNum(scenarios.B.targetPiti)) : fmt(b.totalPiti);
+    
+    summaryText = 
+`HMS Comparison Summary
+Scenario A:
+• Credit Score: ${a.creditScore}+
+• Program: ${a.loanType} (${a.rate}%)
+• Value/Price: ${fmt(a.homeValue)}
+• Total Monthly PITI: ${pitiA}
+
+Scenario B:
+• Credit Score: ${b.creditScore}+
+• Program: ${b.loanType} (${b.rate}%)
+• Value/Price: ${fmt(b.homeValue)}
+• Total Monthly PITI: ${pitiB}`;
+  } else {
+    const lType = document.getElementById("loanTypeOut").textContent;
+    const rate = document.getElementById("rate").value;
+    const term = document.getElementById("term").value;
+    const score = document.getElementById("creditScoreOut").textContent;
+    let valLabel = document.getElementById("valueLabel").textContent;
+    let valAmt = document.getElementById("valueOut").textContent;
+    let totalLabel = document.getElementById("totalLabelText").textContent;
+    let totalAmt = document.getElementById("pitiOut").textContent;
+
+    summaryText = 
+`HMS Quick Quote Estimate
+• Target Credit Profile: ${score}
+• ${valLabel}: ${valAmt}
+• Loan Program: ${lType} (${term}-Year Fixed)
+• Interest Rate: ${rate}%
+• Base Loan Amount: ${document.getElementById("loanBaseOut").textContent}
+• P&I Payment: ${document.getElementById("piOut").textContent}
+• Monthly Insurance/MI: ${document.getElementById("miOut").textContent}
+• Monthly Taxes: ${document.getElementById("taxMoOut").textContent}
+• ${totalLabel}: ${totalAmt}`;
+  }
+  return summaryText;
+}
+
+function copyTextSummary() {
+  const summaryText = generateTextSummaryString() + "\n---------------------------------\nHome Mortgage Solutions, LLC";
+  navigator.clipboard.writeText(summaryText).then(() => {
+    alert("Copied to clipboard!");
+  }).catch(err => {
+    alert("Unable to auto-copy.");
+  });
+}
+
+function openContactModal(officerName, officerPhone) {
+  activeTargetOfficerName = officerName;
+  activeTargetOfficerPhone = officerPhone;
+  document.getElementById("modalTitle").textContent = "Text " + officerName;
+  document.getElementById("contactModal").style.display = "flex";
+}
+
+function closeContactModal() {
+  document.getElementById("contactModal").style.display = "none";
+}
+
+function executeSmsRedirect() {
+  const name = document.getElementById("clientName").value.trim();
+  const phone = document.getElementById("clientPhone").value.trim();
+  const email = document.getElementById("clientEmail").value.trim();
+
+  if (!name || !phone) {
+    alert("Please fill out at least your Name and Phone Number so the officer knows who is reaching out.");
+    return;
+  }
+
+  const loanDetailsData = generateTextSummaryString();
+
+  const smsBody = 
+`Online mortgage calculator customer is reaching out.
+
+Customer Contact Details:
+• Name: ${name}
+• Phone: ${phone}
+• Email: ${email || "Not Provided"}
+
+${loanDetailsData}
+
+Thank you!`;
+
+  const encodedSmsBody = encodeURIComponent(smsBody);
+  closeContactModal();
+  window.location.href = `sms:${activeTargetOfficerPhone}?body=${encodedSmsBody}`;
+}
+
 async function saveScreenshot() {
   const results = document.getElementById("results");
-
-  // Capture screenshot of the results card
-  const canvas = await html2canvas(results, {
-    scale: 2,
-    backgroundColor: "#111217"
-  });
-
-  const dataUrl = canvas.toDataURL("image/png");
-
-  // Elements
+  const canvas = await html2canvas(results, { scale: 2, backgroundColor: "#00335c" });
   const overlay = document.getElementById("previewOverlay");
   const fullImg = document.getElementById("previewImage");
-  const msg = document.getElementById("pressMessage");
-
-  // Set screenshot
-  fullImg.src = dataUrl;
-
-  // Show message
-  msg.style.display = "block";
-
-  // Show popup with fade‑in animation
+  fullImg.src = canvas.toDataURL("image/png");
   overlay.style.display = "flex";
-  overlay.style.animation = "fadeInPopup 0.25s ease-out";
-
-  // Tap outside → close popup
-  overlay.onclick = (e) => {
-    if (e.target === overlay) {
-      overlay.style.display = "none";
-    }
-  };
-
-  // AUTO‑HIDE message + AUTO‑CLOSE popup after long‑press
-  fullImg.addEventListener("touchend", () => {
-    msg.style.display = "none"; // hide message
-
-    // Close popup right after iOS/Android share menu appears
-    setTimeout(() => {
-      overlay.style.display = "none";
-    }, 150);
-  });
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.style.display = "none"; };
 }
-</script>
 
+window.onload = () => { calc(); };
+</script>
 </body>
 </html>
 
