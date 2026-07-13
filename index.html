@@ -3,43 +3,227 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JB Market Dashboard | Rate & Opportunity Scanner</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/dashboard.css">
+  <title>JB Market Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a; --card: #1e293b; --card-border: #334155; --text: #f1f5f9;
+      --muted: #94a3b8; --accent: #06b6d4; --accent-hover: #22d3ee;
+      --positive: #22c55e; --negative: #ef4444; --warning: #f59e0b;
+    }
+    [data-theme="coastal"] {
+      --bg: #0c1a2a; --card: #132f4c; --card-border: #1e4976; --text: #e0f2fe;
+      --muted: #7dd3fc; --accent: #0ea5e9; --accent-hover: #38bdf8;
+      --positive: #34d399; --negative: #f87171;
+    }
+    [data-theme="midnight"] {
+      --bg: #0a0a0f; --card: #12121a; --card-border: #1f1f2e; --text: #e2e8f0;
+      --muted: #64748b; --accent: #8b5cf6; --accent-hover: #a78bfa;
+      --positive: #10b981; --negative: #f43f5e;
+    }
+    [data-theme="light"] {
+      --bg: #f8fafc; --card: #ffffff; --card-border: #e2e8f0; --text: #0f172a;
+      --muted: #64748b; --accent: #0284c7; --accent-hover: #0369a1;
+      --positive: #16a34a; --negative: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5;
+    }
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 0.85rem 0;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 1.15rem;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+    }
+    .rate-card { text-align: center; }
+    .rate-card .label {
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.35rem;
+    }
+    .rate-card .rate {
+      font-size: 1.85rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1;
+    }
+    .rate-card .change { font-size: 0.8rem; font-weight: 700; margin-top: 0.15rem; }
+    .rate-card .range {
+      height: 6px; background: color-mix(in srgb, var(--card-border) 70%, transparent);
+      border-radius: 3px; margin: 0.55rem 0 0.35rem; position: relative; overflow: hidden;
+    }
+    .rate-card .range-fill {
+      position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent);
+      border-radius: 3px; opacity: 0.55;
+    }
+    .rate-card .range-marker {
+      position: absolute; top: -2px; bottom: -2px; width: 3px;
+      background: var(--text); border-radius: 2px;
+    }
+    .rate-card .pmt { font-size: 0.72rem; color: var(--muted); }
+    .metric-label {
+      font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.35rem;
+    }
+    .section-title {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.6rem;
+    }
+    .input-sm {
+      background: color-mix(in srgb, var(--card) 75%, black 25%);
+      border: 1px solid var(--card-border); border-radius: 10px;
+      padding: 0.45rem 0.7rem; color: var(--text); font-size: 0.9rem;
+      width: 100%; outline: none;
+    }
+    .input-sm:focus { border-color: var(--accent); }
+    .btn-primary {
+      background: var(--accent); color: #fff; font-weight: 600;
+      padding: 0.5rem 1.1rem; border-radius: 10px; border: none;
+      cursor: pointer; font-size: 0.875rem; transition: all 0.2s;
+    }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-ghost {
+      background: transparent; color: var(--muted); border: 1px solid var(--card-border);
+      font-weight: 500; padding: 0.4rem 0.85rem; border-radius: 10px;
+      cursor: pointer; font-size: 0.8rem;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+    .tab {
+      padding: 0.5rem 1rem; border-radius: 10px; font-weight: 600;
+      font-size: 0.85rem; cursor: pointer; color: var(--muted);
+      background: transparent; border: none;
+    }
+    .tab.active {
+      background: var(--accent); color: #fff;
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+    .tab:not(.active):hover { color: var(--text); background: color-mix(in srgb, var(--card-border) 45%, transparent); }
+    .positive { color: var(--positive) !important; }
+    .negative { color: var(--negative) !important; }
+    .status-dot {
+      width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+      margin-right: 8px; animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+    .theme-btn {
+      width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .theme-btn.active {
+      border-color: #fff; transform: scale(1.15);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+    .chart-box { height: 260px; position: relative; }
+    table { border-collapse: collapse; width: 100%; }
+    th {
+      text-align: left; font-size: 0.68rem; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--muted); padding-bottom: 0.7rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+    td {
+      padding: 0.75rem 0.4rem 0.75rem 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--card-border) 45%, transparent);
+      font-size: 0.875rem;
+    }
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .flex-wrap { flex-wrap: wrap; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-1 { gap: 0.25rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .grid { display: grid; }
+    .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .mb-1 { margin-bottom: 0.25rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .mb-3 { margin-bottom: 0.75rem; }
+    .mb-5 { margin-bottom: 1.25rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-3 { margin-top: 0.75rem; }
+    .mt-4 { margin-top: 1rem; }
+    .mt-5 { margin-top: 1.25rem; }
+    .p-2 { padding: 0.5rem; }
+    .p-4 { padding: 1rem; }
+    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+    .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+    .text-xs { font-size: 0.75rem; }
+    .text-sm { font-size: 0.875rem; }
+    .text-lg { font-size: 1.125rem; }
+    .text-xl { font-size: 1.25rem; }
+    .text-2xl { font-size: 1.5rem; }
+    .font-bold { font-weight: 700; }
+    .font-extrabold { font-weight: 800; }
+    .font-semibold { font-weight: 600; }
+    .font-medium { font-weight: 500; }
+    .text-center { text-align: center; }
+    .w-full { width: 100%; }
+    .w-auto { width: auto; }
+    .rounded-xl { border-radius: 0.75rem; }
+    .overflow-x-auto { overflow-x: auto; }
+    .space-y-5 > * + * { margin-top: 1.25rem; }
+    .space-y-6 > * + * { margin-top: 1.5rem; }
+    @media (min-width: 640px) {
+      .sm\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+      .sm\:flex-row { flex-direction: row; }
+      .sm\:items-center { align-items: center; }
+      .sm\:inline { display: inline; }
+    }
+    @media (min-width: 768px) {
+      .md\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+      .md\:grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+      .md\:col-span-2 { grid-column: span 2; }
+    }
+    @media (min-width: 1024px) {
+      .lg\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+      .lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+      .lg\:col-span-2 { grid-column: span 2; }
+    }
+    @media (min-width: 1280px) {
+      .xl\:grid-cols-6 { grid-template-columns: repeat(6, 1fr); }
+    }
+  </style>
 </head>
 <body>
-  <!-- Header -->
-  <header class="sticky top-0 z-50 border-b" style="background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(14px);border-color:var(--card-border);">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+  <header>
+    <div class="container">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 class="text-xl font-extrabold tracking-tight" style="color:var(--accent);">JB Market Dashboard</h1>
-          <p class="text-xs" style="color:var(--muted);">Rates • MBS • Indexes • Opportunities • Private</p>
+          <h1 class="text-xl font-extrabold" style="color:var(--accent);">JB Market Dashboard</h1>
+          <p class="text-xs" style="color:var(--muted);">Rates • MBS • Indexes • Opportunities</p>
         </div>
         <div class="flex items-center gap-3">
-          <div class="flex items-center gap-1.5">
-            <button class="theme-btn active" data-theme="dark" style="background:#0f172a;" title="Dark Pro"></button>
+          <div class="flex items-center gap-1">
+            <button class="theme-btn active" data-theme="dark" style="background:#0f172a;" title="Dark"></button>
             <button class="theme-btn" data-theme="coastal" style="background:#0c1a2a;" title="Coastal"></button>
             <button class="theme-btn" data-theme="midnight" style="background:#0a0a0f;" title="Midnight"></button>
             <button class="theme-btn" data-theme="light" style="background:#f1f5f9;border:1px solid #94a3b8;" title="Light"></button>
           </div>
           <span id="lastSaved" class="text-xs hidden sm:inline" style="color:var(--muted);"></span>
-          <button onclick="App.saveSnapshot()" class="btn-primary">Save Snapshot</button>
+          <button onclick="saveSnapshot()" class="btn-primary">Save Snapshot</button>
         </div>
       </div>
-      <div class="flex gap-1.5 mt-3 overflow-x-auto">
-        <button class="tab active" id="tab-market" data-tab="market">Market Watch</button>
-        <button class="tab" id="tab-opportunities" data-tab="opportunities">Opportunities</button>
-        <button class="tab" id="tab-clients" data-tab="clients">Clients</button>
-        <button class="tab" id="tab-settings" data-tab="settings">Rules & Help</button>
+      <div class="flex gap-2 mt-3" style="overflow-x:auto;">
+        <button class="tab active" data-tab="market">Market Watch</button>
+        <button class="tab" data-tab="opportunities">Opportunities</button>
+        <button class="tab" data-tab="clients">Clients</button>
+        <button class="tab" data-tab="settings">Rules & Help</button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+  <main class="container py-6 space-y-6">
 
-    <!-- ==================== MARKET WATCH ==================== -->
+    <!-- MARKET WATCH -->
     <div id="panel-market">
 
       <!-- Status -->
@@ -56,9 +240,9 @@
         </div>
       </div>
 
-      <!-- TODAY'S RATES - DISPLAY ONLY (MND style) -->
+      <!-- TODAY'S MORTGAGE RATES (display only) -->
       <div class="mb-2">
-        <h2 class="text-xs font-semibold tracking-wider" style="color:var(--muted);">TODAY’S MORTGAGE RATES <span class="font-normal opacity-70">(display only • update via MND then Save Snapshot)</span></h2>
+        <div class="section-title">Today’s Mortgage Rates <span style="font-weight:400;opacity:0.7;">(display only)</span></div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-5">
         <div class="card rate-card">
@@ -105,39 +289,23 @@
         </div>
       </div>
 
-      <!-- MAJOR INDEXES & MBS -->
+      <!-- GROUP 1: 10-Year + UMBS -->
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 class="text-xs font-semibold tracking-wider" style="color:var(--muted);">MAJOR INDEXES & MBS <span class="font-normal opacity-70">• edit or use Refresh Live</span></h2>
-        <button id="btnRefreshFred" onclick="Market.refreshLiveIndexes()" class="btn-ghost text-xs">Refresh Live Indexes (FRED)</button>
+        <div class="section-title">10-Year Treasury & UMBS</div>
+        <button onclick="refreshLiveIndexes()" class="btn-ghost text-xs" id="btnRefreshFred">Refresh Live (FRED)</button>
       </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 mb-5">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         <div class="card">
           <div class="metric-label">10-Yr Treasury</div>
-          <input type="number" step="0.001" id="ust10" class="input-sm text-lg font-bold" value="4.58">
-        </div>
-        <div class="card">
-          <div class="metric-label">SOFR</div>
-          <input type="number" step="0.01" id="sofr" class="input-sm text-lg font-bold" value="3.53">
-        </div>
-        <div class="card">
-          <div class="metric-label">Fed Funds Eff.</div>
-          <input type="number" step="0.01" id="fedfunds" class="input-sm text-lg font-bold" value="3.62">
-        </div>
-        <div class="card">
-          <div class="metric-label">Prime Rate</div>
-          <input type="number" step="0.01" id="prime" class="input-sm text-lg font-bold" value="6.75">
-        </div>
-        <div class="card">
-          <div class="metric-label">COFI (11th Dist)</div>
-          <input type="number" step="0.01" id="cofi" class="input-sm text-lg font-bold" value="3.85">
+          <input type="number" step="0.001" id="ust10" class="input-sm text-lg font-bold" value="4.58" onchange="updateFromInputs()">
         </div>
         <div class="card">
           <div class="metric-label">UMBS 5.0</div>
-          <input type="text" id="mbs50" class="input-sm text-lg font-bold" value="97-15">
+          <input type="text" id="mbs50" class="input-sm text-lg font-bold" value="97-15" onchange="updateFromInputs()">
         </div>
         <div class="card">
           <div class="metric-label">UMBS 5.5</div>
-          <input type="text" id="mbs55" class="input-sm text-lg font-bold" value="99-22">
+          <input type="text" id="mbs55" class="input-sm text-lg font-bold" value="99-22" onchange="updateFromInputs()">
         </div>
         <div class="card" style="background:color-mix(in srgb,var(--accent) 12%,var(--card));border-color:color-mix(in srgb,var(--accent) 40%,var(--card-border));">
           <div class="metric-label" style="color:var(--accent);">30yr – 10yr Spread</div>
@@ -146,115 +314,151 @@
         </div>
       </div>
 
+      <!-- GROUP 2: Other Indexes -->
+      <div class="mb-2">
+        <div class="section-title">Other Indexes</div>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+        <div class="card">
+          <div class="metric-label">SOFR</div>
+          <input type="number" step="0.01" id="sofr" class="input-sm text-lg font-bold" value="3.53" onchange="updateFromInputs()">
+        </div>
+        <div class="card">
+          <div class="metric-label">Fed Funds Eff.</div>
+          <input type="number" step="0.01" id="fedfunds" class="input-sm text-lg font-bold" value="3.62" onchange="updateFromInputs()">
+        </div>
+        <div class="card">
+          <div class="metric-label">Prime Rate</div>
+          <input type="number" step="0.01" id="prime" class="input-sm text-lg font-bold" value="6.75" onchange="updateFromInputs()">
+        </div>
+        <div class="card">
+          <div class="metric-label">COFI (11th Dist)</div>
+          <input type="number" step="0.01" id="cofi" class="input-sm text-lg font-bold" value="3.85" onchange="updateFromInputs()">
+        </div>
+      </div>
+
       <!-- Status + Save -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
         <div class="card py-3">
           <div class="metric-label mb-1">MBS Status Comment</div>
-          <input type="text" id="mbsStatus" class="input-sm" value="Significantly weaker" placeholder="Stronger / Weaker…">
+          <input type="text" id="mbsStatus" class="input-sm" value="Significantly weaker" oninput="updateAutoTrend()">
         </div>
         <div class="card py-3">
-          <div class="metric-label mb-1">Rate Trend (Auto + Override)</div>
-          <select id="trend" class="input-sm">
+          <div class="metric-label mb-1">Rate Trend</div>
+          <select id="trend" class="input-sm" onchange="updateAutoTrend()">
             <option value="AUTO">AUTO (recommended)</option>
-            <option value="POSITIVE">POSITIVE (rates lower)</option>
+            <option value="POSITIVE">POSITIVE</option>
             <option value="MINIMAL">MINIMAL</option>
-            <option value="NEGATIVE" selected>NEGATIVE (rates higher)</option>
+            <option value="NEGATIVE" selected>NEGATIVE</option>
           </select>
         </div>
         <div class="card py-3 flex items-end">
-          <button onclick="App.saveSnapshot()" class="btn-primary w-full">Save Today’s Snapshot</button>
+          <button onclick="saveSnapshot()" class="btn-primary w-full">Save Today’s Snapshot</button>
         </div>
       </div>
 
-      <!-- CHARTS -->
+      <!-- REAL MARKET TREND CHARTS (FRED) -->
+      <div class="mb-2">
+        <div class="section-title">Market Trends (Last ~90 Days from FRED)</div>
+      </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
         <div class="card">
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <h3 class="font-semibold text-sm">Individual Item Trends (Your Snapshots)</h3>
-            <select id="chartMetric" class="input-sm w-auto text-xs">
-              <option value="rate30">30yr Fixed</option>
-              <option value="rate15">15yr Fixed</option>
-              <option value="ust10">10-Yr Treasury</option>
-              <option value="spread">Spread (bps)</option>
-              <option value="sofr">SOFR</option>
-              <option value="prime">Prime Rate</option>
-              <option value="fedfunds">Fed Funds</option>
-              <option value="mbs50">UMBS 5.0</option>
-            </select>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-sm">10-Year Treasury</h3>
+            <button onclick="loadFredChart('DGS10','chart10yr')" class="btn-ghost text-xs">Refresh</button>
           </div>
-          <div class="chart-box"><canvas id="mainChart"></canvas></div>
-          <p class="text-xs mt-2" style="color:var(--muted);">Select any item. Built from your last 90 daily snapshots. Save every day to grow the history.</p>
+          <div class="chart-box"><canvas id="chart10yr"></canvas></div>
         </div>
         <div class="card">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="font-semibold text-sm">Spread History (bps)</h3>
+            <h3 class="font-semibold text-sm">SOFR</h3>
+            <button onclick="loadFredChart('SOFR','chartSofr')" class="btn-ghost text-xs">Refresh</button>
           </div>
-          <div class="chart-box"><canvas id="spreadChart"></canvas></div>
+          <div class="chart-box"><canvas id="chartSofr"></canvas></div>
         </div>
       </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
+        <div class="card">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-sm">Fed Funds Effective</h3>
+            <button onclick="loadFredChart('DFF','chartFed')" class="btn-ghost text-xs">Refresh</button>
+          </div>
+          <div class="chart-box"><canvas id="chartFed"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-sm">Prime Rate</h3>
+            <button onclick="loadFredChart('DPRIME','chartPrime')" class="btn-ghost text-xs">Refresh</button>
+          </div>
+          <div class="chart-box"><canvas id="chartPrime"></canvas></div>
+        </div>
+      </div>
+      <p class="text-xs mb-5" style="color:var(--muted);">
+        These charts pull real market history from FRED (free). Add your free FRED API key in the Rules & Help tab first. UMBS and daily mortgage rates do not have free long-term public charts.
+      </p>
 
       <!-- Notes + Links -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
         <div class="card lg:col-span-2">
           <div class="metric-label mb-2">Personal Notes / Market Drivers</div>
-          <textarea id="notes" rows="3" class="input-sm w-full resize-none" style="min-height:90px;">MBS prices are significantly weaker so far today. Strong downward movement will most likely result in higher mortgage rates for today.</textarea>
+          <textarea id="notes" rows="3" class="input-sm w-full" style="min-height:90px;resize:vertical;">MBS prices are significantly weaker so far today. Strong downward movement will most likely result in higher mortgage rates for today.</textarea>
         </div>
         <div class="card">
           <div class="metric-label mb-3">Live Sources</div>
           <div class="space-y-2 text-sm">
-            <a href="https://www.mortgagenewsdaily.com/mortgage-rates" target="_blank" class="flex justify-between items-center p-2.5 rounded-lg" style="background:color-mix(in srgb,var(--card-border) 40%,transparent);">
-              <span>MND Rates (screenshot style)</span><span style="color:var(--accent);">→</span>
+            <a href="https://www.mortgagenewsdaily.com/mortgage-rates" target="_blank" class="flex justify-between items-center p-2 rounded-xl" style="background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
+              <span>MND Rates</span><span style="color:var(--accent);">→</span>
             </a>
-            <a href="https://www.mortgagenewsdaily.com/mbs" target="_blank" class="flex justify-between items-center p-2.5 rounded-lg" style="background:color-mix(in srgb,var(--card-border) 40%,transparent);">
-              <span>MND MBS Dashboard</span><span style="color:var(--accent);">→</span>
+            <a href="https://www.mortgagenewsdaily.com/mbs" target="_blank" class="flex justify-between items-center p-2 rounded-xl" style="background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
+              <span>MND MBS</span><span style="color:var(--accent);">→</span>
             </a>
-            <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank" class="flex justify-between items-center p-2.5 rounded-lg" style="background:color-mix(in srgb,var(--card-border) 40%,transparent);">
-              <span>FRED 10yr / SOFR / Prime</span><span style="color:var(--accent);">→</span>
+            <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank" class="flex justify-between items-center p-2 rounded-xl" style="background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
+              <span>FRED Charts</span><span style="color:var(--accent);">→</span>
             </a>
-            <a href="https://www.newyorkfed.org/markets/reference-rates/sofr" target="_blank" class="flex justify-between items-center p-2.5 rounded-lg" style="background:color-mix(in srgb,var(--card-border) 40%,transparent);">
+            <a href="https://www.newyorkfed.org/markets/reference-rates/sofr" target="_blank" class="flex justify-between items-center p-2 rounded-xl" style="background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
               <span>NY Fed SOFR</span><span style="color:var(--accent);">→</span>
             </a>
           </div>
         </div>
       </div>
 
-      <!-- History Table -->
+      <!-- History Snapshots (kept as table only) -->
       <div class="card">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
           <div>
-            <h3 class="font-semibold text-sm">History Snapshots</h3>
-            <p class="text-xs mt-0.5" style="color:var(--muted);">Your personal daily records. Each “Save Snapshot” stores rates, indexes & MBS so charts can show past trends for any item.</p>
+            <h3 class="font-semibold text-sm">History Snapshots (Your Records)</h3>
+            <p class="text-xs mt-1" style="color:var(--muted);">Personal daily log. Not used for the market trend charts above.</p>
           </div>
-          <button onclick="App.clearHistory()" class="btn-ghost text-xs">Clear All</button>
+          <button onclick="clearHistory()" class="btn-ghost text-xs">Clear All</button>
         </div>
         <div class="overflow-x-auto">
           <table>
             <thead>
               <tr>
-                <th>Date</th><th>30yr</th><th>15yr</th><th>10yr</th><th>Spread</th><th>SOFR</th><th>MBS 5.0</th><th>Trend</th>
+                <th>Date</th><th>30yr</th><th>10yr</th><th>Spread</th><th>SOFR</th><th>MBS 5.0</th><th>Trend</th>
               </tr>
             </thead>
             <tbody id="historyTableBody"></tbody>
           </table>
         </div>
-        <p id="noHistory" class="text-center text-sm py-8" style="color:var(--muted);">No snapshots yet. Update indexes and click Save Snapshot to start building history.</p>
+        <p id="noHistory" class="text-center text-sm py-8" style="color:var(--muted);">No snapshots yet. Click Save Snapshot after updating numbers.</p>
       </div>
     </div>
 
-    <!-- ==================== OPPORTUNITIES ==================== -->
+    <!-- OPPORTUNITIES -->
     <div id="panel-opportunities" class="hidden space-y-5">
       <div class="card">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
           <div>
             <h2 class="text-lg font-bold">Opportunity Scanner</h2>
-            <p class="text-sm mt-0.5" style="color:var(--muted);">Clients who may benefit from current rates</p>
+            <p class="text-sm mt-1" style="color:var(--muted);">Clients who may benefit from current rates</p>
           </div>
           <div class="flex items-center gap-3">
             <div class="text-sm">
               <span style="color:var(--muted);">Today 30yr:</span>
-              <span id="oppRateDisplay" class="font-bold ml-1" style="color:var(--accent);">6.72%</span>
+              <span id="oppRateDisplay" class="font-bold" style="color:var(--accent);">6.72%</span>
             </div>
-            <button onclick="Clients.runScan()" class="btn-primary">Run Scan</button>
+            <button onclick="runScan()" class="btn-primary">Run Scan</button>
           </div>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
@@ -290,14 +494,14 @@
       </div>
     </div>
 
-    <!-- ==================== CLIENTS ==================== -->
+    <!-- CLIENTS -->
     <div id="panel-clients" class="hidden space-y-5">
       <div class="card">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
           <h2 class="text-lg font-bold">Client List</h2>
-          <button onclick="Clients.showForm()" class="btn-primary">+ Add Client</button>
+          <button onclick="showClientForm()" class="btn-primary">+ Add Client</button>
         </div>
-        <div id="clientForm" class="hidden mb-5 p-5 rounded-xl" style="background:color-mix(in srgb,var(--card-border) 30%,transparent);border:1px solid var(--card-border);">
+        <div id="clientForm" class="hidden mb-5 p-4 rounded-xl" style="background:color-mix(in srgb,var(--card-border) 30%,transparent);border:1px solid var(--card-border);">
           <h3 class="font-semibold mb-4" id="formTitle">Add New Client</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             <div><div class="metric-label">Full Name *</div><input type="text" id="cName" class="input-sm" placeholder="John Smith"></div>
@@ -312,11 +516,11 @@
             </div>
             <div><div class="metric-label">Last Contact</div><input type="date" id="cLastContact" class="input-sm"></div>
             <div><div class="metric-label">Phone / Email</div><input type="text" id="cContact" class="input-sm" placeholder="optional"></div>
-            <div class="md:col-span-2 lg:col-span-3"><div class="metric-label">Notes</div><input type="text" id="cNotes" class="input-sm" placeholder="Refi candidate…"></div>
+            <div class="md:col-span-2"><div class="metric-label">Notes</div><input type="text" id="cNotes" class="input-sm" placeholder="Refi candidate…"></div>
           </div>
           <div class="flex gap-2 mt-4">
-            <button onclick="Clients.save()" class="btn-primary">Save Client</button>
-            <button onclick="Clients.hideForm()" class="btn-ghost">Cancel</button>
+            <button onclick="saveClient()" class="btn-primary">Save Client</button>
+            <button onclick="hideClientForm()" class="btn-ghost">Cancel</button>
           </div>
         </div>
         <div class="overflow-x-auto">
@@ -332,7 +536,7 @@
       </div>
     </div>
 
-    <!-- ==================== SETTINGS ==================== -->
+    <!-- SETTINGS -->
     <div id="panel-settings" class="hidden space-y-5">
       <div class="card">
         <h2 class="text-lg font-bold mb-5">Matching Rules</h2>
@@ -354,48 +558,558 @@
             <input type="number" id="ruleTerm" class="input-sm" value="25">
           </div>
         </div>
-        <button onclick="App.saveRules()" class="btn-primary mt-5">Save Rules</button>
+        <button onclick="saveRules()" class="btn-primary mt-5">Save Rules</button>
       </div>
 
       <div class="card">
-        <h3 class="font-semibold mb-3">What are History Snapshots?</h3>
+        <h3 class="font-semibold mb-3">FRED API Key (for live data + charts)</h3>
         <p class="text-sm mb-3" style="color:var(--muted);">
-          Every time you click <strong style="color:var(--text);">Save Snapshot</strong>, the dashboard records the current rates, indexes, MBS prices, and notes.
-          This becomes your private history. Use the dropdown above the main chart to view past trends for any individual item (30yr, 15yr, 10yr, SOFR, Spread, MBS, etc.).
+          Get a free key at <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank" style="color:var(--accent);">fred.stlouisfed.org</a> (takes 30 seconds).
         </p>
-        <p class="text-sm mb-3" style="color:var(--muted);">
-          This is different from the long multi-year public chart on Mortgage News Daily. Those come from public surveys. Yours is built only from the values you personally save each day, so it stays private and exact.
-        </p>
+        <input type="text" id="fredKey" class="input-sm" placeholder="Paste your FRED API key here">
+        <button onclick="saveFredKey()" class="btn-primary mt-3">Save FRED Key</button>
+        <p class="text-xs mt-3" style="color:var(--muted);">Once saved, the market trend charts and “Refresh Live” button will work.</p>
+      </div>
+
+      <div class="card">
+        <h3 class="font-semibold mb-3">About the Charts</h3>
         <p class="text-sm" style="color:var(--muted);">
-          Tip: Update the Index & MBS fields (or click Refresh Live Indexes) from MND/FRED each morning and hit Save Snapshot. After a couple of weeks the individual charts become very useful.
+          The four charts above pull real market history from FRED (10-Year, SOFR, Fed Funds, Prime) for the last ~90 days.
+          UMBS prices and daily mortgage rates do not have free public long-term APIs, so those stay as manual values you enter from Mortgage News Daily.
         </p>
-      </div>
-
-      <div class="card">
-        <h3 class="font-semibold mb-3">GitHub + Firebase Setup</h3>
-        <p class="text-sm mb-2" style="color:var(--muted);">See the full <strong>README.md</strong> in this folder for:</p>
-        <ul class="text-sm space-y-1" style="color:var(--muted);">
-          <li>• How to put this on GitHub + GitHub Pages</li>
-          <li>• How to connect your existing Firebase project</li>
-          <li>• How to get a free FRED API key for live indexes</li>
-        </ul>
       </div>
     </div>
   </main>
 
-  <footer class="max-w-7xl mx-auto px-4 sm:px-6 py-8 text-center text-xs" style="color:var(--muted);">
-    Personal tool for John Bischof • Home Mortgage Solutions LLC • Internal use only • v<span id="appVersion"></span>
+  <footer class="container py-8 text-center text-xs" style="color:var(--muted);">
+    Personal tool for John Bischof • Home Mortgage Solutions LLC
   </footer>
 
-  <!-- Scripts (order matters) -->
-  <script src="js/config.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/market.js"></script>
-  <script src="js/charts.js"></script>
-  <script src="js/clients.js"></script>
-  <script src="js/app.js"></script>
   <script>
-    document.getElementById("appVersion").textContent = typeof APP_VERSION !== "undefined" ? APP_VERSION : "2026.07";
+    // ========== DATA ==========
+    const currentRates = {
+      rate30: 6.72, chg30: 0.08,
+      rate15: 6.20, chg15: 0.01,
+      jumbo: 6.85, chgJumbo: 0.03,
+      arm: 6.22, chgARM: -0.01,
+      fha: 6.24, chgFHA: 0.03,
+      va: 6.26, chgVA: 0.03
+    };
+    let history = [];
+    let clients = [];
+    let editingId = null;
+    const charts = {};
+
+    // ========== STORAGE ==========
+    const storage = {
+      get(k, f=null){ try{ return localStorage.getItem(k) ?? f; }catch{return f;} },
+      set(k,v){ try{ localStorage.setItem(k,v); return true; }catch{return false;} },
+      remove(k){ try{ localStorage.removeItem(k); }catch{} }
+    };
+
+    // ========== THEME ==========
+    function setTheme(name, btn) {
+      document.documentElement.setAttribute('data-theme', name);
+      storage.set('jbTheme', name);
+      document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      setTimeout(() => {
+        ['chart10yr','chartSofr','chartFed','chartPrime'].forEach(id => {
+          if (charts[id]) charts[id].update();
+        });
+      }, 50);
+    }
+
+    // ========== TABS ==========
+    function switchTab(name) {
+      ['market','opportunities','clients','settings'].forEach(t => {
+        document.getElementById('panel-' + t)?.classList.add('hidden');
+        document.querySelector(`.tab[data-tab="${t}"]`)?.classList.remove('active');
+      });
+      document.getElementById('panel-' + name)?.classList.remove('hidden');
+      document.querySelector(`.tab[data-tab="${name}"]`)?.classList.add('active');
+      if (name === 'opportunities') runScan();
+      if (name === 'clients') renderClients();
+    }
+
+    // ========== MARKET ==========
+    function updateFromInputs() {
+      const ust10 = parseFloat(document.getElementById('ust10').value) || 0;
+      const spread = currentRates.rate30 - ust10;
+      document.getElementById('spreadValue').textContent = spread.toFixed(2) + '%';
+      document.getElementById('spreadBps').textContent = Math.round(spread * 100) + ' bps';
+      updateAutoTrend();
+    }
+
+    function updateAutoTrend() {
+      const mbs = (document.getElementById('mbsStatus').value || '').toLowerCase();
+      const text = document.getElementById('statusText');
+      const dot = document.getElementById('statusDot');
+      let trend = 'MINIMAL';
+      let reason = 'Watch closely';
+
+      if (mbs.includes('weak') || mbs.includes('significantly') || mbs.includes('down')) {
+        trend = 'NEGATIVE';
+        reason = 'MBS weaker / Rates under pressure';
+      } else if (mbs.includes('strong') || mbs.includes('firmer') || mbs.includes('better')) {
+        trend = 'POSITIVE';
+        reason = 'MBS firmer / Rates improving';
+      }
+
+      const manual = document.getElementById('trend').value;
+      if (manual && manual !== 'AUTO') trend = manual;
+
+      text.textContent = trend + ' — ' + reason;
+      if (trend === 'POSITIVE') {
+        text.className = 'font-bold text-lg positive';
+        dot.style.background = 'var(--positive)';
+      } else if (trend === 'NEGATIVE') {
+        text.className = 'font-bold text-lg negative';
+        dot.style.background = 'var(--negative)';
+      } else {
+        text.className = 'font-bold text-lg';
+        text.style.color = 'var(--warning)';
+        dot.style.background = 'var(--warning)';
+      }
+    }
+
+    // ========== FRED LIVE + CHARTS ==========
+    function getFredKey() {
+      return storage.get('fredKey') || document.getElementById('fredKey')?.value || '';
+    }
+
+    function saveFredKey() {
+      const key = document.getElementById('fredKey').value.trim();
+      if (key) {
+        storage.set('fredKey', key);
+        alert('FRED key saved! Now click the Refresh buttons on the charts.');
+        // Auto load charts
+        loadFredChart('DGS10','chart10yr');
+        loadFredChart('SOFR','chartSofr');
+        loadFredChart('DFF','chartFed');
+        loadFredChart('DPRIME','chartPrime');
+      }
+    }
+
+    async function refreshLiveIndexes() {
+      const key = getFredKey();
+      if (!key || key.length < 10) {
+        alert('Please go to Rules & Help tab and paste your free FRED API key first.');
+        return;
+      }
+      const btn = document.getElementById('btnRefreshFred');
+      btn.disabled = true;
+      btn.textContent = 'Fetching…';
+
+      try {
+        const series = [
+          {id:'DGS10', el:'ust10'},
+          {id:'SOFR', el:'sofr'},
+          {id:'DFF', el:'fedfunds'},
+          {id:'DPRIME', el:'prime'}
+        ];
+        // Free CORS proxy so it works when testing pure HTML file locally
+        const results = await Promise.all(series.map(async s => {
+          const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=1`;
+          // Recommended format for corsproxy.io
+          const r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
+          const d = await r.json();
+          return {el: s.el, value: parseFloat(d.observations?.[0]?.value)};
+        }));
+        let count = 0;
+        results.forEach(r => {
+          if (!isNaN(r.value)) {
+            document.getElementById(r.el).value = r.value.toFixed(2);
+            count++;
+          }
+        });
+        updateFromInputs();
+        alert(count > 0 ? `Updated ${count} live indexes` : 'Could not fetch data – check key');
+      } catch(e) {
+        console.error(e);
+        alert('Error fetching from FRED.
+
+This usually happens when testing the HTML file locally due to browser security (CORS).
+
+The fixed version uses a free proxy – try again.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Refresh Live (FRED)';
+      }
+    }
+
+    async function loadFredChart(seriesId, canvasId) {
+      const key = getFredKey();
+      if (!key || key.length < 10) {
+        alert('Add your free FRED API key in the Rules & Help tab first.');
+        return;
+      }
+
+      try {
+        // Last ~90 observations + free CORS proxy for local HTML testing
+        const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${key}&file_type=json&sort_order=desc&limit=90`;
+        const res = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
+        const data = await res.json();
+        const obs = (data.observations || []).reverse().filter(o => o.value !== '.');
+
+        const labels = obs.map(o => o.date.slice(5)); // MM-DD
+        const values = obs.map(o => parseFloat(o.value));
+
+        const colors = getColors();
+        const ctx = document.getElementById(canvasId).getContext('2d');
+
+        if (charts[canvasId]) charts[canvasId].destroy();
+
+        charts[canvasId] = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: seriesId,
+              data: values,
+              borderColor: colors.accent,
+              backgroundColor: colors.accent + '33',
+              tension: 0.3,
+              fill: true,
+              pointRadius: 0,
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#1e293b',
+                titleColor: '#e2e8f0',
+                bodyColor: '#cbd5e1'
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: colors.muted, font: { size: 9 }, maxTicksLimit: 8 },
+                grid: { color: colors.cardBorder + '44' }
+              },
+              y: {
+                ticks: { color: colors.muted, font: { size: 10 } },
+                grid: { color: colors.cardBorder + '44' }
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error(err);
+        alert('Could not load chart for ' + seriesId);
+      }
+    }
+
+    function getColors() {
+      const s = getComputedStyle(document.documentElement);
+      return {
+        accent: s.getPropertyValue('--accent').trim() || '#06b6d4',
+        muted: s.getPropertyValue('--muted').trim() || '#94a3b8',
+        cardBorder: s.getPropertyValue('--card-border').trim() || '#334155'
+      };
+    }
+
+    // ========== SNAPSHOTS ==========
+    function getHistory() {
+      try { return JSON.parse(storage.get('jbMarketHistory', '[]')); } catch { return []; }
+    }
+
+    function saveSnapshot() {
+      const snapshot = {
+        date: new Date().toISOString().slice(0,10),
+        time: new Date().toLocaleTimeString(),
+        rate30: currentRates.rate30,
+        rate15: currentRates.rate15,
+        ust10: parseFloat(document.getElementById('ust10').value),
+        sofr: parseFloat(document.getElementById('sofr').value),
+        fedfunds: parseFloat(document.getElementById('fedfunds').value),
+        prime: parseFloat(document.getElementById('prime').value),
+        cofi: parseFloat(document.getElementById('cofi').value),
+        mbs50: document.getElementById('mbs50').value,
+        mbs55: document.getElementById('mbs55').value,
+        mbsStatus: document.getElementById('mbsStatus').value,
+        trend: document.getElementById('statusText').textContent.split(' — ')[0],
+        notes: document.getElementById('notes').value,
+        spread: currentRates.rate30 - parseFloat(document.getElementById('ust10').value)
+      };
+      let h = getHistory().filter(x => x.date !== snapshot.date);
+      h.unshift(snapshot);
+      if (h.length > 90) h = h.slice(0,90);
+      storage.set('jbMarketHistory', JSON.stringify(h));
+      history = h;
+      document.getElementById('lastSaved').textContent = 'Saved ' + new Date().toLocaleTimeString();
+      document.getElementById('lastSaved').classList.remove('hidden');
+      renderHistoryTable();
+      alert('Snapshot saved for ' + snapshot.date);
+    }
+
+    function clearHistory() {
+      if (!confirm('Clear all history snapshots?')) return;
+      storage.remove('jbMarketHistory');
+      history = [];
+      renderHistoryTable();
+    }
+
+    function renderHistoryTable() {
+      const tbody = document.getElementById('historyTableBody');
+      const noHist = document.getElementById('noHistory');
+      if (history.length === 0) {
+        tbody.innerHTML = '';
+        noHist.classList.remove('hidden');
+        return;
+      }
+      noHist.classList.add('hidden');
+      tbody.innerHTML = history.map(h => `
+        <tr>
+          <td class="font-medium">${h.date}</td>
+          <td>${h.rate30?.toFixed(2) || '—'}%</td>
+          <td>${h.ust10?.toFixed(2) || '—'}%</td>
+          <td style="color:var(--accent);">${h.spread?.toFixed(2) || '—'}%</td>
+          <td>${h.sofr?.toFixed(2) || '—'}%</td>
+          <td>${h.mbs50 || '—'}</td>
+          <td><span class="text-xs font-semibold px-2 py-0.5 rounded" style="background:color-mix(in srgb,${h.trend==='POSITIVE'?'var(--positive)':h.trend==='NEGATIVE'?'var(--negative)':'var(--warning)'} 20%,transparent);color:${h.trend==='POSITIVE'?'var(--positive)':h.trend==='NEGATIVE'?'var(--negative)':'var(--warning)'};">${h.trend||'—'}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    // ========== CLIENTS + SCANNER (same as before) ==========
+    function loadClients() {
+      try { clients = JSON.parse(storage.get('jbClients', '[]')); } catch { clients = []; }
+    }
+    function saveClients() { storage.set('jbClients', JSON.stringify(clients)); }
+
+    function showClientForm() {
+      editingId = null;
+      document.getElementById('formTitle').textContent = 'Add New Client';
+      ['cName','cRate','cBalance','cLastContact','cContact','cNotes'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('cType').value = 'Conventional 30yr';
+      document.getElementById('clientForm').classList.remove('hidden');
+    }
+    function hideClientForm() {
+      document.getElementById('clientForm').classList.add('hidden');
+      editingId = null;
+    }
+
+    function saveClient() {
+      const name = document.getElementById('cName').value.trim();
+      const rate = parseFloat(document.getElementById('cRate').value);
+      if (!name || isNaN(rate)) { alert('Name and Current Rate required.'); return; }
+      const client = {
+        id: editingId || Date.now().toString(),
+        name, rate,
+        balance: parseFloat(document.getElementById('cBalance').value) || 0,
+        type: document.getElementById('cType').value,
+        lastContact: document.getElementById('cLastContact').value || '',
+        contact: document.getElementById('cContact').value || '',
+        notes: document.getElementById('cNotes').value || ''
+      };
+      if (editingId) {
+        const i = clients.findIndex(c => c.id === editingId);
+        if (i >= 0) clients[i] = client;
+      } else clients.push(client);
+      saveClients();
+      hideClientForm();
+      renderClients();
+      runScan();
+    }
+
+    function editClient(id) {
+      const c = clients.find(x => x.id === id);
+      if (!c) return;
+      editingId = id;
+      document.getElementById('formTitle').textContent = 'Edit Client';
+      document.getElementById('cName').value = c.name;
+      document.getElementById('cRate').value = c.rate;
+      document.getElementById('cBalance').value = c.balance || '';
+      document.getElementById('cType').value = c.type || 'Conventional 30yr';
+      document.getElementById('cLastContact').value = c.lastContact || '';
+      document.getElementById('cContact').value = c.contact || '';
+      document.getElementById('cNotes').value = c.notes || '';
+      document.getElementById('clientForm').classList.remove('hidden');
+    }
+
+    function deleteClient(id) {
+      if (!confirm('Delete this client?')) return;
+      clients = clients.filter(c => c.id !== id);
+      saveClients();
+      renderClients();
+      runScan();
+    }
+
+    function renderClients() {
+      loadClients();
+      const tbody = document.getElementById('clientTableBody');
+      if (clients.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8" style="color:var(--muted);">No clients yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = clients.map(c => `
+        <tr>
+          <td class="font-medium">${c.name}</td>
+          <td>${c.rate.toFixed(2)}%</td>
+          <td>${c.balance ? '$' + c.balance.toLocaleString() : '—'}</td>
+          <td>${c.type || '—'}</td>
+          <td>${c.lastContact || '—'}</td>
+          <td style="color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.notes || ''}</td>
+          <td>
+            <button onclick="editClient('${c.id}')" class="text-xs" style="color:var(--accent);margin-right:8px;">Edit</button>
+            <button onclick="deleteClient('${c.id}')" class="text-xs negative">Del</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function getRules() {
+      return {
+        minDiff: parseFloat(storage.get('jbRuleMinDiff', '0.75')),
+        highDiff: parseFloat(storage.get('jbRuleHighDiff', '1.25')),
+        highSavings: parseFloat(storage.get('jbRuleHighSavings', '200')),
+        term: parseFloat(storage.get('jbRuleTerm', '25'))
+      };
+    }
+
+    function saveRules() {
+      storage.set('jbRuleMinDiff', document.getElementById('ruleMinDiff').value);
+      storage.set('jbRuleHighDiff', document.getElementById('ruleHighDiff').value);
+      storage.set('jbRuleHighSavings', document.getElementById('ruleHighSavings').value);
+      storage.set('jbRuleTerm', document.getElementById('ruleTerm').value);
+      alert('Rules saved.');
+      runScan();
+    }
+
+    function calcPayment(balance, annualRate, years) {
+      if (balance <= 0 || annualRate <= 0) return 0;
+      const r = annualRate / 100 / 12;
+      const n = years * 12;
+      return balance * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    }
+
+    function runScan() {
+      loadClients();
+      const rules = getRules();
+      const todayRate = currentRates.rate30;
+      document.getElementById('oppRateDisplay').textContent = todayRate.toFixed(2) + '%';
+      document.getElementById('ruleMinDiff').value = rules.minDiff;
+      document.getElementById('ruleHighDiff').value = rules.highDiff;
+      document.getElementById('ruleHighSavings').value = rules.highSavings;
+      document.getElementById('ruleTerm').value = rules.term;
+
+      let opps = [], totalSavings = 0, highCount = 0;
+      clients.forEach(c => {
+        const diff = c.rate - todayRate;
+        if (diff < rules.minDiff) return;
+        const oldPmt = calcPayment(c.balance, c.rate, rules.term);
+        const newPmt = calcPayment(c.balance, todayRate, rules.term);
+        const monthlySave = Math.max(0, oldPmt - newPmt);
+        totalSavings += monthlySave;
+        const isHigh = diff >= rules.highDiff || monthlySave >= rules.highSavings;
+        if (isHigh) highCount++;
+        opps.push({...c, diff, monthlySave, priority: isHigh ? 'HIGH' : 'MEDIUM'});
+      });
+      opps.sort((a,b) => a.priority === b.priority ? b.monthlySave - a.monthlySave : (a.priority === 'HIGH' ? -1 : 1));
+
+      document.getElementById('statTotal').textContent = clients.length;
+      document.getElementById('statOpps').textContent = opps.length;
+      document.getElementById('statHigh').textContent = highCount;
+      document.getElementById('statSavings').textContent = '$' + Math.round(totalSavings).toLocaleString();
+
+      const tbody = document.getElementById('oppTableBody');
+      if (opps.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10" style="color:var(--muted);">No opportunities with current rules.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = opps.map(o => `
+        <tr>
+          <td><span class="text-xs font-bold px-2 py-0.5 rounded" style="background:color-mix(in srgb,${o.priority==='HIGH'?'var(--positive)':'var(--warning)'} 22%,transparent);color:${o.priority==='HIGH'?'var(--positive)':'var(--warning)'};">${o.priority}</span></td>
+          <td class="font-medium">${o.name}</td>
+          <td>${o.rate.toFixed(2)}%</td>
+          <td>${o.balance ? '$' + o.balance.toLocaleString() : '—'}</td>
+          <td class="negative font-medium">+${o.diff.toFixed(2)}%</td>
+          <td class="positive font-semibold">$${Math.round(o.monthlySave).toLocaleString()}</td>
+          <td>${o.lastContact || '—'}</td>
+          <td><button onclick="draftEmail('${o.id}',${o.diff.toFixed(2)},${Math.round(o.monthlySave)})" class="text-xs font-medium" style="color:var(--accent);">Draft Email</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function draftEmail(id, diff, save) {
+      const c = clients.find(x => x.id === id);
+      if (!c) return;
+      const todayRate = currentRates.rate30.toFixed(2);
+      const subject = encodeURIComponent('Quick rate check for you – possible savings');
+      const body = encodeURIComponent(`Hi ${c.name.split(' ')[0]},
+
+Hope you're doing well. I was reviewing current market rates this morning and noticed that rates have moved enough that it might make sense to take another look at your mortgage.
+
+Your current rate: ${c.rate.toFixed(2)}%
+Today's market (approx): ${todayRate}%
+Potential difference: ~${diff}%
+Estimated monthly savings (rough): around $${save}
+
+Would you like me to run some exact numbers for you? Happy to put together a no-obligation comparison.
+
+Best regards,
+John Bischof
+Home Mortgage Solutions LLC`);
+      window.open(`mailto:${c.contact || ''}?subject=${subject}&body=${body}`);
+    }
+
+    // ========== INIT ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      // Theme
+      const theme = storage.get('jbTheme', 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', () => setTheme(btn.dataset.theme, btn));
+        if (btn.dataset.theme === theme) btn.classList.add('active');
+      });
+
+      // Tabs
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+      });
+
+      // Display rates
+      document.getElementById('disp30').textContent = currentRates.rate30.toFixed(2) + '%';
+      document.getElementById('disp15').textContent = currentRates.rate15.toFixed(2) + '%';
+      document.getElementById('dispJumbo').textContent = currentRates.jumbo.toFixed(2) + '%';
+      document.getElementById('dispARM').textContent = currentRates.arm.toFixed(2) + '%';
+      document.getElementById('dispFHA').textContent = currentRates.fha.toFixed(2) + '%';
+      document.getElementById('dispVA').textContent = currentRates.va.toFixed(2) + '%';
+
+      // History
+      history = getHistory();
+      updateFromInputs();
+      updateAutoTrend();
+      renderHistoryTable();
+      document.getElementById('dataTime').textContent = new Date().toLocaleString();
+
+      // FRED key
+      const savedKey = storage.get('fredKey', '');
+      if (savedKey) {
+        document.getElementById('fredKey').value = savedKey;
+        // Auto-load charts if key exists
+        setTimeout(() => {
+          loadFredChart('DGS10','chart10yr');
+          loadFredChart('SOFR','chartSofr');
+          loadFredChart('DFF','chartFed');
+          loadFredChart('DPRIME','chartPrime');
+        }, 500);
+      }
+
+      // Rules
+      const rules = getRules();
+      document.getElementById('ruleMinDiff').value = rules.minDiff;
+      document.getElementById('ruleHighDiff').value = rules.highDiff;
+      document.getElementById('ruleHighSavings').value = rules.highSavings;
+      document.getElementById('ruleTerm').value = rules.term;
+
+      loadClients();
+    });
   </script>
 </body>
 </html>
