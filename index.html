@@ -227,7 +227,7 @@
     <!-- MARKET WATCH -->
     <div id="panel-market">
 
-      <!-- Status -->
+      <!-- Status bar -->
       <div class="card flex flex-wrap items-center justify-between gap-3 mb-5">
         <div class="flex items-center">
           <span id="statusDot" class="status-dot" style="background:var(--warning);"></span>
@@ -236,64 +236,17 @@
             <div id="statusText" class="font-bold text-lg">Loading…</div>
           </div>
         </div>
-        <div class="text-sm" style="color:var(--muted);">
-          Last refresh: <span id="dataTime" class="font-medium" style="color:var(--text);">—</span>
+        <div class="flex items-center gap-3">
+          <div class="text-sm" style="color:var(--muted);">
+            Last refresh: <span id="dataTime" class="font-medium" style="color:var(--text);">—</span>
+          </div>
+          <button onclick="refreshLiveIndexes()" class="btn-primary text-xs" id="btnRefreshFred">Refresh All Live (FRED)</button>
         </div>
       </div>
 
-      <!-- TODAY'S MORTGAGE RATES (display only) -->
+      <!-- ========== 1. FRED LIVE INDEXES (TOP) ========== -->
       <div class="mb-2">
-        <div class="section-title">Today’s Mortgage Rates <span style="font-weight:400;opacity:0.7;">(display only – update from MND then Save Snapshot)</span></div>
-      </div>
-      <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-5">
-        <div class="card rate-card">
-          <div class="label">30 Yr. Fixed</div>
-          <div class="rate" id="disp30">6.72%</div>
-          <div class="change negative" id="chg30">+0.08</div>
-          <div class="range"><div class="range-fill" style="width:72%"></div><div class="range-marker" style="left:72%"></div></div>
-          <div class="pmt">$1,617 / mo</div>
-        </div>
-        <div class="card rate-card">
-          <div class="label">15 Yr. Fixed</div>
-          <div class="rate" id="disp15">6.20%</div>
-          <div class="change negative" id="chg15">+0.01</div>
-          <div class="range"><div class="range-fill" style="width:68%"></div><div class="range-marker" style="left:68%"></div></div>
-          <div class="pmt">$2,137 / mo</div>
-        </div>
-        <div class="card rate-card">
-          <div class="label">30 Yr. Jumbo</div>
-          <div class="rate" id="dispJumbo">6.85%</div>
-          <div class="change negative" id="chgJumbo">+0.03</div>
-          <div class="range"><div class="range-fill" style="width:78%"></div><div class="range-marker" style="left:78%"></div></div>
-          <div class="pmt">$1,638 / mo</div>
-        </div>
-        <div class="card rate-card">
-          <div class="label">7/6 SOFR ARM</div>
-          <div class="rate" id="dispARM">6.22%</div>
-          <div class="change positive" id="chgARM">-0.01</div>
-          <div class="range"><div class="range-fill" style="width:58%"></div><div class="range-marker" style="left:58%"></div></div>
-          <div class="pmt">$1,534 / mo</div>
-        </div>
-        <div class="card rate-card">
-          <div class="label">30 Yr. FHA</div>
-          <div class="rate" id="dispFHA">6.24%</div>
-          <div class="change negative" id="chgFHA">+0.03</div>
-          <div class="range"><div class="range-fill" style="width:62%"></div><div class="range-marker" style="left:62%"></div></div>
-          <div class="pmt">$1,538 / mo</div>
-        </div>
-        <div class="card rate-card">
-          <div class="label">30 Yr. VA</div>
-          <div class="rate" id="dispVA">6.26%</div>
-          <div class="change negative" id="chgVA">+0.03</div>
-          <div class="range"><div class="range-fill" style="width:64%"></div><div class="range-marker" style="left:64%"></div></div>
-          <div class="pmt">$1,541 / mo</div>
-        </div>
-      </div>
-
-      <!-- GROUP 1: 10-Year + UMBS (card style like top rates) -->
-      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div class="section-title">10-Year Treasury & UMBS</div>
-        <button onclick="refreshLiveIndexes()" class="btn-ghost text-xs" id="btnRefreshFred">Refresh Live (FRED)</button>
+        <div class="section-title">Live Indexes from FRED <span style="font-weight:400;opacity:0.7;">(auto-updates with your key)</span></div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         <div class="card rate-card">
@@ -303,68 +256,26 @@
           <input type="number" step="0.001" id="ust10" class="input-sm text-center mt-2" value="4.58" onchange="updateFromInputs(); updateDisplayCards();" style="font-size:0.8rem;">
         </div>
         <div class="card rate-card">
-          <div class="label">UMBS 5.0</div>
-          <div class="rate" id="dispMbs50">97.47</div>
-          <div class="change" id="chgMbs50">—</div>
-          <input type="text" id="mbs50" class="input-sm text-center mt-2" value="97.47" onchange="updateFromInputs(); updateDisplayCards();" style="font-size:0.8rem;" placeholder="97.47">
+          <div class="label">SOFR</div>
+          <div class="rate" id="dispSofr">3.53%</div>
+          <div class="change" id="chgSofr">—</div>
+          <input type="number" step="0.01" id="sofr" class="input-sm text-center mt-2" value="3.53" onchange="updateFromInputs(); updateDisplayCards();" style="font-size:0.8rem;">
         </div>
         <div class="card rate-card">
-          <div class="label">UMBS 5.5</div>
-          <div class="rate" id="dispMbs55">99.69</div>
-          <div class="change" id="chgMbs55">—</div>
-          <input type="text" id="mbs55" class="input-sm text-center mt-2" value="99.69" onchange="updateFromInputs(); updateDisplayCards();" style="font-size:0.8rem;" placeholder="99.69">
+          <div class="label">Fed Funds Eff.</div>
+          <div class="rate" id="dispFed">3.62%</div>
+          <div class="change" id="chgFed">—</div>
+          <input type="number" step="0.01" id="fedfunds" class="input-sm text-center mt-2" value="3.62" onchange="updateFromInputs(); updateDisplayCards();" style="font-size:0.8rem;">
         </div>
-        <div class="card rate-card" style="background:color-mix(in srgb,var(--accent) 12%,var(--card));border-color:color-mix(in srgb,var(--accent) 40%,var(--card-border));">
-          <div class="label" style="color:var(--accent);">30yr – 10yr Spread</div>
-          <div class="rate" id="spreadValue" style="color:var(--accent);">2.14%</div>
-          <div class="change" id="spreadBps" style="color:var(--accent);">214 bps</div>
-        </div>
-      </div>
-
-      <!-- GROUP 2: Other Indexes -->
-      <div class="mb-2">
-        <div class="section-title">Other Indexes</div>
-      </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-        <div class="card">
-          <div class="metric-label">SOFR</div>
-          <input type="number" step="0.01" id="sofr" class="input-sm text-lg font-bold" value="3.53" onchange="updateFromInputs()">
-        </div>
-        <div class="card">
-          <div class="metric-label">Fed Funds Eff.</div>
-          <input type="number" step="0.01" id="fedfunds" class="input-sm text-lg font-bold" value="3.62" onchange="updateFromInputs()">
-        </div>
-        <div class="card">
-          <div class="metric-label">Prime Rate</div>
-          <input type="number" step="0.01" id="prime" class="input-sm text-lg font-bold" value="6.75" onchange="updateFromInputs()">
-        </div>
-        <div class="card">
-          <div class="metric-label">COFI (11th Dist)</div>
-          <input type="number" step="0.01" id="cofi" class="input-sm text-lg font-bold" value="3.85" onchange="updateFromInputs()">
+        <div class="card rate-card">
+          <div class="label">Prime Rate</div>
+          <div class="rate" id="dispPrime">6.75%</div>
+          <div class="change" id="chgPrime">—</div>
+          <input type="number" step="0.01" id="prime" class="input-sm text-center mt-2" value="6.75" onchange="updateFromInputs(); updateDisplayCards();" style="font-size:0.8rem;">
         </div>
       </div>
 
-      <!-- Status + Save -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-        <div class="card py-3">
-          <div class="metric-label mb-1">MBS Status Comment</div>
-          <input type="text" id="mbsStatus" class="input-sm" value="Significantly weaker" oninput="updateAutoTrend()">
-        </div>
-        <div class="card py-3">
-          <div class="metric-label mb-1">Rate Trend</div>
-          <select id="trend" class="input-sm" onchange="updateAutoTrend()">
-            <option value="AUTO">AUTO (recommended)</option>
-            <option value="POSITIVE">POSITIVE</option>
-            <option value="MINIMAL">MINIMAL</option>
-            <option value="NEGATIVE" selected>NEGATIVE</option>
-          </select>
-        </div>
-        <div class="card py-3 flex items-end">
-          <button onclick="saveSnapshot()" class="btn-primary w-full">Save Today’s Snapshot</button>
-        </div>
-      </div>
-
-      <!-- REAL MARKET TREND CHARTS (FRED) -->
+      <!-- FRED CHARTS -->
       <div class="mb-2">
         <div class="section-title">Market Trends (Last 12 Months from FRED)</div>
       </div>
@@ -384,7 +295,7 @@
           <div class="chart-box"><canvas id="chartSofr"></canvas></div>
         </div>
       </div>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div class="card">
           <div class="flex items-center justify-between mb-3">
             <h3 class="font-semibold text-sm">Fed Funds Effective</h3>
@@ -400,18 +311,76 @@
           <div class="chart-box"><canvas id="chartPrime"></canvas></div>
         </div>
       </div>
-      <p class="text-xs mb-5" style="color:var(--muted);">
-        These charts pull real market history from FRED. Add your free FRED API key in the Rules & Help tab first.
-      </p>
 
-      <!-- Notes + Links -->
+      <!-- ========== 2. FREDDIE MAC PMMS ========== -->
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div class="section-title">Freddie Mac PMMS Weekly Averages <span style="font-weight:400;opacity:0.7;">(updated every Thursday)</span></div>
+        <button onclick="refreshPmms()" class="btn-ghost text-xs" id="btnPmms">Update from FRED (PMMS)</button>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="card rate-card">
+          <div class="label">30 Yr. Fixed (PMMS)</div>
+          <div class="rate" id="disp30">6.49%</div>
+          <div class="change" id="chg30">—</div>
+          <input type="number" step="0.01" id="rate30" class="input-sm text-center mt-2" value="6.49" onchange="updateFromInputs();" style="font-size:0.8rem;">
+        </div>
+        <div class="card rate-card">
+          <div class="label">15 Yr. Fixed (PMMS)</div>
+          <div class="rate" id="disp15">5.82%</div>
+          <div class="change" id="chg15">—</div>
+          <input type="number" step="0.01" id="rate15" class="input-sm text-center mt-2" value="5.82" onchange="updateFromInputs();" style="font-size:0.8rem;">
+        </div>
+        <div class="card rate-card" style="background:color-mix(in srgb,var(--accent) 12%,var(--card));border-color:color-mix(in srgb,var(--accent) 40%,var(--card-border));">
+          <div class="label" style="color:var(--accent);">30yr – 10yr Spread</div>
+          <div class="rate" id="spreadValue" style="color:var(--accent);">1.91%</div>
+          <div class="change" id="spreadBps" style="color:var(--accent);">191 bps</div>
+        </div>
+        <div class="card">
+          <div class="metric-label">Notes</div>
+          <p class="text-xs" style="color:var(--muted);">These are national weekly averages from Freddie Mac. For daily lender rates use Mortgage News Daily.</p>
+        </div>
+      </div>
+
+      <!-- ========== 3. UMBS + REST ========== -->
+      <div class="mb-2">
+        <div class="section-title">UMBS Prices <span style="font-weight:400;opacity:0.7;">(manual from MND)</span></div>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+        <div class="card rate-card">
+          <div class="label">UMBS 5.0</div>
+          <div class="rate" id="dispMbs50">97.47</div>
+          <div class="change" id="chgMbs50">—</div>
+          <input type="text" id="mbs50" class="input-sm text-center mt-2" value="97.47" onchange="updateDisplayCards();" style="font-size:0.8rem;" placeholder="97.47">
+        </div>
+        <div class="card rate-card">
+          <div class="label">UMBS 5.5</div>
+          <div class="rate" id="dispMbs55">99.69</div>
+          <div class="change" id="chgMbs55">—</div>
+          <input type="text" id="mbs55" class="input-sm text-center mt-2" value="99.69" onchange="updateDisplayCards();" style="font-size:0.8rem;" placeholder="99.69">
+        </div>
+        <div class="card">
+          <div class="metric-label">MBS Status</div>
+          <input type="text" id="mbsStatus" class="input-sm" value="Significantly weaker" oninput="updateAutoTrend()">
+        </div>
+        <div class="card">
+          <div class="metric-label">Rate Trend</div>
+          <select id="trend" class="input-sm" onchange="updateAutoTrend()">
+            <option value="AUTO">AUTO (recommended)</option>
+            <option value="POSITIVE">POSITIVE</option>
+            <option value="MINIMAL">MINIMAL</option>
+            <option value="NEGATIVE" selected>NEGATIVE</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Notes + Links + Save -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
         <div class="card lg:col-span-2">
           <div class="metric-label mb-2">Personal Notes / Market Drivers</div>
           <textarea id="notes" rows="3" class="input-sm w-full" style="min-height:90px;resize:vertical;">MBS prices are significantly weaker so far today. Strong downward movement will most likely result in higher mortgage rates for today.</textarea>
         </div>
         <div class="card">
-          <div class="metric-label mb-3">Live Sources</div>
+          <div class="metric-label mb-3">Quick Links</div>
           <div class="space-y-2 text-sm">
             <a href="https://www.mortgagenewsdaily.com/mortgage-rates" target="_blank" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-radius:0.75rem;background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
               <span>MND Rates</span><span style="color:var(--accent);">→</span>
@@ -419,13 +388,14 @@
             <a href="https://www.mortgagenewsdaily.com/mbs" target="_blank" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-radius:0.75rem;background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
               <span>MND MBS</span><span style="color:var(--accent);">→</span>
             </a>
+            <a href="https://www.freddiemac.com/pmms" target="_blank" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-radius:0.75rem;background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
+              <span>Freddie Mac PMMS</span><span style="color:var(--accent);">→</span>
+            </a>
             <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-radius:0.75rem;background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
               <span>FRED Charts</span><span style="color:var(--accent);">→</span>
             </a>
-            <a href="https://www.newyorkfed.org/markets/reference-rates/sofr" target="_blank" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-radius:0.75rem;background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
-              <span>NY Fed SOFR</span><span style="color:var(--accent);">→</span>
-            </a>
           </div>
+          <button onclick="saveSnapshot()" class="btn-primary w-full mt-4">Save Today’s Snapshot</button>
         </div>
       </div>
 
@@ -434,7 +404,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
           <div>
             <h3 class="font-semibold text-sm">History Snapshots (Your Records)</h3>
-            <p class="text-xs mt-1" style="color:var(--muted);">Personal daily log. Not used for the market trend charts above.</p>
+            <p class="text-xs mt-1" style="color:var(--muted);">Personal daily log of the numbers you save.</p>
           </div>
           <button onclick="clearHistory()" class="btn-ghost text-xs">Clear All</button>
         </div>
@@ -595,12 +565,8 @@
   <script>
     // ========== DATA ==========
     const currentRates = {
-      rate30: 6.72, chg30: 0.08,
-      rate15: 6.20, chg15: 0.01,
-      jumbo: 6.85, chgJumbo: 0.03,
-      arm: 6.22, chgARM: -0.01,
-      fha: 6.24, chgFHA: 0.03,
-      va: 6.26, chgVA: 0.03
+      rate30: 6.49, chg30: 0.06,
+      rate15: 5.82, chg15: 0.03
     };
     let history = [];
     let clients = [];
@@ -640,17 +606,30 @@
 
     // ========== MARKET ==========
     function updateFromInputs() {
+      const rate30 = parseFloat(document.getElementById('rate30')?.value) || currentRates.rate30;
+      currentRates.rate30 = rate30;
+      const rate15 = parseFloat(document.getElementById('rate15')?.value) || currentRates.rate15;
+      currentRates.rate15 = rate15;
+      document.getElementById('disp30').textContent = rate30.toFixed(2) + '%';
+      document.getElementById('disp15').textContent = rate15.toFixed(2) + '%';
+
       const ust10 = parseFloat(document.getElementById('ust10').value) || 0;
-      const spread = currentRates.rate30 - ust10;
+      const spread = rate30 - ust10;
       document.getElementById('spreadValue').textContent = spread.toFixed(2) + '%';
       document.getElementById('spreadBps').textContent = Math.round(spread * 100) + ' bps';
       updateAutoTrend();
     }
 
     function updateDisplayCards() {
-      // 10yr
+      // FRED indexes
       const ust = parseFloat(document.getElementById('ust10').value) || 0;
       document.getElementById('dispUst10').textContent = ust.toFixed(2) + '%';
+      const sofr = parseFloat(document.getElementById('sofr').value) || 0;
+      document.getElementById('dispSofr').textContent = sofr.toFixed(2) + '%';
+      const fed = parseFloat(document.getElementById('fedfunds').value) || 0;
+      document.getElementById('dispFed').textContent = fed.toFixed(2) + '%';
+      const prime = parseFloat(document.getElementById('prime').value) || 0;
+      document.getElementById('dispPrime').textContent = prime.toFixed(2) + '%';
 
       // UMBS 5.0 - convert dash format if needed
       let m50 = document.getElementById('mbs50').value;
@@ -659,7 +638,7 @@
         m50 = (parseFloat(parts[0]) + (parseFloat(parts[1])||0)/32).toFixed(2);
         document.getElementById('mbs50').value = m50;
       }
-      document.getElementById('dispMbs50').textContent = parseFloat(m50).toFixed(2);
+      document.getElementById('dispMbs50').textContent = parseFloat(m50 || 0).toFixed(2);
 
       // UMBS 5.5
       let m55 = document.getElementById('mbs55').value;
@@ -668,7 +647,7 @@
         m55 = (parseFloat(parts[0]) + (parseFloat(parts[1])||0)/32).toFixed(2);
         document.getElementById('mbs55').value = m55;
       }
-      document.getElementById('dispMbs55').textContent = parseFloat(m55).toFixed(2);
+      document.getElementById('dispMbs55').textContent = parseFloat(m55 || 0).toFixed(2);
     }
 
     function updateAutoTrend() {
@@ -737,7 +716,6 @@
         ];
         const results = await Promise.all(series.map(async s => {
           const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=1`;
-          // Try direct first, then proxy if needed
           let r;
           try {
             r = await fetch(target);
@@ -755,13 +733,76 @@
           }
         });
         updateFromInputs();
-        alert(count > 0 ? `Updated ${count} live indexes from FRED` : 'Could not fetch data – check key');
+        updateDisplayCards();
+        document.getElementById('dataTime').textContent = new Date().toLocaleString();
+        // also refresh charts
+        loadFredChart('DGS10','chart10yr');
+        loadFredChart('SOFR','chartSofr');
+        loadFredChart('DFF','chartFed');
+        loadFredChart('DPRIME','chartPrime');
+        alert(count > 0 ? `Updated ${count} live indexes + charts from FRED` : 'Could not fetch data – check key');
       } catch(e) {
         console.error(e);
-        alert('Error fetching from FRED. The free proxy may be down. You can still enter the numbers manually.');
+        alert('Error fetching from FRED. You can still enter numbers manually.');
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Refresh Live (FRED)';
+        btn.textContent = 'Refresh All Live (FRED)';
+      }
+    }
+
+    async function refreshPmms() {
+      const key = getFredKey();
+      if (!key || key.length < 10) {
+        alert('Please go to Rules & Help tab and paste your free FRED API key first.');
+        return;
+      }
+      const btn = document.getElementById('btnPmms');
+      btn.disabled = true;
+      btn.textContent = 'Fetching…';
+
+      try {
+        const series = [
+          {id:'MORTGAGE30US', el:'rate30', disp:'disp30'},
+          {id:'MORTGAGE15US', el:'rate15', disp:'disp15'}
+        ];
+        const results = await Promise.all(series.map(async s => {
+          const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=2`;
+          let r;
+          try {
+            r = await fetch(target);
+          } catch(e) {
+            r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
+          }
+          const d = await r.json();
+          const obs = d.observations || [];
+          const latest = parseFloat(obs[0]?.value);
+          const prev = parseFloat(obs[1]?.value);
+          const chg = !isNaN(latest) && !isNaN(prev) ? (latest - prev) : null;
+          return {el: s.el, disp: s.disp, value: latest, chg};
+        }));
+        let count = 0;
+        results.forEach(r => {
+          if (!isNaN(r.value)) {
+            document.getElementById(r.el).value = r.value.toFixed(2);
+            document.getElementById(r.disp).textContent = r.value.toFixed(2) + '%';
+            if (r.chg !== null) {
+              const chgEl = document.getElementById(r.disp.replace('disp','chg'));
+              if (chgEl) {
+                chgEl.textContent = (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2);
+                chgEl.className = 'change ' + (r.chg > 0 ? 'negative' : r.chg < 0 ? 'positive' : '');
+              }
+            }
+            count++;
+          }
+        });
+        updateFromInputs();
+        alert(count > 0 ? `Updated Freddie Mac PMMS rates (weekly averages)` : 'Could not fetch PMMS data');
+      } catch(e) {
+        console.error(e);
+        alert('Error fetching Freddie Mac PMMS data.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Update from FRED (PMMS)';
       }
     }
 
@@ -853,19 +894,18 @@
       const snapshot = {
         date: new Date().toISOString().slice(0,10),
         time: new Date().toLocaleTimeString(),
-        rate30: currentRates.rate30,
-        rate15: currentRates.rate15,
+        rate30: parseFloat(document.getElementById('rate30')?.value) || currentRates.rate30,
+        rate15: parseFloat(document.getElementById('rate15')?.value) || currentRates.rate15,
         ust10: parseFloat(document.getElementById('ust10').value),
         sofr: parseFloat(document.getElementById('sofr').value),
         fedfunds: parseFloat(document.getElementById('fedfunds').value),
         prime: parseFloat(document.getElementById('prime').value),
-        cofi: parseFloat(document.getElementById('cofi').value),
         mbs50: document.getElementById('mbs50').value,
         mbs55: document.getElementById('mbs55').value,
         mbsStatus: document.getElementById('mbsStatus').value,
         trend: document.getElementById('statusText').textContent.split(' — ')[0],
         notes: document.getElementById('notes').value,
-        spread: currentRates.rate30 - parseFloat(document.getElementById('ust10').value)
+        spread: (parseFloat(document.getElementById('rate30')?.value) || currentRates.rate30) - parseFloat(document.getElementById('ust10').value)
       };
       let h = getHistory().filter(x => x.date !== snapshot.date);
       h.unshift(snapshot);
@@ -1022,7 +1062,7 @@
     function runScan() {
       loadClients();
       const rules = getRules();
-      const todayRate = currentRates.rate30;
+      const todayRate = parseFloat(document.getElementById('rate30')?.value) || currentRates.rate30;
       document.getElementById('oppRateDisplay').textContent = todayRate.toFixed(2) + '%';
       document.getElementById('ruleMinDiff').value = rules.minDiff;
       document.getElementById('ruleHighDiff').value = rules.highDiff;
@@ -1107,10 +1147,9 @@ Home Mortgage Solutions LLC`);
       // Display rates
       document.getElementById('disp30').textContent = currentRates.rate30.toFixed(2) + '%';
       document.getElementById('disp15').textContent = currentRates.rate15.toFixed(2) + '%';
-      document.getElementById('dispJumbo').textContent = currentRates.jumbo.toFixed(2) + '%';
-      document.getElementById('dispARM').textContent = currentRates.arm.toFixed(2) + '%';
-      document.getElementById('dispFHA').textContent = currentRates.fha.toFixed(2) + '%';
-      document.getElementById('dispVA').textContent = currentRates.va.toFixed(2) + '%';
+      if (document.getElementById('rate30')) document.getElementById('rate30').value = currentRates.rate30;
+      if (document.getElementById('rate15')) document.getElementById('rate15').value = currentRates.rate15;
+
 
       // History
       history = getHistory();
@@ -1145,5 +1184,6 @@ Home Mortgage Solutions LLC`);
   </script>
 </body>
 </html>
+
 
 
