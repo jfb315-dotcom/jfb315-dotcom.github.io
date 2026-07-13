@@ -172,6 +172,7 @@
     .overflow-x-auto { overflow-x: auto; }
     .space-y-5 > * + * { margin-top: 1.25rem; }
     .space-y-6 > * + * { margin-top: 1.5rem; }
+    a { color: var(--accent); }
     @media (min-width: 640px) {
       .sm\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
       .sm\:flex-row { flex-direction: row; }
@@ -242,7 +243,7 @@
 
       <!-- TODAY'S MORTGAGE RATES (display only) -->
       <div class="mb-2">
-        <div class="section-title">Today’s Mortgage Rates <span style="font-weight:400;opacity:0.7;">(display only)</span></div>
+        <div class="section-title">Today’s Mortgage Rates <span style="font-weight:400;opacity:0.7;">(display only – update from MND then Save Snapshot)</span></div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-5">
         <div class="card rate-card">
@@ -394,7 +395,7 @@
         </div>
       </div>
       <p class="text-xs mb-5" style="color:var(--muted);">
-        These charts pull real market history from FRED (free). Add your free FRED API key in the Rules & Help tab first. UMBS and daily mortgage rates do not have free long-term public charts.
+        These charts pull real market history from FRED. Add your free FRED API key in the Rules & Help tab first.
       </p>
 
       <!-- Notes + Links -->
@@ -406,23 +407,23 @@
         <div class="card">
           <div class="metric-label mb-3">Live Sources</div>
           <div class="space-y-2 text-sm">
-            <a href="https://www.mortgagenewsdaily.com/mortgage-rates" target="_blank" class="flex justify-between items-center p-2 rounded-xl" style="background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
+            <a href="https://www.mortgagenewsdaily.com/mortgage-rates" target="_blank" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-radius:0.75rem;background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
               <span>MND Rates</span><span style="color:var(--accent);">→</span>
             </a>
-            <a href="https://www.mortgagenewsdaily.com/mbs" target="_blank" class="flex justify-between items-center p-2 rounded-xl" style="background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
+            <a href="https://www.mortgagenewsdaily.com/mbs" target="_blank" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-radius:0.75rem;background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
               <span>MND MBS</span><span style="color:var(--accent);">→</span>
             </a>
-            <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank" class="flex justify-between items-center p-2 rounded-xl" style="background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
+            <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-radius:0.75rem;background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
               <span>FRED Charts</span><span style="color:var(--accent);">→</span>
             </a>
-            <a href="https://www.newyorkfed.org/markets/reference-rates/sofr" target="_blank" class="flex justify-between items-center p-2 rounded-xl" style="background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
+            <a href="https://www.newyorkfed.org/markets/reference-rates/sofr" target="_blank" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-radius:0.75rem;background:color-mix(in srgb,var(--card-border) 40%,transparent);text-decoration:none;color:var(--text);">
               <span>NY Fed SOFR</span><span style="color:var(--accent);">→</span>
             </a>
           </div>
         </div>
       </div>
 
-      <!-- History Snapshots (kept as table only) -->
+      <!-- History Snapshots -->
       <div class="card">
         <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
           <div>
@@ -574,8 +575,8 @@
       <div class="card">
         <h3 class="font-semibold mb-3">About the Charts</h3>
         <p class="text-sm" style="color:var(--muted);">
-          The four charts above pull real market history from FRED (10-Year, SOFR, Fed Funds, Prime) for the last ~90 days.
-          UMBS prices and daily mortgage rates do not have free public long-term APIs, so those stay as manual values you enter from Mortgage News Daily.
+          The four charts pull real market history from FRED (10-Year, SOFR, Fed Funds, Prime) for the last ~90 days.
+          UMBS and daily mortgage rates stay as manual values you enter from Mortgage News Daily.
         </p>
       </div>
     </div>
@@ -613,21 +614,20 @@
       storage.set('jbTheme', name);
       document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
-      setTimeout(() => {
-        ['chart10yr','chartSofr','chartFed','chartPrime'].forEach(id => {
-          if (charts[id]) charts[id].update();
-        });
-      }, 50);
     }
 
     // ========== TABS ==========
     function switchTab(name) {
       ['market','opportunities','clients','settings'].forEach(t => {
-        document.getElementById('panel-' + t)?.classList.add('hidden');
-        document.querySelector(`.tab[data-tab="${t}"]`)?.classList.remove('active');
+        const panel = document.getElementById('panel-' + t);
+        if (panel) panel.classList.add('hidden');
+        const tab = document.querySelector(`.tab[data-tab="${t}"]`);
+        if (tab) tab.classList.remove('active');
       });
-      document.getElementById('panel-' + name)?.classList.remove('hidden');
-      document.querySelector(`.tab[data-tab="${name}"]`)?.classList.add('active');
+      const panel = document.getElementById('panel-' + name);
+      if (panel) panel.classList.remove('hidden');
+      const tab = document.querySelector(`.tab[data-tab="${name}"]`);
+      if (tab) tab.classList.add('active');
       if (name === 'opportunities') runScan();
       if (name === 'clients') renderClients();
     }
@@ -673,7 +673,7 @@
       }
     }
 
-    // ========== FRED LIVE + CHARTS ==========
+    // ========== FRED ==========
     function getFredKey() {
       return storage.get('fredKey') || document.getElementById('fredKey')?.value || '';
     }
@@ -682,12 +682,9 @@
       const key = document.getElementById('fredKey').value.trim();
       if (key) {
         storage.set('fredKey', key);
-        alert('FRED key saved! Now click the Refresh buttons on the charts.');
-        // Auto load charts
-        loadFredChart('DGS10','chart10yr');
-        loadFredChart('SOFR','chartSofr');
-        loadFredChart('DFF','chartFed');
-        loadFredChart('DPRIME','chartPrime');
+        alert('FRED key saved! Now click Refresh Live (FRED) or the chart Refresh buttons.');
+      } else {
+        alert('Please paste your FRED key first.');
       }
     }
 
@@ -708,11 +705,15 @@
           {id:'DFF', el:'fedfunds'},
           {id:'DPRIME', el:'prime'}
         ];
-        // Free CORS proxy so it works when testing pure HTML file locally
         const results = await Promise.all(series.map(async s => {
           const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=1`;
-          // Recommended format for corsproxy.io
-          const r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
+          // Try direct first, then proxy if needed
+          let r;
+          try {
+            r = await fetch(target);
+          } catch(e) {
+            r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
+          }
           const d = await r.json();
           return {el: s.el, value: parseFloat(d.observations?.[0]?.value)};
         }));
@@ -724,14 +725,10 @@
           }
         });
         updateFromInputs();
-        alert(count > 0 ? `Updated ${count} live indexes` : 'Could not fetch data – check key');
+        alert(count > 0 ? `Updated ${count} live indexes from FRED` : 'Could not fetch data – check key');
       } catch(e) {
         console.error(e);
-        alert('Error fetching from FRED.
-
-This usually happens when testing the HTML file locally due to browser security (CORS).
-
-The fixed version uses a free proxy – try again.');
+        alert('Error fetching from FRED. The free proxy may be down. You can still enter the numbers manually.');
       } finally {
         btn.disabled = false;
         btn.textContent = 'Refresh Live (FRED)';
@@ -746,13 +743,17 @@ The fixed version uses a free proxy – try again.');
       }
 
       try {
-        // Last ~90 observations + free CORS proxy for local HTML testing
         const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${key}&file_type=json&sort_order=desc&limit=90`;
-        const res = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
+        let res;
+        try {
+          res = await fetch(target);
+        } catch(e) {
+          res = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
+        }
         const data = await res.json();
         const obs = (data.observations || []).reverse().filter(o => o.value !== '.');
 
-        const labels = obs.map(o => o.date.slice(5)); // MM-DD
+        const labels = obs.map(o => o.date.slice(5));
         const values = obs.map(o => parseFloat(o.value));
 
         const colors = getColors();
@@ -800,7 +801,7 @@ The fixed version uses a free proxy – try again.');
         });
       } catch (err) {
         console.error(err);
-        alert('Could not load chart for ' + seriesId);
+        alert('Could not load chart for ' + seriesId + '. You can still enter numbers manually.');
       }
     }
 
@@ -876,7 +877,7 @@ The fixed version uses a free proxy – try again.');
       `).join('');
     }
 
-    // ========== CLIENTS + SCANNER (same as before) ==========
+    // ========== CLIENTS + SCANNER ==========
     function loadClients() {
       try { clients = JSON.parse(storage.get('jbClients', '[]')); } catch { clients = []; }
     }
@@ -1092,13 +1093,6 @@ Home Mortgage Solutions LLC`);
       const savedKey = storage.get('fredKey', '');
       if (savedKey) {
         document.getElementById('fredKey').value = savedKey;
-        // Auto-load charts if key exists
-        setTimeout(() => {
-          loadFredChart('DGS10','chart10yr');
-          loadFredChart('SOFR','chartSofr');
-          loadFredChart('DFF','chartFed');
-          loadFredChart('DPRIME','chartPrime');
-        }, 500);
       }
 
       // Rules
