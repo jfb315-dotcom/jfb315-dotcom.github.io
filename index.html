@@ -709,13 +709,13 @@
 
       try {
         const series = [
-          {id:'DGS10', el:'ust10'},
-          {id:'SOFR', el:'sofr'},
-          {id:'DFF', el:'fedfunds'},
-          {id:'DPRIME', el:'prime'}
+          {id:'DGS10', el:'ust10', disp:'dispUst10', chg:'chgUst10'},
+          {id:'SOFR', el:'sofr', disp:'dispSofr', chg:'chgSofr'},
+          {id:'DFF', el:'fedfunds', disp:'dispFed', chg:'chgFed'},
+          {id:'DPRIME', el:'prime', disp:'dispPrime', chg:'chgPrime'}
         ];
         const results = await Promise.all(series.map(async s => {
-          const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=1`;
+          const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=5`;
           let r;
           try {
             r = await fetch(target);
@@ -723,12 +723,25 @@
             r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
           }
           const d = await r.json();
-          return {el: s.el, value: parseFloat(d.observations?.[0]?.value)};
+          const obs = (d.observations || []).filter(o => o.value !== '.');
+          const latest = parseFloat(obs[0]?.value);
+          const prev = parseFloat(obs[1]?.value);
+          const chg = (!isNaN(latest) && !isNaN(prev)) ? (latest - prev) : null;
+          return {el: s.el, disp: s.disp, chgEl: s.chg, value: latest, chg};
         }));
         let count = 0;
         results.forEach(r => {
           if (!isNaN(r.value)) {
             document.getElementById(r.el).value = r.value.toFixed(2);
+            document.getElementById(r.disp).textContent = r.value.toFixed(2) + '%';
+            const chgEl = document.getElementById(r.chgEl);
+            if (chgEl && r.chg !== null) {
+              chgEl.textContent = (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2);
+              chgEl.className = 'change ' + (r.chg > 0 ? 'negative' : r.chg < 0 ? 'positive' : '');
+            } else if (chgEl) {
+              chgEl.textContent = '—';
+              chgEl.className = 'change';
+            }
             count++;
           }
         });
@@ -762,11 +775,11 @@
 
       try {
         const series = [
-          {id:'MORTGAGE30US', el:'rate30', disp:'disp30'},
-          {id:'MORTGAGE15US', el:'rate15', disp:'disp15'}
+          {id:'MORTGAGE30US', el:'rate30', disp:'disp30', chg:'chg30'},
+          {id:'MORTGAGE15US', el:'rate15', disp:'disp15', chg:'chg15'}
         ];
         const results = await Promise.all(series.map(async s => {
-          const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=2`;
+          const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=5`;
           let r;
           try {
             r = await fetch(target);
@@ -774,23 +787,21 @@
             r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
           }
           const d = await r.json();
-          const obs = d.observations || [];
+          const obs = (d.observations || []).filter(o => o.value !== '.');
           const latest = parseFloat(obs[0]?.value);
           const prev = parseFloat(obs[1]?.value);
-          const chg = !isNaN(latest) && !isNaN(prev) ? (latest - prev) : null;
-          return {el: s.el, disp: s.disp, value: latest, chg};
+          const chg = (!isNaN(latest) && !isNaN(prev)) ? (latest - prev) : null;
+          return {el: s.el, disp: s.disp, chgEl: s.chg, value: latest, chg};
         }));
         let count = 0;
         results.forEach(r => {
           if (!isNaN(r.value)) {
             document.getElementById(r.el).value = r.value.toFixed(2);
             document.getElementById(r.disp).textContent = r.value.toFixed(2) + '%';
-            if (r.chg !== null) {
-              const chgEl = document.getElementById(r.disp.replace('disp','chg'));
-              if (chgEl) {
-                chgEl.textContent = (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2);
-                chgEl.className = 'change ' + (r.chg > 0 ? 'negative' : r.chg < 0 ? 'positive' : '');
-              }
+            const chgEl = document.getElementById(r.chgEl);
+            if (chgEl && r.chg !== null) {
+              chgEl.textContent = (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2);
+              chgEl.className = 'change ' + (r.chg > 0 ? 'negative' : r.chg < 0 ? 'positive' : '');
             }
             count++;
           }
@@ -1184,6 +1195,7 @@ Home Mortgage Solutions LLC`);
   </script>
 </body>
 </html>
+
 
 
 
