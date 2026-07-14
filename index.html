@@ -312,6 +312,38 @@
         </div>
       </div>
 
+      <!-- ========== STOCK MARKET INDICES (FRED) ========== -->
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div class="section-title">Stock Market Indices <span style="font-weight:400;opacity:0.7;">(from FRED, delayed)</span></div>
+        <button onclick="refreshStocks()" class="btn-ghost text-xs" id="btnStocks">Refresh Stocks</button>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="card rate-card">
+          <div class="label">S&P 500</div>
+          <div class="rate" id="dispSp500">—</div>
+          <div class="change" id="chgSp500">—</div>
+          <input type="hidden" id="sp500" value="">
+        </div>
+        <div class="card rate-card">
+          <div class="label">Dow Jones</div>
+          <div class="rate" id="dispDjia">—</div>
+          <div class="change" id="chgDjia">—</div>
+          <input type="hidden" id="djia" value="">
+        </div>
+        <div class="card rate-card">
+          <div class="label">NASDAQ</div>
+          <div class="rate" id="dispNasdaq">—</div>
+          <div class="change" id="chgNasdaq">—</div>
+          <input type="hidden" id="nasdaq" value="">
+        </div>
+        <div class="card rate-card">
+          <div class="label">VIX (Fear Index)</div>
+          <div class="rate" id="dispVix">—</div>
+          <div class="change" id="chgVix">—</div>
+          <input type="hidden" id="vix" value="">
+        </div>
+      </div>
+
       <!-- ========== 2. FREDDIE MAC PMMS ========== -->
       <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div class="section-title">Freddie Mac PMMS Weekly Averages <span style="font-weight:400;opacity:0.7;">(updated every Thursday)</span></div>
@@ -691,9 +723,78 @@
       const key = document.getElementById('fredKey').value.trim();
       if (key) {
         storage.set('fredKey', key);
-        alert('FRED key saved! Charts will auto-load. You can also click Refresh Live (FRED).');
+        alert('FRED key saved! Charts and stocks will auto-load. You can also click Refresh Live (FRED).');
+        // trigger initial loads
+        setTimeout(() => {
+          refreshLiveIndexesSilent();
+          refreshStocks();
+          refreshPmms();
+        }, 500);
       } else {
         alert('Please paste your FRED key first.');
+      }
+    }
+
+    async function refreshStocks() {
+      const key = getFredKey();
+      if (!key || key.length < 10) {
+        alert('Please go to Rules & Help tab and paste your free FRED API key first.');
+        return;
+      }
+      const btn = document.getElementById('btnStocks');
+      if (btn) { btn.disabled = true; btn.textContent = 'Fetching…'; }
+
+      try {
+        const series = [
+          {id:'SP500', el:'sp500', disp:'dispSp500', chg:'chgSp500'},
+          {id:'DJIA', el:'djia', disp:'dispDjia', chg:'chgDjia'},
+          {id:'NASDAQCOM', el:'nasdaq', disp:'dispNasdaq', chg:'chgNasdaq'},
+          {id:'VIXCLS', el:'vix', disp:'dispVix', chg:'chgVix'}
+        ];
+        const results = await Promise.all(series.map(async s => {
+          const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=5`;
+          let r;
+          try { r = await fetch(target); } catch(e) {
+            r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
+          }
+          const d = await r.json();
+          const obs = (d.observations || []).filter(o => o.value !== '.');
+          const latest = parseFloat(obs[0]?.value);
+          const prev = parseFloat(obs[1]?.value);
+          const chg = (!isNaN(latest) && !isNaN(prev)) ? (latest - prev) : null;
+          return {el: s.el, disp: s.disp, chgEl: s.chg, value: latest, chg};
+        }));
+        let count = 0;
+        results.forEach(r => {
+          if (!isNaN(r.value)) {
+            if (document.getElementById(r.el)) document.getElementById(r.el).value = r.value.toFixed(2);
+            const disp = document.getElementById(r.disp);
+            if (disp) {
+              // S&P and Dow are big numbers, format nicely
+              if (r.value > 1000) {
+                disp.textContent = r.value.toLocaleString(undefined, {maximumFractionDigits: 0});
+              } else {
+                disp.textContent = r.value.toFixed(2);
+              }
+            }
+            const chgEl = document.getElementById(r.chgEl);
+            if (chgEl && r.chg !== null) {
+              const pct = (r.chg / (r.value - r.chg)) * 100;
+              chgEl.textContent = (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2) + (Math.abs(r.chg) > 1 ? '' : '');
+              chgEl.className = 'change ' + (r.chg > 0 ? 'negative' : r.chg < 0 ? 'positive' : '');
+            }
+            count++;
+          }
+        });
+        if (count > 0) {
+          // no alert for stocks to keep it quiet
+          console.log('Stocks updated');
+        }
+      } catch(e) {
+        console.error(e);
+        alert('Error fetching stock indices from FRED.');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Refresh Stocks'; }
       }
     }
 
@@ -761,6 +862,47 @@
         btn.disabled = false;
         btn.textContent = 'Refresh All Live (FRED)';
       }
+    }
+
+    // Silent version for auto-refresh (no popup)
+    async function refreshLiveIndexesSilent() {
+      const key = getFredKey();
+      if (!key || key.length < 10) return;
+      try {
+        const series = [
+          {id:'DGS10', el:'ust10', disp:'dispUst10', chg:'chgUst10'},
+          {id:'SOFR', el:'sofr', disp:'dispSofr', chg:'chgSofr'},
+          {id:'DFF', el:'fedfunds', disp:'dispFed', chg:'chgFed'},
+          {id:'DPRIME', el:'prime', disp:'dispPrime', chg:'chgPrime'}
+        ];
+        const results = await Promise.all(series.map(async s => {
+          const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=5`;
+          let r;
+          try { r = await fetch(target); } catch(e) {
+            r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
+          }
+          const d = await r.json();
+          const obs = (d.observations || []).filter(o => o.value !== '.');
+          const latest = parseFloat(obs[0]?.value);
+          const prev = parseFloat(obs[1]?.value);
+          const chg = (!isNaN(latest) && !isNaN(prev)) ? (latest - prev) : null;
+          return {el: s.el, disp: s.disp, chgEl: s.chg, value: latest, chg};
+        }));
+        results.forEach(r => {
+          if (!isNaN(r.value)) {
+            document.getElementById(r.el).value = r.value.toFixed(2);
+            document.getElementById(r.disp).textContent = r.value.toFixed(2) + '%';
+            const chgEl = document.getElementById(r.chgEl);
+            if (chgEl && r.chg !== null) {
+              chgEl.textContent = (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2);
+              chgEl.className = 'change ' + (r.chg > 0 ? 'negative' : r.chg < 0 ? 'positive' : '');
+            }
+          }
+        });
+        updateFromInputs();
+        updateDisplayCards();
+        document.getElementById('dataTime').textContent = new Date().toLocaleString() + ' (auto)';
+      } catch(e) { console.error('Silent refresh failed', e); }
     }
 
     async function refreshPmms() {
@@ -1174,12 +1316,14 @@ Home Mortgage Solutions LLC`);
       const savedKey = storage.get('fredKey', '');
       if (savedKey) {
         document.getElementById('fredKey').value = savedKey;
-        // Auto-load all charts after a short delay
+        // Auto-load all charts + stocks after a short delay
         setTimeout(() => {
           loadFredChart('DGS10','chart10yr');
           loadFredChart('SOFR','chartSofr');
           loadFredChart('DFF','chartFed');
           loadFredChart('DPRIME','chartPrime');
+          refreshLiveIndexesSilent();
+          refreshStocks();
         }, 800);
       }
 
@@ -1191,10 +1335,19 @@ Home Mortgage Solutions LLC`);
       document.getElementById('ruleTerm').value = rules.term;
 
       loadClients();
+
+      // Auto-refresh FRED data every 15 minutes if key exists
+      if (storage.get('fredKey')) {
+        setInterval(() => {
+          console.log('Auto-refreshing FRED data...');
+          refreshLiveIndexesSilent();
+        }, 15 * 60 * 1000); // 15 minutes
+      }
     });
   </script>
 </body>
 </html>
+
 
 
 
