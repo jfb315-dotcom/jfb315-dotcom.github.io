@@ -1,1419 +1,792 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JB Market Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #0f172a; --card: #1e293b; --card-border: #334155; --text: #f1f5f9;
-      --muted: #94a3b8; --accent: #06b6d4; --accent-hover: #22d3ee;
-      --positive: #22c55e; --negative: #ef4444; --warning: #f59e0b;
-    }
-    [data-theme="coastal"] {
-      --bg: #0c1a2a; --card: #132f4c; --card-border: #1e4976; --text: #e0f2fe;
-      --muted: #7dd3fc; --accent: #0ea5e9; --accent-hover: #38bdf8;
-      --positive: #34d399; --negative: #f87171;
-    }
-    [data-theme="midnight"] {
-      --bg: #0a0a0f; --card: #12121a; --card-border: #1f1f2e; --text: #e2e8f0;
-      --muted: #64748b; --accent: #8b5cf6; --accent-hover: #a78bfa;
-      --positive: #10b981; --negative: #f43f5e;
-    }
-    [data-theme="light"] {
-      --bg: #f8fafc; --card: #ffffff; --card-border: #e2e8f0; --text: #0f172a;
-      --muted: #64748b; --accent: #0284c7; --accent-hover: #0369a1;
-      --positive: #16a34a; --negative: #dc2626;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5;
-    }
-    .container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
-    header {
-      position: sticky; top: 0; z-index: 50;
-      background: color-mix(in srgb, var(--bg) 92%, transparent);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--card-border);
-      padding: 0.85rem 0;
-    }
-    .card {
-      background: var(--card); border: 1px solid var(--card-border);
-      border-radius: 16px; padding: 1.15rem;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.12);
-    }
-    .rate-card { text-align: center; }
-    .rate-card .label {
-      font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.35rem;
-    }
-    .rate-card .rate {
-      font-size: 1.85rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1;
-    }
-    .rate-card .change { font-size: 0.8rem; font-weight: 700; margin-top: 0.15rem; }
-    .rate-card .range {
-      height: 6px; background: color-mix(in srgb, var(--card-border) 70%, transparent);
-      border-radius: 3px; margin: 0.55rem 0 0.35rem; position: relative; overflow: hidden;
-    }
-    .rate-card .range-fill {
-      position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent);
-      border-radius: 3px; opacity: 0.55;
-    }
-    .rate-card .range-marker {
-      position: absolute; top: -2px; bottom: -2px; width: 3px;
-      background: var(--text); border-radius: 2px;
-    }
-    .rate-card .pmt { font-size: 0.72rem; color: var(--muted); }
-    .metric-label {
-      font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.35rem;
-    }
-    .section-title {
-      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.6rem;
-    }
-    .input-sm {
-      background: color-mix(in srgb, var(--card) 75%, black 25%);
-      border: 1px solid var(--card-border); border-radius: 10px;
-      padding: 0.45rem 0.7rem; color: var(--text); font-size: 0.9rem;
-      width: 100%; outline: none;
-    }
-    .input-sm:focus { border-color: var(--accent); }
-    .btn-primary {
-      background: var(--accent); color: #fff; font-weight: 600;
-      padding: 0.5rem 1.1rem; border-radius: 10px; border: none;
-      cursor: pointer; font-size: 0.875rem; transition: all 0.2s;
-    }
-    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
-    .btn-ghost {
-      background: transparent; color: var(--muted); border: 1px solid var(--card-border);
-      font-weight: 500; padding: 0.4rem 0.85rem; border-radius: 10px;
-      cursor: pointer; font-size: 0.8rem;
-    }
-    .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
-    .tab {
-      padding: 0.5rem 1rem; border-radius: 10px; font-weight: 600;
-      font-size: 0.85rem; cursor: pointer; color: var(--muted);
-      background: transparent; border: none;
-    }
-    .tab.active {
-      background: var(--accent); color: #fff;
-      box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 40%, transparent);
-    }
-    .tab:not(.active):hover { color: var(--text); background: color-mix(in srgb, var(--card-border) 45%, transparent); }
-    .positive { color: var(--positive) !important; }
-    .negative { color: var(--negative) !important; }
-    .status-dot {
-      width: 10px; height: 10px; border-radius: 50%; display: inline-block;
-      margin-right: 8px; animation: pulse 2s infinite;
-    }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
-    .theme-btn {
-      width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .theme-btn.active {
-      border-color: #fff; transform: scale(1.15);
-      box-shadow: 0 0 0 2px var(--accent);
-    }
-    .chart-box { height: 260px; position: relative; }
-    table { border-collapse: collapse; width: 100%; }
-    th {
-      text-align: left; font-size: 0.68rem; text-transform: uppercase;
-      letter-spacing: 0.05em; color: var(--muted); padding-bottom: 0.7rem;
-      border-bottom: 1px solid var(--card-border);
-    }
-    td {
-      padding: 0.75rem 0.4rem 0.75rem 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--card-border) 45%, transparent);
-      font-size: 0.875rem;
-    }
-    .hidden { display: none !important; }
-    .flex { display: flex; }
-    .flex-wrap { flex-wrap: wrap; }
-    .items-center { align-items: center; }
-    .justify-between { justify-content: space-between; }
-    .gap-1 { gap: 0.25rem; }
-    .gap-2 { gap: 0.5rem; }
-    .gap-3 { gap: 0.75rem; }
-    .gap-4 { gap: 1rem; }
-    .grid { display: grid; }
-    .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-    .mb-1 { margin-bottom: 0.25rem; }
-    .mb-2 { margin-bottom: 0.5rem; }
-    .mb-3 { margin-bottom: 0.75rem; }
-    .mb-5 { margin-bottom: 1.25rem; }
-    .mt-1 { margin-top: 0.25rem; }
-    .mt-2 { margin-top: 0.5rem; }
-    .mt-3 { margin-top: 0.75rem; }
-    .mt-4 { margin-top: 1rem; }
-    .mt-5 { margin-top: 1.25rem; }
-    .p-2 { padding: 0.5rem; }
-    .p-4 { padding: 1rem; }
-    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
-    .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-    .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
-    .text-xs { font-size: 0.75rem; }
-    .text-sm { font-size: 0.875rem; }
-    .text-lg { font-size: 1.125rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-2xl { font-size: 1.5rem; }
-    .font-bold { font-weight: 700; }
-    .font-extrabold { font-weight: 800; }
-    .font-semibold { font-weight: 600; }
-    .font-medium { font-weight: 500; }
-    .text-center { text-align: center; }
-    .w-full { width: 100%; }
-    .w-auto { width: auto; }
-    .rounded-xl { border-radius: 0.75rem; }
-    .overflow-x-auto { overflow-x: auto; }
-    .space-y-5 > * + * { margin-top: 1.25rem; }
-    .space-y-6 > * + * { margin-top: 1.5rem; }
-    a { color: var(--accent); }
-    @media (min-width: 640px) {
-      .sm\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-      .sm\:flex-row { flex-direction: row; }
-      .sm\:items-center { align-items: center; }
-      .sm\:inline { display: inline; }
-    }
-    @media (min-width: 768px) {
-      .md\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-      .md\:grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
-      .md\:col-span-2 { grid-column: span 2; }
-    }
-    @media (min-width: 1024px) {
-      .lg\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-      .lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-      .lg\:col-span-2 { grid-column: span 2; }
-    }
-    @media (min-width: 1280px) {
-      .xl\:grid-cols-6 { grid-template-columns: repeat(6, 1fr); }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mortgage Market Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F5F8; --panel:#FFFFFF; --ink:#14233C; --muted:#5B6A80; --rule:#D9DEE6;
+  --good:#1F7A5A; --bad:#B4412F; --brass:#A97A1E; --line:#14233C; --grid:#E6EAF0;
+  --goodbg:#E5F3EC; --badbg:#F8E7E3;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
+    --good:#4CC197; --bad:#F08A73; --brass:#E0B455; --line:#E8EDF5; --grid:#22304D;
+    --goodbg:#143329; --badbg:#3A2020;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
+  --good:#4CC197; --bad:#F08A73; --brass:#E0B455; --line:#E8EDF5; --grid:#22304D;
+  --goodbg:#143329; --badbg:#3A2020;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-variant-numeric:tabular-nums;line-height:1.5}
+.shell{max-width:1400px;margin:0 auto;padding:0 20px;display:grid;grid-template-columns:290px minmax(0,1fr);gap:28px;align-items:start}
+.wrap{min-width:0;padding:28px 0 48px}
+h2{font-size:1.15rem;font-weight:700;margin:0}
+header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 24px;
+  border-bottom:2px solid var(--ink);padding-bottom:14px}
+h1{font-size:clamp(1.5rem,3.2vw,2rem);font-weight:800;letter-spacing:-.02em;margin:0}
+.stamp{color:var(--muted);font-size:.9rem}
+.sample{display:block;margin-top:14px;font-size:.82rem;color:var(--brass);font-weight:600}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+
+/* Tools */
+.links{margin-top:18px}
+.links h2{margin-bottom:10px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(160px,100%),1fr));gap:10px}
+.tile{display:block;text-decoration:none;color:var(--ink);background:var(--panel);border:1px solid var(--rule);
+  border-left:5px solid var(--ink);padding:10px 14px}
+.tile:hover{border-left-color:var(--brass)}
+.tile b{display:block;font-size:1rem}
+.tile span{font-size:.85rem;color:var(--muted)}
+.tile.add{border-style:dashed;border-left:5px dashed var(--rule);color:var(--muted)}
+.toolwrap{position:relative}
+.toolwrap .tile{height:100%}
+button.tile{width:100%;text-align:left;cursor:pointer;font:inherit}
+.toolwrap .x{position:absolute;top:4px;right:4px;background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;padding:4px 6px}
+.toolwrap .x:hover{color:var(--bad)}
+
+/* Alert */
+.alert{margin-top:18px;padding:14px 18px;border-left:6px solid var(--good);background:var(--goodbg);
+  display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;justify-content:space-between}
+.alert.bad{border-left-color:var(--bad);background:var(--badbg)}
+.alert.calm{border-left-color:var(--rule);background:var(--panel);border:1px solid var(--rule);border-left-width:6px}
+.alert p{margin:0;max-width:62ch}
+.alert b{display:block;font-size:1.05rem}
+.alert label{font-size:.85rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.alert input{width:4.5em;padding:4px 6px;border:1px solid var(--rule);background:var(--panel)}
+
+/* Rate strip */
+.rates{display:grid;grid-template-columns:repeat(3,1fr);margin-top:14px;border:1px solid var(--rule);background:var(--panel)}
+.rate{all:unset;cursor:pointer;padding:18px 20px 16px;border-right:1px solid var(--rule)}
+.rate:last-child{border-right:0}
+.rate:focus-visible{outline:3px solid var(--brass);outline-offset:-3px}
+.rate[aria-pressed="true"]{box-shadow:inset 0 -4px 0 var(--brass)}
+.rate .name{font-size:.95rem;font-weight:600}
+.rate .sub{font-size:.8rem;color:var(--muted)}
+.rate .val{font-size:clamp(2rem,4.6vw,2.8rem);font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-top:8px}
+.rate .val small{font-size:.45em;font-weight:600;color:var(--muted);margin-left:2px}
+.chg{font-size:.9rem;font-weight:700;margin-top:2px}
+.good{color:var(--good)} .bad{color:var(--bad)}
+.chg span{font-weight:500;color:var(--muted)}
+.rate.off{cursor:default}
+.rate.off .val{font-size:1rem;font-weight:600;letter-spacing:0;margin-top:14px}
+.rate.off .val a{color:var(--ink)}
+.rates.minor{margin-top:-1px;border-top:0}
+.rates.minor .rate{padding:10px 20px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.rates.minor .val{font-size:1.25rem;margin:0}
+.rates.minor .chg{margin:0;font-size:.85rem}
+.rates.minor .sub{display:none}
+.spread{margin-top:12px;font-size:.95rem;color:var(--muted)}
+.spread b{color:var(--ink)}
+
+/* Panels */
+.panel{background:var(--panel);border:1px solid var(--rule);padding:18px}
+.chartbox{margin-top:22px;padding-bottom:10px}
+.charthead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.range{display:flex;border:1px solid var(--rule)}
+.range button{font-size:.88rem;font-weight:600;background:transparent;color:var(--muted);
+  border:0;border-right:1px solid var(--rule);padding:6px 12px;cursor:pointer}
+.range button:last-child{border-right:0}
+.range button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.periodline{margin-top:6px;font-size:.9rem;color:var(--muted)}
+.chartarea{position:relative;margin-top:8px;overflow-x:auto}
+#chart{display:block;width:100%;height:auto;min-width:520px}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--panel);font-size:.82rem;
+  padding:6px 9px;white-space:nowrap;opacity:0;transform:translate(-50%,-110%)}
+
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:22px}
+.stack{display:grid;gap:16px;align-content:start}
+.note{font-size:.85rem;color:var(--muted);margin:4px 0 0}
+
+/* Calendar */
+.events{list-style:none;margin:12px 0 0;padding:0}
+.events li{display:grid;grid-template-columns:5.2em 1fr auto;gap:12px;align-items:baseline;
+  padding:10px 0;border-top:1px solid var(--rule)}
+.events .when{font-weight:700}
+.events .when small{display:block;font-weight:500;color:var(--muted);font-size:.8rem}
+.events .what small{display:block;color:var(--muted);font-size:.85rem}
+.impact{font-size:.8rem;font-weight:700;white-space:nowrap}
+.impact.high{color:var(--bad)} .impact.med{color:var(--brass)} .impact.low{color:var(--muted)}
+
+/* Fed + payment */
+.big{font-size:2rem;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-top:8px}
+.pay label{display:block;font-size:.85rem;color:var(--muted);margin-top:10px}
+.pay input{width:100%;padding:8px 10px;border:1px solid var(--rule);background:var(--paper);font-size:1.05rem;font-weight:600;margin-top:4px}
+.payrows{display:grid;grid-template-columns:1fr auto;gap:6px 12px;margin-top:12px;font-size:.95rem}
+.payrows .num{font-weight:700;text-align:right}
+.payrows .total{border-top:1px solid var(--rule);padding-top:6px}
+
+/* Housing */
+.housing{margin-top:22px}
+.hcards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:12px}
+.hcard .lbl{font-size:.9rem;font-weight:600}
+.hcard .big{font-size:1.6rem}
+.hcard svg{display:block;width:100%;height:44px;margin-top:8px}
+
+@media (max-width:820px){
+  .grid2{grid-template-columns:1fr}
+  .hcards{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  .rates{grid-template-columns:1fr}
+  .rate{border-right:0;border-bottom:1px solid var(--rule)}
+  .rate:last-child{border-bottom:0}
+}
+
+/* Palettes */
+:root[data-palette="forest"]{--paper:#F2F5F1;--panel:#FFFFFF;--ink:#1D3B2A;--muted:#5C6E62;--rule:#D5DDD6;
+  --good:#2C7D4F;--bad:#B4412F;--brass:#A8731F;--line:#1D3B2A;--grid:#E5EBE6;--goodbg:#E4F1E8;--badbg:#F8E7E3}
+:root[data-palette="burgundy"]{--paper:#F7F3F2;--panel:#FFFFFF;--ink:#4A1D27;--muted:#7A6266;--rule:#E3D8D8;
+  --good:#1F7A5A;--bad:#C0392B;--brass:#9A7020;--line:#4A1D27;--grid:#EFE7E6;--goodbg:#E5F3EC;--badbg:#F9E6E3}
+:root[data-palette="harbor"]{--paper:#0E1F24;--panel:#15303A;--ink:#E6F1F1;--muted:#94B0B4;--rule:#24454F;
+  --good:#5CCB9E;--bad:#F2907A;--brass:#E8B860;--line:#E6F1F1;--grid:#1D3C45;--goodbg:#15372E;--badbg:#3B2424}
+:root[data-palette="night"]{--paper:#0F1726;--panel:#16213A;--ink:#E8EDF5;--muted:#9AA8BD;--rule:#2A3756;
+  --good:#4CC197;--bad:#F08A73;--brass:#E0B455;--line:#E8EDF5;--grid:#22304D;--goodbg:#143329;--badbg:#3A2020}
+
+/* Toolbar */
+.headright{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end}
+.tbtn,.toolbar select{font-size:.88rem;font-weight:600;background:var(--panel);color:var(--ink);
+  border:1px solid var(--rule);padding:6px 10px;cursor:pointer}
+.tbtn[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.toolbar label{font-size:.88rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+@media (max-width:640px){.headright{align-items:flex-start}.toolbar{justify-content:flex-start}}
+
+/* Board */
+.board{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;margin-top:16px}
+.board .links,.board .alert,.board .chartbox,.board .grid2,.board .housing,.board #rates{margin-top:0}
+
+/* Market snapshot */
+.mhead{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between}
+.status{font-size:.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+.status::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.status.open::before{background:var(--good)}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(150px,100%),1fr));margin-top:12px;
+  border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
+.mcell{padding:10px 14px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.mcell .lbl{font-size:.85rem;color:var(--muted)}
+.mcell .v{font-size:1.25rem;font-weight:800;letter-spacing:-.02em}
+.mcell .chg{font-size:.85rem;margin:0}
+
+/* Side panel */
+.side{position:sticky;top:env(safe-area-inset-top,0px);max-height:100vh;overflow-y:auto;padding:28px 0 28px}
+.sidein{background:var(--panel);border:1px solid var(--rule);padding:16px}
+.sidehead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sidehead .tbtn{padding:4px 8px;font-size:.8rem}
+.side h3{font-size:.8rem;font-weight:700;color:var(--muted);margin:16px 0 6px}
+.qlinks{list-style:none;margin:0;padding:0}
+.qlinks li{display:flex;align-items:center;gap:6px;border-top:1px solid var(--rule)}
+.qlinks a{flex:1;display:block;padding:8px 2px;color:var(--ink);text-decoration:none;font-weight:600;font-size:.95rem;overflow-wrap:anywhere}
+.qlinks a:hover{color:var(--brass)}
+.qlinks a small{display:block;font-weight:400;color:var(--muted);font-size:.78rem}
+.qlinks .x{display:none;background:transparent;border:1px solid var(--rule);color:var(--bad);cursor:pointer;padding:0 7px;font-size:1rem;line-height:1.5}
+.editing .qlinks .x{display:block}
+.addform{display:none;margin-top:14px;border-top:2px solid var(--ink);padding-top:12px;gap:8px}
+.editing .addform{display:grid}
+.addform label{font-size:.8rem;color:var(--muted);display:grid;gap:3px}
+.addform input,.addform select{padding:7px 8px;border:1px solid var(--rule);background:var(--paper);color:var(--ink)}
+.addform .tbtn{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.formerr{color:var(--bad);font-size:.82rem;min-height:1em;margin:0}
+.sidenote{font-size:.78rem;color:var(--muted);margin:12px 0 0}
+.sideclose,#sideOpen{display:none}
+.backdrop{display:none}
+@media (max-width:1000px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  #sideOpen{display:inline-block}
+  .side{position:fixed;top:0;left:0;bottom:0;width:min(320px,88vw);max-height:none;z-index:20;background:var(--paper);
+    padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px);
+    transform:translateX(-105%);transition:transform .2s ease;box-shadow:8px 0 24px rgba(0,0,0,.25)}
+  .side.open{transform:none}
+  .sideclose{display:inline-block}
+  .backdrop.open{display:block;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:19}
+}
+@media (prefers-reduced-motion:reduce){.side{transition:none}}
+</style>
 </head>
 <body>
-  <header>
-    <div class="container">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 class="text-xl font-extrabold" style="color:var(--accent);">JB Market Dashboard</h1>
-          <p class="text-xs" style="color:var(--muted);">Rates • MBS • Indexes • Opportunities</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="flex items-center gap-1">
-            <button class="theme-btn active" data-theme="dark" style="background:#0f172a;" title="Dark"></button>
-            <button class="theme-btn" data-theme="coastal" style="background:#0c1a2a;" title="Coastal"></button>
-            <button class="theme-btn" data-theme="midnight" style="background:#0a0a0f;" title="Midnight"></button>
-            <button class="theme-btn" data-theme="light" style="background:#f1f5f9;border:1px solid #94a3b8;" title="Light"></button>
-          </div>
-          <span id="lastSaved" class="text-xs hidden sm:inline" style="color:var(--muted);"></span>
-          <button onclick="saveSnapshot()" class="btn-primary">Save Snapshot</button>
-        </div>
+<div class="shell">
+<aside class="side" id="side" aria-label="Quick links">
+  <div class="sidein" id="sidein">
+    <div class="sidehead">
+      <h2>Quick links</h2>
+      <div>
+        <button class="tbtn" id="editLinks" aria-pressed="false">Edit</button>
+        <button class="tbtn sideclose" id="sideClose">Close</button>
       </div>
-      <div class="flex gap-2 mt-3" style="overflow-x:auto; align-items:center;">
-        <button class="tab active" data-tab="market">Market Watch</button>
-        <button class="tab" data-tab="opportunities">Opportunities</button>
-        <button class="tab" data-tab="clients">Clients</button>
-        <a href="https://jfb315-dotcom.github.io/pal/" target="_blank" class="tab" style="text-decoration:none;">Pre-Approval</a>
-        <a href="https://jfb315-dotcom.github.io/HMSCAL/" target="_blank" class="tab" style="text-decoration:none;">Calculator</a>
-        <a href="https://jfb315-dotcom.github.io/status/" target="_blank" class="tab" style="text-decoration:none;">Loan Status</a>
-        <button class="tab" data-tab="settings">Rules & Help</button>
+    </div>
+    <div id="qgroups"></div>
+    <form class="addform" id="addform" novalidate>
+      <label>Name<input id="qname" placeholder="Lender broker portal" autocomplete="off"></label>
+      <label>Web address<input id="qurl" placeholder="lender.com/login" inputmode="url" autocomplete="off"></label>
+      <label>Group<select id="qgroup"></select></label>
+      <p class="formerr" id="qerr" role="alert"></p>
+      <button class="tbtn" type="submit">Add link</button>
+    </form>
+    <p class="sidenote">These links are saved only in this browser, not in the page's public code on GitHub.</p>
+  </div>
+</aside>
+<div class="wrap" id="wrap">
+  <header>
+    <h1>Mortgage Market Dashboard</h1>
+    <div class="headright">
+      <div class="stamp" id="stamp"></div>
+      <div class="toolbar">
+        <button class="tbtn" id="sideOpen" aria-controls="side" aria-expanded="false">Lender links</button>
+        <label for="theme">Colors
+          <select id="theme">
+            <option value="auto">Match my device</option>
+            <option value="classic">Classic navy</option>
+            <option value="night">Night</option>
+            <option value="forest">Forest</option>
+            <option value="burgundy">Burgundy</option>
+            <option value="harbor">Harbor night</option>
+          </select>
+        </label>
       </div>
     </div>
   </header>
+  <span class="sample" id="sample">Loading the latest numbers…</span>
 
-  <main class="container py-6 space-y-6">
-
-    <!-- MARKET WATCH -->
-    <div id="panel-market">
-
-      <!-- Drag & Drop container -->
-      <div id="sortableSections">
-
-      <!-- ========== STOCK MARKET INDICES (smaller cards) ========== -->
-      <div class="draggable-section mb-5" data-section="stocks">
-        <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <div class="section-title" style="cursor:grab;" title="Drag to rearrange">⠿ Stock Market Indices <span style="font-weight:400;opacity:0.7;">(FRED, delayed)</span></div>
-          <button onclick="refreshStocks()" class="btn-ghost text-xs" id="btnStocks">Refresh Stocks</button>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-          <a href="https://fred.stlouisfed.org/series/SP500" target="_blank" class="card rate-card" style="text-decoration:none;color:inherit;padding:0.7rem;">
-            <div class="label">S&P 500</div>
-            <div class="rate" id="dispSp500" style="font-size:1.3rem;">—</div>
-            <div class="change" id="chgSp500">—</div>
-          </a>
-          <a href="https://fred.stlouisfed.org/series/DJIA" target="_blank" class="card rate-card" style="text-decoration:none;color:inherit;padding:0.7rem;">
-            <div class="label">Dow Jones</div>
-            <div class="rate" id="dispDjia" style="font-size:1.3rem;">—</div>
-            <div class="change" id="chgDjia">—</div>
-          </a>
-          <a href="https://fred.stlouisfed.org/series/NASDAQCOM" target="_blank" class="card rate-card" style="text-decoration:none;color:inherit;padding:0.7rem;">
-            <div class="label">NASDAQ</div>
-            <div class="rate" id="dispNasdaq" style="font-size:1.3rem;">—</div>
-            <div class="change" id="chgNasdaq">—</div>
-          </a>
-          <a href="https://fred.stlouisfed.org/series/VIXCLS" target="_blank" class="card rate-card" style="text-decoration:none;color:inherit;padding:0.7rem;">
-            <div class="label">VIX</div>
-            <div class="rate" id="dispVix" style="font-size:1.3rem;">—</div>
-            <div class="change" id="chgVix">—</div>
-          </a>
-        </div>
-      </div>
-
-      <!-- ========== STATUS BAR ========== -->
-      <div class="draggable-section card flex flex-wrap items-center justify-between gap-3 mb-5" data-section="status">
-        <div class="flex items-center">
-          <span id="statusDot" class="status-dot" style="background:var(--warning);"></span>
-          <div>
-            <div class="text-xs" style="color:var(--muted);">Market Status (Auto)</div>
-            <div id="statusText" class="font-bold text-lg">Loading…</div>
-          </div>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="text-sm" style="color:var(--muted);">
-            Last refresh: <span id="dataTime" class="font-medium" style="color:var(--text);">—</span>
-          </div>
-          <button onclick="refreshLiveIndexes()" class="btn-primary text-xs" id="btnRefreshFred">Refresh All Live (FRED)</button>
-        </div>
-      </div>
-
-      <!-- ========== FRED LIVE INDEXES ========== -->
-      <div class="draggable-section mb-5" data-section="fred">
-        <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <div class="section-title" style="cursor:grab;" title="Drag to rearrange">⠿ Live Indexes from FRED <span style="font-weight:400;opacity:0.7;">(auto-updates)</span></div>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div class="card rate-card">
-            <div class="label">10-Yr Treasury</div>
-            <div class="rate" id="dispUst10">4.58%</div>
-            <div class="change" id="chgUst10">—</div>
-            <input type="number" step="0.001" id="ust10" class="input-sm text-center mt-2" value="4.58" onchange="updateFromInputs(); updateDisplayCards();" style="font-size:0.8rem;">
-          </div>
-          <div class="card rate-card">
-            <div class="label">SOFR</div>
-            <div class="rate" id="dispSofr">3.53%</div>
-            <div class="change" id="chgSofr">—</div>
-            <input type="number" step="0.01" id="sofr" class="input-sm text-center mt-2" value="3.53" onchange="updateFromInputs(); updateDisplayCards();" style="font-size:0.8rem;">
-          </div>
-          <div class="card rate-card">
-            <div class="label">Fed Funds Eff.</div>
-            <div class="rate" id="dispFed">3.62%</div>
-            <div class="change" id="chgFed">—</div>
-            <input type="number" step="0.01" id="fedfunds" class="input-sm text-center mt-2" value="3.62" onchange="updateFromInputs(); updateDisplayCards();" style="font-size:0.8rem;">
-          </div>
-          <div class="card rate-card">
-            <div class="label">Prime Rate</div>
-            <div class="rate" id="dispPrime">6.75%</div>
-            <div class="change" id="chgPrime">—</div>
-            <input type="number" step="0.01" id="prime" class="input-sm text-center mt-2" value="6.75" onchange="updateFromInputs(); updateDisplayCards();" style="font-size:0.8rem;">
-          </div>
-        </div>
-      </div>
-
-      <!-- ========== MARKET TRENDS CHARTS (smaller) ========== -->
-      <div class="draggable-section mb-5" data-section="charts">
-        <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <div class="section-title" style="cursor:grab;" title="Drag to rearrange">⠿ Market Trends (Last 12 Months from FRED)</div>
-          <div class="flex gap-2 text-xs">
-            <a href="https://www.mortgagenewsdaily.com/mortgage-rates" target="_blank" style="color:var(--accent);">MND Rates</a>
-            <a href="https://www.mortgagenewsdaily.com/mbs" target="_blank" style="color:var(--accent);">MND MBS</a>
-            <a href="https://fred.stlouisfed.org" target="_blank" style="color:var(--accent);">FRED</a>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          <div class="card" style="padding:0.8rem;">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="font-semibold text-xs">10-Year Treasury</h3>
-              <button onclick="loadFredChart('DGS10','chart10yr')" class="btn-ghost text-xs" style="padding:0.2rem 0.5rem;">↻</button>
-            </div>
-            <div class="chart-box" style="height:160px;"><canvas id="chart10yr"></canvas></div>
-          </div>
-          <div class="card" style="padding:0.8rem;">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="font-semibold text-xs">SOFR</h3>
-              <button onclick="loadFredChart('SOFR','chartSofr')" class="btn-ghost text-xs" style="padding:0.2rem 0.5rem;">↻</button>
-            </div>
-            <div class="chart-box" style="height:160px;"><canvas id="chartSofr"></canvas></div>
-          </div>
-          <div class="card" style="padding:0.8rem;">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="font-semibold text-xs">Fed Funds Effective</h3>
-              <button onclick="loadFredChart('DFF','chartFed')" class="btn-ghost text-xs" style="padding:0.2rem 0.5rem;">↻</button>
-            </div>
-            <div class="chart-box" style="height:160px;"><canvas id="chartFed"></canvas></div>
-          </div>
-          <div class="card" style="padding:0.8rem;">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="font-semibold text-xs">Prime Rate</h3>
-              <button onclick="loadFredChart('DPRIME','chartPrime')" class="btn-ghost text-xs" style="padding:0.2rem 0.5rem;">↻</button>
-            </div>
-            <div class="chart-box" style="height:160px;"><canvas id="chartPrime"></canvas></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ========== FREDDIE MAC PMMS ========== -->
-      <div class="draggable-section mb-5" data-section="pmms">
-        <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <div class="section-title" style="cursor:grab;" title="Drag to rearrange">⠿ Freddie Mac PMMS Weekly Averages <span style="font-weight:400;opacity:0.7;">(updated every Thursday)</span></div>
-          <button onclick="refreshPmms()" class="btn-ghost text-xs" id="btnPmms">Update PMMS</button>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div class="card rate-card">
-            <div class="label">30 Yr. Fixed (PMMS)</div>
-            <div class="rate" id="disp30">6.49%</div>
-            <div class="change" id="chg30">—</div>
-            <input type="number" step="0.01" id="rate30" class="input-sm text-center mt-2" value="6.49" onchange="updateFromInputs();" style="font-size:0.8rem;">
-          </div>
-          <div class="card rate-card">
-            <div class="label">15 Yr. Fixed (PMMS)</div>
-            <div class="rate" id="disp15">5.82%</div>
-            <div class="change" id="chg15">—</div>
-            <input type="number" step="0.01" id="rate15" class="input-sm text-center mt-2" value="5.82" onchange="updateFromInputs();" style="font-size:0.8rem;">
-          </div>
-          <div class="card rate-card" style="background:color-mix(in srgb,var(--accent) 12%,var(--card));border-color:color-mix(in srgb,var(--accent) 40%,var(--card-border));">
-            <div class="label" style="color:var(--accent);">30yr – 10yr Spread</div>
-            <div class="rate" id="spreadValue" style="color:var(--accent);">1.91%</div>
-            <div class="change" id="spreadBps" style="color:var(--accent);">191 bps</div>
-          </div>
-          <div class="card">
-            <div class="metric-label">Notes</div>
-            <p class="text-xs" style="color:var(--muted);">National weekly averages from Freddie Mac. For daily lender rates see <a href="https://www.mortgagenewsdaily.com/mortgage-rates" target="_blank" style="color:var(--accent);">Mortgage News Daily</a>.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- ========== UMBS ========== -->
-      <div class="draggable-section mb-5" data-section="umbs">
-        <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <div class="section-title" style="cursor:grab;" title="Drag to rearrange">⠿ UMBS Prices <span style="font-weight:400;opacity:0.7;">(manual from MND)</span></div>
-          <div class="flex gap-2 text-xs">
-            <a href="https://www.mortgagenewsdaily.com/mbs" target="_blank" style="color:var(--accent);">MND MBS →</a>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <div class="card rate-card">
-            <div class="label">UMBS 5.0</div>
-            <div class="rate" id="dispMbs50">97.47</div>
-            <div class="change" id="chgMbs50">—</div>
-            <input type="text" id="mbs50" class="input-sm text-center mt-2" value="97.47" onchange="updateDisplayCards();" style="font-size:0.8rem;" placeholder="97.47">
-          </div>
-          <div class="card rate-card">
-            <div class="label">UMBS 5.5</div>
-            <div class="rate" id="dispMbs55">99.69</div>
-            <div class="change" id="chgMbs55">—</div>
-            <input type="text" id="mbs55" class="input-sm text-center mt-2" value="99.69" onchange="updateDisplayCards();" style="font-size:0.8rem;" placeholder="99.69">
-          </div>
-          <div class="card">
-            <div class="metric-label">Rate Trend</div>
-            <select id="trend" class="input-sm" onchange="updateAutoTrend()">
-              <option value="AUTO">AUTO (recommended)</option>
-              <option value="POSITIVE">POSITIVE</option>
-              <option value="MINIMAL">MINIMAL</option>
-              <option value="NEGATIVE" selected>NEGATIVE</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- ========== NOTES + SAVE ========== -->
-      <div class="draggable-section mb-5" data-section="notes">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div class="card lg:col-span-2">
-            <div class="metric-label mb-2">Personal Notes / Market Drivers</div>
-            <textarea id="notes" rows="3" class="input-sm w-full" style="min-height:80px;resize:vertical;">MBS prices are significantly weaker so far today. Strong downward movement will most likely result in higher mortgage rates for today.</textarea>
-          </div>
-          <div class="card flex flex-col justify-between">
-            <div>
-              <div class="metric-label mb-2">Quick Actions</div>
-              <button onclick="saveSnapshot()" class="btn-primary w-full mb-2">Save Today’s Snapshot</button>
-              <button onclick="refreshLiveIndexes()" class="btn-ghost w-full text-xs">Refresh FRED Now</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ========== HISTORY ========== -->
-      <div class="draggable-section card" data-section="history">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-          <div>
-            <h3 class="font-semibold text-sm">History Snapshots (Your Records)</h3>
-            <p class="text-xs mt-1" style="color:var(--muted);">Personal daily log of the numbers you save.</p>
-          </div>
-          <button onclick="clearHistory()" class="btn-ghost text-xs">Clear All</button>
-        </div>
-        <div class="overflow-x-auto">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th><th>30yr</th><th>10yr</th><th>Spread</th><th>SOFR</th><th>MBS 5.0</th><th>Trend</th>
-              </tr>
-            </thead>
-            <tbody id="historyTableBody"></tbody>
-          </table>
-        </div>
-        <p id="noHistory" class="text-center text-sm py-8" style="color:var(--muted);">No snapshots yet. Click Save Snapshot after updating numbers.</p>
-      </div>
-
-      </div> <!-- end sortableSections -->
+  <div class="board" id="board">
+    <div class="block" data-id="tools">
+      <section class="links">
+        <h2>My tools</h2>
+        <div class="tiles" id="tiles"></div>
+      </section>
     </div>
 
-    <!-- OPPORTUNITIES -->
-    <div id="panel-opportunities" class="hidden space-y-5">
-      <div class="card">
-        <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
-          <div>
-            <h2 class="text-lg font-bold">Opportunity Scanner</h2>
-            <p class="text-sm mt-1" style="color:var(--muted);">Clients who may benefit from current rates</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="text-sm">
-              <span style="color:var(--muted);">Today 30yr:</span>
-              <span id="oppRateDisplay" class="font-bold" style="color:var(--accent);">6.72%</span>
-            </div>
-            <button onclick="runScan()" class="btn-primary">Run Scan</button>
-          </div>
+    <div class="block" data-id="markets">
+      <section class="panel">
+        <div class="mhead"><h2>Market snapshot</h2><span class="status" id="mstatus"></span></div>
+        <div class="mgrid" id="mgrid"></div>
+        <p class="note" id="mnote">From FRED, posted once a day after the market closes.</p>
+      </section>
+    </div>
+
+    <div class="block" data-id="alert">
+      <section class="alert" id="alert" aria-live="polite"></section>
+    </div>
+
+    <div class="block" data-id="rates">
+      <section class="rates" id="rates" aria-label="Main rates"></section>
+      <section class="rates minor" id="rates2" aria-label="Other loan types"></section>
+      <p class="spread" id="spread"></p>
+    </div>
+
+    <div class="block" data-id="chart">
+      <section class="panel chartbox" aria-label="History chart">
+        <div class="charthead">
+          <h2 id="charttitle"></h2>
+          <div class="range" role="group" aria-label="Time range" id="range"></div>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-          <div class="rounded-xl p-4 text-center" style="background:color-mix(in srgb,var(--card-border) 35%,transparent);">
-            <div class="text-2xl font-bold" id="statTotal">0</div>
-            <div class="text-xs mt-1" style="color:var(--muted);">Total Clients</div>
-          </div>
-          <div class="rounded-xl p-4 text-center" style="background:color-mix(in srgb,var(--positive) 15%,transparent);">
-            <div class="text-2xl font-bold positive" id="statOpps">0</div>
-            <div class="text-xs mt-1" style="color:var(--muted);">Opportunities</div>
-          </div>
-          <div class="rounded-xl p-4 text-center" style="background:color-mix(in srgb,var(--warning) 15%,transparent);">
-            <div class="text-2xl font-bold" style="color:var(--warning);" id="statHigh">0</div>
-            <div class="text-xs mt-1" style="color:var(--muted);">High Priority</div>
-          </div>
-          <div class="rounded-xl p-4 text-center" style="background:color-mix(in srgb,var(--accent) 12%,transparent);">
-            <div class="text-2xl font-bold" style="color:var(--accent);" id="statSavings">$0</div>
-            <div class="text-xs mt-1" style="color:var(--muted);">Est. Mo. Savings</div>
-          </div>
+        <div class="periodline" id="periodline"></div>
+        <div class="chartarea" id="chartarea">
+          <svg id="chart" viewBox="0 0 900 320" role="img" aria-label="Line chart"></svg>
+          <div class="tip" id="tip"></div>
         </div>
-        <div class="overflow-x-auto">
-          <table>
-            <thead>
-              <tr>
-                <th>Priority</th><th>Client</th><th>Current Rate</th><th>Balance</th><th>Diff</th><th>Est. Save/Mo</th><th>Last Contact</th><th></th>
-              </tr>
-            </thead>
-            <tbody id="oppTableBody">
-              <tr><td colspan="8" class="text-center py-10" style="color:var(--muted);">Add clients then click Run Scan</td></tr>
-            </tbody>
-          </table>
+      </section>
+    </div>
+
+    <div class="block" data-id="events">
+      <div class="grid2">
+        <section class="panel">
+          <h2>Upcoming market events</h2>
+          <p class="note">Reports that can move rates. High impact days are the ones to watch before locking.</p>
+          <ul class="events" id="events"></ul>
+        </section>
+        <div class="stack">
+          <section class="panel">
+            <h2>Fed funds rate</h2>
+            <div class="big" id="fedrange">—</div>
+            <p class="note" id="fedline"></p>
+          </section>
+          <section class="panel pay">
+            <h2>Payment snapshot</h2>
+            <label for="loan">Loan amount</label>
+            <input id="loan" inputmode="numeric" value="$400,000" aria-describedby="paynote">
+            <div class="payrows" id="payrows"></div>
+            <p class="note" id="paynote">Principal and interest on a 30-year fixed, at the average rate.</p>
+          </section>
         </div>
       </div>
     </div>
 
-    <!-- CLIENTS -->
-    <div id="panel-clients" class="hidden space-y-5">
-      <div class="card">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
-          <h2 class="text-lg font-bold">Client List</h2>
-          <button onclick="showClientForm()" class="btn-primary">+ Add Client</button>
-        </div>
-        <div id="clientForm" class="hidden mb-5 p-4 rounded-xl" style="background:color-mix(in srgb,var(--card-border) 30%,transparent);border:1px solid var(--card-border);">
-          <h3 class="font-semibold mb-4" id="formTitle">Add New Client</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            <div><div class="metric-label">Full Name *</div><input type="text" id="cName" class="input-sm" placeholder="John Smith"></div>
-            <div><div class="metric-label">Current Rate % *</div><input type="number" step="0.01" id="cRate" class="input-sm" placeholder="7.25"></div>
-            <div><div class="metric-label">Loan Balance $</div><input type="number" id="cBalance" class="input-sm" placeholder="385000"></div>
-            <div>
-              <div class="metric-label">Loan Type</div>
-              <select id="cType" class="input-sm">
-                <option>Conventional 30yr</option><option>Conventional 15yr</option>
-                <option>FHA</option><option>VA</option><option>Jumbo</option><option>Other</option>
-              </select>
-            </div>
-            <div><div class="metric-label">Last Contact</div><input type="date" id="cLastContact" class="input-sm"></div>
-            <div><div class="metric-label">Phone / Email</div><input type="text" id="cContact" class="input-sm" placeholder="optional"></div>
-            <div class="md:col-span-2"><div class="metric-label">Notes</div><input type="text" id="cNotes" class="input-sm" placeholder="Refi candidate…"></div>
-          </div>
-          <div class="flex gap-2 mt-4">
-            <button onclick="saveClient()" class="btn-primary">Save Client</button>
-            <button onclick="hideClientForm()" class="btn-ghost">Cancel</button>
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table>
-            <thead>
-              <tr><th>Name</th><th>Rate</th><th>Balance</th><th>Type</th><th>Last Contact</th><th>Notes</th><th></th></tr>
-            </thead>
-            <tbody id="clientTableBody">
-              <tr><td colspan="7" class="text-center py-8" style="color:var(--muted);">No clients yet</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div class="block" data-id="housing">
+      <section class="housing">
+        <h2>Housing market</h2>
+        <p class="note">Monthly national figures, last 2 years. Sales and starts are yearly rates.</p>
+        <div class="hcards" id="hcards"></div>
+      </section>
     </div>
+  </div>
+</div>
 
-    <!-- SETTINGS -->
-    <div id="panel-settings" class="hidden space-y-5">
-      <div class="card">
-        <h2 class="text-lg font-bold mb-5">Matching Rules</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <div class="metric-label">Min Rate Diff to Flag (%)</div>
-            <input type="number" step="0.05" id="ruleMinDiff" class="input-sm" value="0.75">
-          </div>
-          <div>
-            <div class="metric-label">High Priority – Rate Diff (%)</div>
-            <input type="number" step="0.05" id="ruleHighDiff" class="input-sm" value="1.25">
-          </div>
-          <div>
-            <div class="metric-label">High Priority – Monthly Savings ($)</div>
-            <input type="number" id="ruleHighSavings" class="input-sm" value="200">
-          </div>
-          <div>
-            <div class="metric-label">Assumed Remaining Term (years)</div>
-            <input type="number" id="ruleTerm" class="input-sm" value="25">
-          </div>
-        </div>
-        <button onclick="saveRules()" class="btn-primary mt-5">Save Rules</button>
-      </div>
+<div class="backdrop" id="backdrop"></div>
+</div>
 
-      <div class="card">
-        <h3 class="font-semibold mb-3">FRED API Key (for live data + charts)</h3>
-        <p class="text-sm mb-3" style="color:var(--muted);">
-          Get a free key at <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank" style="color:var(--accent);">fred.stlouisfed.org</a> (takes 30 seconds).
-        </p>
-        <input type="text" id="fredKey" class="input-sm" placeholder="Paste your FRED API key here">
-        <button onclick="saveFredKey()" class="btn-primary mt-3">Save FRED Key</button>
-        <p class="text-xs mt-3" style="color:var(--muted);">Once saved, the market trend charts and “Refresh Live” button will work.</p>
-      </div>
 
-      <div class="card">
-        <h3 class="font-semibold mb-3">About the Charts</h3>
-        <p class="text-sm" style="color:var(--muted);">
-          The four charts pull real market history from FRED (10-Year, SOFR, Fed Funds, Prime) for the last 12 months.
-          UMBS and daily mortgage rates stay as manual values you enter from Mortgage News Daily.
-        </p>
-      </div>
-    </div>
-  </main>
+<script>
+(function(){
+  const DAY=864e5, YEAR=365.25*DAY;
+  const ET="America/New_York";
+  const money=v=>"$"+Math.round(v).toLocaleString("en-US");
+  const esc=t=>String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  // FRED dates are calendar days; build them in local time so they never shift by a day.
+  const day=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
+  const short=d=>d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  const startOfToday=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate());};
+  const sign=x=>x>0?"+":x<0?"−":"";
 
-  <footer class="container py-8 text-center text-xs" style="color:var(--muted);">
-    Personal tool for John Bischof • Home Mortgage Solutions LLC
-  </footer>
+  // ---------- Data ----------
+  let DATA={series:{},events:[]};
+  function get(id){
+    const s=DATA.series[id];
+    if(!s||!s.d.length)return {dates:[],vals:[]};
+    return {dates:s.d.map(day),vals:s.v};
+  }
+  // index of the last value on or before a date
+  const atOrBefore=(dates,d)=>{let i=dates.length-1;while(i>=0&&dates[i]>d)i--;return i;};
 
-  <script>
-    // ========== DATA ==========
-    const currentRates = {
-      rate30: 6.49, chg30: 0.06,
-      rate15: 5.82, chg15: 0.03
-    };
-    let history = [];
-    let clients = [];
-    let editingId = null;
-    const charts = {};
+  const series={
+    ten:{id:"DGS10",name:"10-Year Treasury",sub:"Yield",unit:"%",goodWhenDown:true},
+    mbs:{name:"UMBS 30-Year 6.0",sub:"MBS price",off:true},
+    mort:{id:"MORTGAGE30US",name:"30-Year Fixed",sub:"Average mortgage rate",unit:"%",goodWhenDown:true},
+    m15:{id:"MORTGAGE15US",name:"15-Year Fixed",sub:"",unit:"%",goodWhenDown:true},
+    fha:{id:"OBMMIFHA30YF",name:"FHA 30-Year",sub:"",unit:"%",goodWhenDown:true},
+    jumbo:{id:"OBMMIJUMBO30YF",name:"Jumbo 30-Year",sub:"",unit:"%",goodWhenDown:true}
+  };
+  let current="ten", range="1Y";
+  const ranges={"1M":1/12,"6M":0.5,"1Y":1,"5Y":5,"10Y":10.2};
 
-    // ========== STORAGE ==========
-    const storage = {
-      get(k, f=null){ try{ return localStorage.getItem(k) ?? f; }catch{return f;} },
-      set(k,v){ try{ localStorage.setItem(k,v); return true; }catch{return false;} },
-      remove(k){ try{ localStorage.removeItem(k); }catch{} }
-    };
+  // ---------- Header ----------
+  function renderStamp(){
+    const g=DATA.generated?new Date(DATA.generated):null;
+    document.getElementById("stamp").textContent=g?"Updated "+g.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric",timeZone:ET})+", "+
+      g.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:ET})+" ET":"";
+    const msgs=["Live data from FRED (Federal Reserve Bank of St. Louis). Average rates from Freddie Mac; FHA and jumbo from Optimal Blue."];
+    if(g&&Date.now()-g>4*DAY)msgs.push("These numbers have not changed in over 4 days, so the automatic update may have stopped.");
+    if(DATA.errors&&DATA.errors.length)msgs.push("Some figures could not be refreshed on the last update and show their previous values.");
+    document.getElementById("sample").textContent=msgs.join(" ");
+  }
 
-    // ========== THEME ==========
-    function setTheme(name, btn) {
-      document.documentElement.setAttribute('data-theme', name);
-      storage.set('jbTheme', name);
-      document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
-    }
-
-    // ========== TABS ==========
-    function switchTab(name) {
-      ['market','opportunities','clients','settings'].forEach(t => {
-        const panel = document.getElementById('panel-' + t);
-        if (panel) panel.classList.add('hidden');
-        const tab = document.querySelector(`.tab[data-tab="${t}"]`);
-        if (tab) tab.classList.remove('active');
-      });
-      const panel = document.getElementById('panel-' + name);
-      if (panel) panel.classList.remove('hidden');
-      const tab = document.querySelector(`.tab[data-tab="${name}"]`);
-      if (tab) tab.classList.add('active');
-      if (name === 'opportunities') runScan();
-      if (name === 'clients') renderClients();
-    }
-
-    // ========== MARKET ==========
-    function updateFromInputs() {
-      const rate30 = parseFloat(document.getElementById('rate30')?.value) || currentRates.rate30;
-      currentRates.rate30 = rate30;
-      const rate15 = parseFloat(document.getElementById('rate15')?.value) || currentRates.rate15;
-      currentRates.rate15 = rate15;
-      document.getElementById('disp30').textContent = rate30.toFixed(2) + '%';
-      document.getElementById('disp15').textContent = rate15.toFixed(2) + '%';
-
-      const ust10 = parseFloat(document.getElementById('ust10').value) || 0;
-      const spread = rate30 - ust10;
-      document.getElementById('spreadValue').textContent = spread.toFixed(2) + '%';
-      document.getElementById('spreadBps').textContent = Math.round(spread * 100) + ' bps';
-      updateAutoTrend();
-    }
-
-    function updateDisplayCards() {
-      // FRED indexes
-      const ust = parseFloat(document.getElementById('ust10').value) || 0;
-      document.getElementById('dispUst10').textContent = ust.toFixed(2) + '%';
-      const sofr = parseFloat(document.getElementById('sofr').value) || 0;
-      document.getElementById('dispSofr').textContent = sofr.toFixed(2) + '%';
-      const fed = parseFloat(document.getElementById('fedfunds').value) || 0;
-      document.getElementById('dispFed').textContent = fed.toFixed(2) + '%';
-      const prime = parseFloat(document.getElementById('prime').value) || 0;
-      document.getElementById('dispPrime').textContent = prime.toFixed(2) + '%';
-
-      // UMBS 5.0 - convert dash format if needed
-      let m50 = document.getElementById('mbs50').value;
-      if (m50.includes('-')) {
-        const parts = m50.split('-');
-        m50 = (parseFloat(parts[0]) + (parseFloat(parts[1])||0)/32).toFixed(2);
-        document.getElementById('mbs50').value = m50;
+  // ---------- Rate strips ----------
+  function change(s,a,b){
+    const diff=b-a, good=s.goodWhenDown?diff<0:diff>0;
+    const txt=s.unit==="%"?sign(diff)+Math.abs(Math.round(diff*100))+" bps":sign(diff)+Math.abs(diff).toFixed(2);
+    return {diff,txt,good,flat:Math.abs(diff)<1e-9};
+  }
+  const allBtns=[];
+  function strip(el,keys){
+    el.innerHTML="";
+    keys.forEach(k=>{
+      const s=series[k];
+      if(s.off){
+        const b=document.createElement("div");
+        b.className="rate off";
+        b.innerHTML=`<div class="name">${s.name}</div><div class="sub">${s.sub}</div>
+          <div class="val">Not available free. <a href="https://www.mortgagenewsdaily.com/mbs" target="_blank" rel="noopener noreferrer">See live prices on Mortgage News Daily</a></div>`;
+        el.appendChild(b);return;
       }
-      document.getElementById('dispMbs50').textContent = parseFloat(m50 || 0).toFixed(2);
-
-      // UMBS 5.5
-      let m55 = document.getElementById('mbs55').value;
-      if (m55.includes('-')) {
-        const parts = m55.split('-');
-        m55 = (parseFloat(parts[0]) + (parseFloat(parts[1])||0)/32).toFixed(2);
-        document.getElementById('mbs55').value = m55;
+      const {dates,vals}=get(s.id);
+      const b=document.createElement("button");
+      b.className="rate";b.dataset.key=k;b.setAttribute("aria-pressed",k===current);
+      let val="—",chg=`<div class="chg">No data yet</div>`;
+      if(vals.length){
+        val=`${vals.at(-1).toFixed(2)}<small>${s.unit}</small>`;
+        const c=vals.length>1?change(s,vals.at(-2),vals.at(-1)):null;
+        chg=`<div class="chg ${!c||c.flat?"":c.good?"good":"bad"}">${c?c.txt:""} <span>as of ${short(dates.at(-1))}</span></div>`;
       }
-      document.getElementById('dispMbs55').textContent = parseFloat(m55 || 0).toFixed(2);
-    }
-
-    function updateAutoTrend() {
-      const mbs = (document.getElementById('notes')?.value || '').toLowerCase();
-      const text = document.getElementById('statusText');
-      const dot = document.getElementById('statusDot');
-      let trend = 'MINIMAL';
-      let reason = 'Watch closely';
-
-      if (mbs.includes('weak') || mbs.includes('significantly') || mbs.includes('down')) {
-        trend = 'NEGATIVE';
-        reason = 'MBS weaker / Rates under pressure';
-      } else if (mbs.includes('strong') || mbs.includes('firmer') || mbs.includes('better')) {
-        trend = 'POSITIVE';
-        reason = 'MBS firmer / Rates improving';
-      }
-
-      const manual = document.getElementById('trend').value;
-      if (manual && manual !== 'AUTO') trend = manual;
-
-      text.textContent = trend + ' — ' + reason;
-      if (trend === 'POSITIVE') {
-        text.className = 'font-bold text-lg positive';
-        dot.style.background = 'var(--positive)';
-      } else if (trend === 'NEGATIVE') {
-        text.className = 'font-bold text-lg negative';
-        dot.style.background = 'var(--negative)';
-      } else {
-        text.className = 'font-bold text-lg';
-        text.style.color = 'var(--warning)';
-        dot.style.background = 'var(--warning)';
-      }
-    }
-
-    // ========== FRED ==========
-    function getFredKey() {
-      return storage.get('fredKey') || document.getElementById('fredKey')?.value || '';
-    }
-
-    function saveFredKey() {
-      const key = document.getElementById('fredKey').value.trim();
-      if (key) {
-        storage.set('fredKey', key);
-        alert('FRED key saved! Charts and stocks will auto-load. You can also click Refresh Live (FRED).');
-        // trigger initial loads
-        setTimeout(() => {
-          refreshLiveIndexesSilent();
-          refreshStocks();
-          refreshPmms();
-        }, 500);
-      } else {
-        alert('Please paste your FRED key first.');
-      }
-    }
-
-    async function refreshStocks() {
-      const key = getFredKey();
-      if (!key || key.length < 10) {
-        alert('Please go to Rules & Help tab and paste your free FRED API key first.');
-        return;
-      }
-      const btn = document.getElementById('btnStocks');
-      if (btn) { btn.disabled = true; btn.textContent = 'Fetching…'; }
-
-      try {
-        const series = [
-          {id:'SP500', el:'sp500', disp:'dispSp500', chg:'chgSp500'},
-          {id:'DJIA', el:'djia', disp:'dispDjia', chg:'chgDjia'},
-          {id:'NASDAQCOM', el:'nasdaq', disp:'dispNasdaq', chg:'chgNasdaq'},
-          {id:'VIXCLS', el:'vix', disp:'dispVix', chg:'chgVix'}
-        ];
-        const results = await Promise.all(series.map(async s => {
-          const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=5`;
-          let r;
-          try { r = await fetch(target); } catch(e) {
-            r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
-          }
-          const d = await r.json();
-          const obs = (d.observations || []).filter(o => o.value !== '.');
-          const latest = parseFloat(obs[0]?.value);
-          const prev = parseFloat(obs[1]?.value);
-          const chg = (!isNaN(latest) && !isNaN(prev)) ? (latest - prev) : null;
-          return {el: s.el, disp: s.disp, chgEl: s.chg, value: latest, chg};
-        }));
-        let count = 0;
-        results.forEach(r => {
-          if (!isNaN(r.value)) {
-            if (document.getElementById(r.el)) document.getElementById(r.el).value = r.value.toFixed(2);
-            const disp = document.getElementById(r.disp);
-            if (disp) {
-              // S&P and Dow are big numbers, format nicely
-              if (r.value > 1000) {
-                disp.textContent = r.value.toLocaleString(undefined, {maximumFractionDigits: 0});
-              } else {
-                disp.textContent = r.value.toFixed(2);
-              }
-            }
-            const chgEl = document.getElementById(r.chgEl);
-            if (chgEl && r.chg !== null) {
-              const pct = (r.chg / (r.value - r.chg)) * 100;
-              chgEl.textContent = (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2) + (Math.abs(r.chg) > 1 ? '' : '');
-              chgEl.className = 'change ' + (r.chg > 0 ? 'negative' : r.chg < 0 ? 'positive' : '');
-            }
-            count++;
-          }
-        });
-        if (count > 0) {
-          // no alert for stocks to keep it quiet
-          console.log('Stocks updated');
-        }
-      } catch(e) {
-        console.error(e);
-        console.error('Stocks error');
-      } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'Refresh Stocks'; }
-      }
-    }
-
-    async function refreshLiveIndexes() {
-      const key = getFredKey();
-      if (!key || key.length < 10) {
-        alert('Please go to Rules & Help tab and paste your free FRED API key first.');
-        return;
-      }
-      const btn = document.getElementById('btnRefreshFred');
-      btn.disabled = true;
-      btn.textContent = 'Fetching…';
-
-      try {
-        const series = [
-          {id:'DGS10', el:'ust10', disp:'dispUst10', chg:'chgUst10'},
-          {id:'SOFR', el:'sofr', disp:'dispSofr', chg:'chgSofr'},
-          {id:'DFF', el:'fedfunds', disp:'dispFed', chg:'chgFed'},
-          {id:'DPRIME', el:'prime', disp:'dispPrime', chg:'chgPrime'}
-        ];
-        const results = await Promise.all(series.map(async s => {
-          const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=5`;
-          let r;
-          try {
-            r = await fetch(target);
-          } catch(e) {
-            r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
-          }
-          const d = await r.json();
-          const obs = (d.observations || []).filter(o => o.value !== '.');
-          const latest = parseFloat(obs[0]?.value);
-          const prev = parseFloat(obs[1]?.value);
-          const chg = (!isNaN(latest) && !isNaN(prev)) ? (latest - prev) : null;
-          return {el: s.el, disp: s.disp, chgEl: s.chg, value: latest, chg};
-        }));
-        let count = 0;
-        results.forEach(r => {
-          if (!isNaN(r.value)) {
-            document.getElementById(r.el).value = r.value.toFixed(2);
-            document.getElementById(r.disp).textContent = r.value.toFixed(2) + '%';
-            const chgEl = document.getElementById(r.chgEl);
-            if (chgEl && r.chg !== null) {
-              chgEl.textContent = (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2);
-              chgEl.className = 'change ' + (r.chg > 0 ? 'negative' : r.chg < 0 ? 'positive' : '');
-            } else if (chgEl) {
-              chgEl.textContent = '—';
-              chgEl.className = 'change';
-            }
-            count++;
-          }
-        });
-        updateFromInputs();
-        updateDisplayCards();
-        document.getElementById('dataTime').textContent = new Date().toLocaleString();
-        // also refresh charts
-        loadFredChart('DGS10','chart10yr');
-        loadFredChart('SOFR','chartSofr');
-        loadFredChart('DFF','chartFed');
-        loadFredChart('DPRIME','chartPrime');
-        // silent update
-      } catch(e) {
-        console.error(e);
-        console.error('FRED error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Refresh All Live (FRED)';
-      }
-    }
-
-    // Silent version for auto-refresh (no popup)
-    async function refreshLiveIndexesSilent() {
-      const key = getFredKey();
-      if (!key || key.length < 10) return;
-      try {
-        const series = [
-          {id:'DGS10', el:'ust10', disp:'dispUst10', chg:'chgUst10'},
-          {id:'SOFR', el:'sofr', disp:'dispSofr', chg:'chgSofr'},
-          {id:'DFF', el:'fedfunds', disp:'dispFed', chg:'chgFed'},
-          {id:'DPRIME', el:'prime', disp:'dispPrime', chg:'chgPrime'}
-        ];
-        const results = await Promise.all(series.map(async s => {
-          const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=5`;
-          let r;
-          try { r = await fetch(target); } catch(e) {
-            r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
-          }
-          const d = await r.json();
-          const obs = (d.observations || []).filter(o => o.value !== '.');
-          const latest = parseFloat(obs[0]?.value);
-          const prev = parseFloat(obs[1]?.value);
-          const chg = (!isNaN(latest) && !isNaN(prev)) ? (latest - prev) : null;
-          return {el: s.el, disp: s.disp, chgEl: s.chg, value: latest, chg};
-        }));
-        results.forEach(r => {
-          if (!isNaN(r.value)) {
-            document.getElementById(r.el).value = r.value.toFixed(2);
-            document.getElementById(r.disp).textContent = r.value.toFixed(2) + '%';
-            const chgEl = document.getElementById(r.chgEl);
-            if (chgEl && r.chg !== null) {
-              chgEl.textContent = (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2);
-              chgEl.className = 'change ' + (r.chg > 0 ? 'negative' : r.chg < 0 ? 'positive' : '');
-            }
-          }
-        });
-        updateFromInputs();
-        updateDisplayCards();
-        document.getElementById('dataTime').textContent = new Date().toLocaleString() + ' (auto)';
-      } catch(e) { console.error('Silent refresh failed', e); }
-    }
-
-    async function refreshPmms() {
-      const key = getFredKey();
-      if (!key || key.length < 10) {
-        alert('Please go to Rules & Help tab and paste your free FRED API key first.');
-        return;
-      }
-      const btn = document.getElementById('btnPmms');
-      btn.disabled = true;
-      btn.textContent = 'Fetching…';
-
-      try {
-        const series = [
-          {id:'MORTGAGE30US', el:'rate30', disp:'disp30', chg:'chg30'},
-          {id:'MORTGAGE15US', el:'rate15', disp:'disp15', chg:'chg15'}
-        ];
-        const results = await Promise.all(series.map(async s => {
-          const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${s.id}&api_key=${key}&file_type=json&sort_order=desc&limit=5`;
-          let r;
-          try {
-            r = await fetch(target);
-          } catch(e) {
-            r = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
-          }
-          const d = await r.json();
-          const obs = (d.observations || []).filter(o => o.value !== '.');
-          const latest = parseFloat(obs[0]?.value);
-          const prev = parseFloat(obs[1]?.value);
-          const chg = (!isNaN(latest) && !isNaN(prev)) ? (latest - prev) : null;
-          return {el: s.el, disp: s.disp, chgEl: s.chg, value: latest, chg};
-        }));
-        let count = 0;
-        results.forEach(r => {
-          if (!isNaN(r.value)) {
-            document.getElementById(r.el).value = r.value.toFixed(2);
-            document.getElementById(r.disp).textContent = r.value.toFixed(2) + '%';
-            const chgEl = document.getElementById(r.chgEl);
-            if (chgEl && r.chg !== null) {
-              chgEl.textContent = (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2);
-              chgEl.className = 'change ' + (r.chg > 0 ? 'negative' : r.chg < 0 ? 'positive' : '');
-            }
-            count++;
-          }
-        });
-        updateFromInputs();
-        // silent update
-      } catch(e) {
-        console.error(e);
-        console.error('PMMS error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Update from FRED (PMMS)';
-      }
-    }
-
-    async function loadFredChart(seriesId, canvasId) {
-      const key = getFredKey();
-      if (!key || key.length < 10) {
-        alert('Add your free FRED API key in the Rules & Help tab first.');
-        return;
-      }
-
-      try {
-        const target = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${key}&file_type=json&sort_order=desc&limit=250`;
-        let res;
-        try {
-          res = await fetch(target);
-        } catch(e) {
-          res = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(target));
-        }
-        const data = await res.json();
-        const obs = (data.observations || []).reverse().filter(o => o.value !== '.');
-
-        const labels = obs.map(o => o.date.slice(5));
-        const values = obs.map(o => parseFloat(o.value));
-
-        const colors = getColors();
-        const ctx = document.getElementById(canvasId).getContext('2d');
-
-        if (charts[canvasId]) charts[canvasId].destroy();
-
-        charts[canvasId] = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels,
-            datasets: [{
-              label: seriesId,
-              data: values,
-              borderColor: colors.accent,
-              backgroundColor: colors.accent + '33',
-              tension: 0.3,
-              fill: true,
-              pointRadius: 0,
-              borderWidth: 2
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                backgroundColor: '#1e293b',
-                titleColor: '#e2e8f0',
-                bodyColor: '#cbd5e1'
-              }
-            },
-            scales: {
-              x: {
-                ticks: { color: colors.muted, font: { size: 9 }, maxTicksLimit: 8 },
-                grid: { color: colors.cardBorder + '44' }
-              },
-              y: {
-                ticks: { color: colors.muted, font: { size: 10 } },
-                grid: { color: colors.cardBorder + '44' }
-              }
-            }
-          }
-        });
-      } catch (err) {
-        console.error(err);
-        alert('Could not load chart for ' + seriesId + '. You can still enter numbers manually.');
-      }
-    }
-
-    function getColors() {
-      const s = getComputedStyle(document.documentElement);
-      return {
-        accent: s.getPropertyValue('--accent').trim() || '#06b6d4',
-        muted: s.getPropertyValue('--muted').trim() || '#94a3b8',
-        cardBorder: s.getPropertyValue('--card-border').trim() || '#334155'
-      };
-    }
-
-    // ========== SNAPSHOTS ==========
-    function getHistory() {
-      try { return JSON.parse(storage.get('jbMarketHistory', '[]')); } catch { return []; }
-    }
-
-    function saveSnapshot() {
-      const snapshot = {
-        date: new Date().toISOString().slice(0,10),
-        time: new Date().toLocaleTimeString(),
-        rate30: parseFloat(document.getElementById('rate30')?.value) || currentRates.rate30,
-        rate15: parseFloat(document.getElementById('rate15')?.value) || currentRates.rate15,
-        ust10: parseFloat(document.getElementById('ust10').value),
-        sofr: parseFloat(document.getElementById('sofr').value),
-        fedfunds: parseFloat(document.getElementById('fedfunds').value),
-        prime: parseFloat(document.getElementById('prime').value),
-        mbs50: document.getElementById('mbs50').value,
-        mbs55: document.getElementById('mbs55').value,
-        mbsStatus: document.getElementById('mbsStatus').value,
-        trend: document.getElementById('statusText').textContent.split(' — ')[0],
-        notes: document.getElementById('notes').value,
-        spread: (parseFloat(document.getElementById('rate30')?.value) || currentRates.rate30) - parseFloat(document.getElementById('ust10').value)
-      };
-      let h = getHistory().filter(x => x.date !== snapshot.date);
-      h.unshift(snapshot);
-      if (h.length > 90) h = h.slice(0,90);
-      storage.set('jbMarketHistory', JSON.stringify(h));
-      history = h;
-      document.getElementById('lastSaved').textContent = 'Saved ' + new Date().toLocaleTimeString();
-      document.getElementById('lastSaved').classList.remove('hidden');
-      renderHistoryTable();
-      alert('Snapshot saved for ' + snapshot.date);
-    }
-
-    function clearHistory() {
-      if (!confirm('Clear all history snapshots?')) return;
-      storage.remove('jbMarketHistory');
-      history = [];
-      renderHistoryTable();
-    }
-
-    function renderHistoryTable() {
-      const tbody = document.getElementById('historyTableBody');
-      const noHist = document.getElementById('noHistory');
-      if (history.length === 0) {
-        tbody.innerHTML = '';
-        noHist.classList.remove('hidden');
-        return;
-      }
-      noHist.classList.add('hidden');
-      tbody.innerHTML = history.map(h => `
-        <tr>
-          <td class="font-medium">${h.date}</td>
-          <td>${h.rate30?.toFixed(2) || '—'}%</td>
-          <td>${h.ust10?.toFixed(2) || '—'}%</td>
-          <td style="color:var(--accent);">${h.spread?.toFixed(2) || '—'}%</td>
-          <td>${h.sofr?.toFixed(2) || '—'}%</td>
-          <td>${h.mbs50 || '—'}</td>
-          <td><span class="text-xs font-semibold px-2 py-0.5 rounded" style="background:color-mix(in srgb,${h.trend==='POSITIVE'?'var(--positive)':h.trend==='NEGATIVE'?'var(--negative)':'var(--warning)'} 20%,transparent);color:${h.trend==='POSITIVE'?'var(--positive)':h.trend==='NEGATIVE'?'var(--negative)':'var(--warning)'};">${h.trend||'—'}</span></td>
-        </tr>
-      `).join('');
-    }
-
-    // ========== CLIENTS + SCANNER ==========
-    function loadClients() {
-      try { clients = JSON.parse(storage.get('jbClients', '[]')); } catch { clients = []; }
-    }
-    function saveClients() { storage.set('jbClients', JSON.stringify(clients)); }
-
-    function showClientForm() {
-      editingId = null;
-      document.getElementById('formTitle').textContent = 'Add New Client';
-      ['cName','cRate','cBalance','cLastContact','cContact','cNotes'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('cType').value = 'Conventional 30yr';
-      document.getElementById('clientForm').classList.remove('hidden');
-    }
-    function hideClientForm() {
-      document.getElementById('clientForm').classList.add('hidden');
-      editingId = null;
-    }
-
-    function saveClient() {
-      const name = document.getElementById('cName').value.trim();
-      const rate = parseFloat(document.getElementById('cRate').value);
-      if (!name || isNaN(rate)) { alert('Name and Current Rate required.'); return; }
-      const client = {
-        id: editingId || Date.now().toString(),
-        name, rate,
-        balance: parseFloat(document.getElementById('cBalance').value) || 0,
-        type: document.getElementById('cType').value,
-        lastContact: document.getElementById('cLastContact').value || '',
-        contact: document.getElementById('cContact').value || '',
-        notes: document.getElementById('cNotes').value || ''
-      };
-      if (editingId) {
-        const i = clients.findIndex(c => c.id === editingId);
-        if (i >= 0) clients[i] = client;
-      } else clients.push(client);
-      saveClients();
-      hideClientForm();
-      renderClients();
-      runScan();
-    }
-
-    function editClient(id) {
-      const c = clients.find(x => x.id === id);
-      if (!c) return;
-      editingId = id;
-      document.getElementById('formTitle').textContent = 'Edit Client';
-      document.getElementById('cName').value = c.name;
-      document.getElementById('cRate').value = c.rate;
-      document.getElementById('cBalance').value = c.balance || '';
-      document.getElementById('cType').value = c.type || 'Conventional 30yr';
-      document.getElementById('cLastContact').value = c.lastContact || '';
-      document.getElementById('cContact').value = c.contact || '';
-      document.getElementById('cNotes').value = c.notes || '';
-      document.getElementById('clientForm').classList.remove('hidden');
-    }
-
-    function deleteClient(id) {
-      if (!confirm('Delete this client?')) return;
-      clients = clients.filter(c => c.id !== id);
-      saveClients();
-      renderClients();
-      runScan();
-    }
-
-    function renderClients() {
-      loadClients();
-      const tbody = document.getElementById('clientTableBody');
-      if (clients.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8" style="color:var(--muted);">No clients yet</td></tr>';
-        return;
-      }
-      tbody.innerHTML = clients.map(c => `
-        <tr>
-          <td class="font-medium">${c.name}</td>
-          <td>${c.rate.toFixed(2)}%</td>
-          <td>${c.balance ? '$' + c.balance.toLocaleString() : '—'}</td>
-          <td>${c.type || '—'}</td>
-          <td>${c.lastContact || '—'}</td>
-          <td style="color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.notes || ''}</td>
-          <td>
-            <button onclick="editClient('${c.id}')" class="text-xs" style="color:var(--accent);margin-right:8px;">Edit</button>
-            <button onclick="deleteClient('${c.id}')" class="text-xs negative">Del</button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function getRules() {
-      return {
-        minDiff: parseFloat(storage.get('jbRuleMinDiff', '0.75')),
-        highDiff: parseFloat(storage.get('jbRuleHighDiff', '1.25')),
-        highSavings: parseFloat(storage.get('jbRuleHighSavings', '200')),
-        term: parseFloat(storage.get('jbRuleTerm', '25'))
-      };
-    }
-
-    function saveRules() {
-      storage.set('jbRuleMinDiff', document.getElementById('ruleMinDiff').value);
-      storage.set('jbRuleHighDiff', document.getElementById('ruleHighDiff').value);
-      storage.set('jbRuleHighSavings', document.getElementById('ruleHighSavings').value);
-      storage.set('jbRuleTerm', document.getElementById('ruleTerm').value);
-      alert('Rules saved.');
-      runScan();
-    }
-
-    function calcPayment(balance, annualRate, years) {
-      if (balance <= 0 || annualRate <= 0) return 0;
-      const r = annualRate / 100 / 12;
-      const n = years * 12;
-      return balance * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
-    }
-
-    function runScan() {
-      loadClients();
-      const rules = getRules();
-      const todayRate = parseFloat(document.getElementById('rate30')?.value) || currentRates.rate30;
-      document.getElementById('oppRateDisplay').textContent = todayRate.toFixed(2) + '%';
-      document.getElementById('ruleMinDiff').value = rules.minDiff;
-      document.getElementById('ruleHighDiff').value = rules.highDiff;
-      document.getElementById('ruleHighSavings').value = rules.highSavings;
-      document.getElementById('ruleTerm').value = rules.term;
-
-      let opps = [], totalSavings = 0, highCount = 0;
-      clients.forEach(c => {
-        const diff = c.rate - todayRate;
-        if (diff < rules.minDiff) return;
-        const oldPmt = calcPayment(c.balance, c.rate, rules.term);
-        const newPmt = calcPayment(c.balance, todayRate, rules.term);
-        const monthlySave = Math.max(0, oldPmt - newPmt);
-        totalSavings += monthlySave;
-        const isHigh = diff >= rules.highDiff || monthlySave >= rules.highSavings;
-        if (isHigh) highCount++;
-        opps.push({...c, diff, monthlySave, priority: isHigh ? 'HIGH' : 'MEDIUM'});
-      });
-      opps.sort((a,b) => a.priority === b.priority ? b.monthlySave - a.monthlySave : (a.priority === 'HIGH' ? -1 : 1));
-
-      document.getElementById('statTotal').textContent = clients.length;
-      document.getElementById('statOpps').textContent = opps.length;
-      document.getElementById('statHigh').textContent = highCount;
-      document.getElementById('statSavings').textContent = '$' + Math.round(totalSavings).toLocaleString();
-
-      const tbody = document.getElementById('oppTableBody');
-      if (opps.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10" style="color:var(--muted);">No opportunities with current rules.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = opps.map(o => `
-        <tr>
-          <td><span class="text-xs font-bold px-2 py-0.5 rounded" style="background:color-mix(in srgb,${o.priority==='HIGH'?'var(--positive)':'var(--warning)'} 22%,transparent);color:${o.priority==='HIGH'?'var(--positive)':'var(--warning)'};">${o.priority}</span></td>
-          <td class="font-medium">${o.name}</td>
-          <td>${o.rate.toFixed(2)}%</td>
-          <td>${o.balance ? '$' + o.balance.toLocaleString() : '—'}</td>
-          <td class="negative font-medium">+${o.diff.toFixed(2)}%</td>
-          <td class="positive font-semibold">$${Math.round(o.monthlySave).toLocaleString()}</td>
-          <td>${o.lastContact || '—'}</td>
-          <td><button onclick="draftEmail('${o.id}',${o.diff.toFixed(2)},${Math.round(o.monthlySave)})" class="text-xs font-medium" style="color:var(--accent);">Draft Email</button></td>
-        </tr>
-      `).join('');
-    }
-
-    function draftEmail(id, diff, save) {
-      const c = clients.find(x => x.id === id);
-      if (!c) return;
-      const todayRate = currentRates.rate30.toFixed(2);
-      const subject = encodeURIComponent('Quick rate check for you – possible savings');
-      const body = encodeURIComponent(`Hi ${c.name.split(' ')[0]},
-
-Hope you're doing well. I was reviewing current market rates this morning and noticed that rates have moved enough that it might make sense to take another look at your mortgage.
-
-Your current rate: ${c.rate.toFixed(2)}%
-Today's market (approx): ${todayRate}%
-Potential difference: ~${diff}%
-Estimated monthly savings (rough): around $${save}
-
-Would you like me to run some exact numbers for you? Happy to put together a no-obligation comparison.
-
-Best regards,
-John Bischof
-Home Mortgage Solutions LLC`);
-      window.open(`mailto:${c.contact || ''}?subject=${subject}&body=${body}`);
-    }
-
-    // ========== DRAG AND DROP SECTIONS ==========
-    function initDragDrop() {
-      const container = document.getElementById('sortableSections');
-      if (!container) return;
-      let dragItem = null;
-
-      container.querySelectorAll('.draggable-section').forEach(section => {
-        section.draggable = true;
-        section.style.cursor = 'grab';
-
-        section.addEventListener('dragstart', (e) => {
-          dragItem = section;
-          section.style.opacity = '0.5';
-          e.dataTransfer.effectAllowed = 'move';
-        });
-
-        section.addEventListener('dragend', () => {
-          section.style.opacity = '1';
-          dragItem = null;
-          // save order
-          const order = Array.from(container.querySelectorAll('.draggable-section')).map(s => s.dataset.section);
-          storage.set('jbSectionOrder', JSON.stringify(order));
-        });
-
-        section.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-        });
-
-        section.addEventListener('drop', (e) => {
-          e.preventDefault();
-          if (dragItem && dragItem !== section) {
-            const all = Array.from(container.children);
-            const dragIdx = all.indexOf(dragItem);
-            const dropIdx = all.indexOf(section);
-            if (dragIdx < dropIdx) {
-              container.insertBefore(dragItem, section.nextSibling);
-            } else {
-              container.insertBefore(dragItem, section);
-            }
-          }
-        });
-      });
-
-      // restore order
-      try {
-        const saved = JSON.parse(storage.get('jbSectionOrder', '[]'));
-        if (saved.length) {
-          saved.forEach(name => {
-            const el = container.querySelector(`[data-section="${name}"]`);
-            if (el) container.appendChild(el);
-          });
-        }
-      } catch(e) {}
-    }
-
-// ========== INIT ==========
-    document.addEventListener('DOMContentLoaded', () => {
-      // Theme
-      const theme = storage.get('jbTheme', 'dark');
-      document.documentElement.setAttribute('data-theme', theme);
-      document.querySelectorAll('.theme-btn').forEach(btn => {
-        btn.addEventListener('click', () => setTheme(btn.dataset.theme, btn));
-        if (btn.dataset.theme === theme) btn.classList.add('active');
-      });
-
-      // Tabs
-      document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-      });
-
-      // Display rates
-      document.getElementById('disp30').textContent = currentRates.rate30.toFixed(2) + '%';
-      document.getElementById('disp15').textContent = currentRates.rate15.toFixed(2) + '%';
-      if (document.getElementById('rate30')) document.getElementById('rate30').value = currentRates.rate30;
-      if (document.getElementById('rate15')) document.getElementById('rate15').value = currentRates.rate15;
-
-
-      // History
-      history = getHistory();
-      updateFromInputs();
-      updateDisplayCards();
-      updateAutoTrend();
-      renderHistoryTable();
-      document.getElementById('dataTime').textContent = new Date().toLocaleString();
-
-      // FRED key
-      const savedKey = storage.get('fredKey', '');
-      if (savedKey) {
-        document.getElementById('fredKey').value = savedKey;
-        // Auto-load all charts + stocks after a short delay
-        setTimeout(() => {
-          loadFredChart('DGS10','chart10yr');
-          loadFredChart('SOFR','chartSofr');
-          loadFredChart('DFF','chartFed');
-          loadFredChart('DPRIME','chartPrime');
-          refreshLiveIndexesSilent();
-          refreshStocks();
-        }, 800);
-      }
-
-      // Rules
-      const rules = getRules();
-      document.getElementById('ruleMinDiff').value = rules.minDiff;
-      document.getElementById('ruleHighDiff').value = rules.highDiff;
-      document.getElementById('ruleHighSavings').value = rules.highSavings;
-      document.getElementById('ruleTerm').value = rules.term;
-
-      loadClients();
-      initDragDrop();
-
-      // Auto-refresh FRED data every 15 minutes if key exists
-      if (storage.get('fredKey')) {
-        setInterval(() => {
-          console.log('Auto-refreshing FRED data...');
-          refreshLiveIndexesSilent();
-        }, 15 * 60 * 1000); // 15 minutes
-      }
+      b.innerHTML=`<div class="name">${s.name}</div><div class="sub">${s.sub}</div><div class="val">${val}</div>${chg}`;
+      b.onclick=()=>{current=k;allBtns.forEach(x=>x.setAttribute("aria-pressed",x.dataset.key===k));draw();};
+      allBtns.push(b);el.appendChild(b);
     });
-  </script>
+  }
+  function renderRates(){
+    allBtns.length=0;
+    strip(document.getElementById("rates"),["ten","mbs","mort"]);
+    strip(document.getElementById("rates2"),["m15","fha","jumbo"]);
+    const m=get("MORTGAGE30US"),t=get("DGS10");
+    let spread="";
+    if(m.vals.length&&t.vals.length){
+      const i=atOrBefore(t.dates,m.dates.at(-1));
+      if(i>=0)spread=`Spread between the 30-year fixed (week of ${short(m.dates.at(-1))}) and the 10-year Treasury that day: <b>${(m.vals.at(-1)-t.vals[i]).toFixed(2)} points</b>. `;
+    }
+    document.getElementById("spread").innerHTML=spread+
+      `Green means good for borrowers. Tap any rate to chart it. Live 10-year: <a href="https://www.cnbc.com/quotes/US10Y" target="_blank" rel="noopener noreferrer" style="color:var(--ink);font-weight:600">CNBC</a>. MBS prices: <a href="https://www.mortgagenewsdaily.com/mbs" target="_blank" rel="noopener noreferrer" style="color:var(--ink);font-weight:600">Mortgage News Daily</a>.`;
+  }
+
+  // ---------- Rate-move alert ----------
+  let threshold=10;
+  try{const t=localStorage.getItem("alertBps");if(t&&!isNaN(+t))threshold=+t;}catch(e){}
+  const alertEl=document.getElementById("alert");
+  function renderAlert(){
+    const {dates,vals}=get("DGS10");
+    let cls,head,body;
+    if(vals.length<2){
+      cls="calm";head="No 10-year data yet";body="The alert starts working once the first numbers load.";
+    }else{
+      const tc=change(series.ten,vals.at(-2),vals.at(-1)), bps=Math.abs(tc.diff*100), when=short(dates.at(-1));
+      if(bps>=threshold){
+        cls=tc.good?"":"bad";
+        head=tc.good?"Rates improved":"Rates got worse";
+        body=`The 10-year was ${tc.diff<0?"down":"up"} ${Math.round(bps)} bps on ${when}. `+
+          (tc.good?"Good day to call clients who are still floating.":"Consider locking clients who are close to closing.");
+      }else{
+        cls="calm";head="No big moves";
+        body=`The 10-year moved ${Math.round(bps)} bps on ${when}, under your ${threshold} bps alert level.`;
+      }
+    }
+    alertEl.className="alert "+cls;
+    alertEl.innerHTML=`<p><b>${head}</b>${body}</p>
+      <label>Alert me at <input id="thr" type="number" min="1" max="50" value="${threshold}"> bps</label>`;
+    document.getElementById("thr").onchange=e=>{
+      const v=Math.max(1,Math.min(50,Math.round(+e.target.value)||10));threshold=v;
+      try{localStorage.setItem("alertBps",String(v));}catch(err){}
+      renderAlert();
+    };
+  }
+
+  // ---------- Range buttons ----------
+  const rangeEl=document.getElementById("range");
+  Object.keys(ranges).forEach(k=>{
+    const b=document.createElement("button");b.textContent=k;b.setAttribute("aria-pressed",k===range);
+    b.onclick=()=>{range=k;[...rangeEl.children].forEach(x=>x.setAttribute("aria-pressed",x.textContent===k));draw();};
+    rangeEl.appendChild(b);
+  });
+
+  // ---------- Chart ----------
+  const svg=document.getElementById("chart"),tip=document.getElementById("tip"),area=document.getElementById("chartarea");
+  const W=900,H=320,P={l:52,r:16,t:16,b:30};
+  let pts=[];
+  function draw(){
+    const s=series[current],{dates,vals}=get(s.id);
+    document.getElementById("charttitle").textContent=s.name+" history";
+    svg.setAttribute("aria-label",`${s.name}, last ${range}`);
+    pts=[];tip.style.opacity=0;
+    const cutoff=dates.length?new Date(dates.at(-1)-ranges[range]*YEAR):0;
+    let idx=dates.findIndex(d=>d>=cutoff); if(idx<0)idx=0;
+    const xs=dates.slice(idx),ys=vals.slice(idx);
+    if(xs.length<2){
+      svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="15" fill="${css("--muted")}">Not enough data for this range yet.</text>`;
+      document.getElementById("periodline").textContent="";
+      return;
+    }
+    const step=Math.max(1,Math.floor(xs.length/450));
+    const X=[],Y=[];
+    for(let i=0;i<xs.length;i+=step){X.push(xs[i]);Y.push(ys[i]);}
+    if(X.at(-1)!==xs.at(-1)){X.push(xs.at(-1));Y.push(ys.at(-1));}
+    let lo=Math.min(...Y),hi=Math.max(...Y);const pad=(hi-lo)*0.1||0.1;lo-=pad;hi+=pad;
+    const sx=i=>P.l+(W-P.l-P.r)*i/Math.max(1,X.length-1), sy=v=>P.t+(H-P.t-P.b)*(1-(v-lo)/(hi-lo));
+    let g="";
+    for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4,y=sy(v);
+      g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}" stroke="${css("--grid")}"/>
+      <text x="${P.l-8}" y="${y+4}" text-anchor="end" font-size="12" fill="${css("--muted")}">${v.toFixed(2)}${s.unit}</text>`;}
+    const fmt=ranges[range]<=1?{month:"short",day:"numeric"}:{month:"short",year:"numeric"};
+    for(let i=0;i<5;i++){const j=Math.round((X.length-1)*i/4);
+      g+=`<text x="${sx(j)}" y="${H-8}" text-anchor="${i===0?"start":i===4?"end":"middle"}" font-size="12" fill="${css("--muted")}">${X[j].toLocaleDateString("en-US",fmt)}</text>`;}
+    const path=Y.map((v,i)=>(i?"L":"M")+sx(i).toFixed(1)+" "+sy(v).toFixed(1)).join(" ");
+    const c=change(s,Y[0],Y.at(-1)), col=c.flat?css("--muted"):c.good?css("--good"):css("--bad");
+    g+=`<path d="${path} L${sx(Y.length-1)} ${H-P.b} L${P.l} ${H-P.b} Z" fill="${col}" opacity=".08"/>
+        <path d="${path}" fill="none" stroke="${css("--line")}" stroke-width="2"/>
+        <circle cx="${sx(Y.length-1)}" cy="${sy(Y.at(-1))}" r="4" fill="${col}"/>
+        <line id="hair" x1="0" x2="0" y1="${P.t}" y2="${H-P.b}" stroke="${css("--brass")}" opacity="0"/>
+        <circle id="dot" r="4" fill="${css("--brass")}" opacity="0"/>`;
+    svg.innerHTML=g;
+    pts=X.map((d,i)=>({x:sx(i),y:sy(Y[i]),d,v:Y[i]}));
+    const hiV=Math.max(...ys),loV=Math.min(...ys);
+    document.getElementById("periodline").innerHTML=
+      `Over this period: <b style="color:${col}">${c.txt}</b> (from ${Y[0].toFixed(2)}${s.unit} on ${X[0].toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})} to ${Y.at(-1).toFixed(2)}${s.unit}). High ${hiV.toFixed(2)}${s.unit}, low ${loV.toFixed(2)}${s.unit}.`;
+  }
+  function move(e){
+    if(!pts.length)return;
+    const rect=svg.getBoundingClientRect(),x=(e.clientX-rect.left)*W/rect.width;
+    let best=pts[0];for(const p of pts)if(Math.abs(p.x-x)<Math.abs(best.x-x))best=p;
+    const s=series[current],hair=svg.querySelector("#hair"),dot=svg.querySelector("#dot");
+    hair.setAttribute("x1",best.x);hair.setAttribute("x2",best.x);hair.setAttribute("opacity",.8);
+    dot.setAttribute("cx",best.x);dot.setAttribute("cy",best.y);dot.setAttribute("opacity",1);
+    // the tip is positioned inside the (horizontally scrollable) chart area
+    const k=rect.width/W,box=area.getBoundingClientRect();
+    tip.style.left=(rect.left-box.left+area.scrollLeft+best.x*k)+"px";tip.style.top=(rect.top-box.top+best.y*k)+"px";tip.style.opacity=1;
+    tip.textContent=best.d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})+"  "+best.v.toFixed(2)+s.unit;
+  }
+  svg.addEventListener("pointermove",move);
+  svg.addEventListener("pointerleave",()=>{tip.style.opacity=0;const h=svg.querySelector("#hair"),d=svg.querySelector("#dot");if(h)h.setAttribute("opacity",0);if(d)d.setAttribute("opacity",0);});
+
+  // ---------- Events calendar ----------
+  const EVENTS={
+    claims:["Weekly jobless claims","Labor market check","med"],
+    pmms:["Freddie Mac rate survey","Weekly national mortgage rate average","low"],
+    cpi:["CPI inflation report","Consumer prices","high"],
+    retail:["Retail sales","Consumer spending","med"],
+    starts:["Housing starts","New home construction","med"],
+    existing:["Existing home sales","Resale volume and median price","med"],
+    jobs:["Jobs report","Payrolls and unemployment","high"],
+    fed:["Fed rate decision","Statement at 2:00 PM ET, press conference after","high"]
+  };
+  const impactTxt={high:"High impact",med:"Medium",low:"Low"};
+  const daysUntil=d=>Math.round((d-startOfToday())/DAY);
+  const upcoming=()=>(DATA.events||[]).map(e=>({...e,d:day(e.date)})).filter(e=>e.d>=startOfToday()&&EVENTS[e.type]);
+  function renderEvents(){
+    const list=upcoming().slice(0,8);
+    document.getElementById("events").innerHTML=list.length?list.map(({d,type})=>{
+      const [t,sub,imp]=EVENTS[type],n=daysUntil(d);
+      return `<li><div class="when">${short(d)}<small>${n===0?"Today":n===1?"Tomorrow":"In "+n+" days"}</small></div>
+        <div class="what">${t}<small>${sub}</small></div><div class="impact ${imp}">${impactTxt[imp]}</div></li>`;
+    }).join(""):`<li><div class="what">No upcoming dates loaded yet.</div></li>`;
+  }
+
+  // ---------- Fed ----------
+  function renderFed(){
+    const lo=get("DFEDTARL"),hi=get("DFEDTARU"),eff=get("DFF");
+    document.getElementById("fedrange").textContent=lo.vals.length&&hi.vals.length?`${lo.vals.at(-1).toFixed(2)}% to ${hi.vals.at(-1).toFixed(2)}%`:"—";
+    const parts=[];
+    const next=upcoming().find(e=>e.type==="fed");
+    if(next){const n=daysUntil(next.d);
+      parts.push(`Next Fed meeting: ${next.d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}, ${n===0?"today":n===1?"tomorrow":n+" days away"}.`);}
+    else parts.push("Next Fed meeting date not posted yet.");
+    const v=hi.vals;
+    for(let i=v.length-1;i>0;i--){
+      if(Math.abs(v[i]-v[i-1])>1e-9){
+        const d=hi.dates[i],m=d.toLocaleDateString("en-US",d.getFullYear()===new Date().getFullYear()?{month:"long"}:{month:"long",year:"numeric"});
+        parts.push(`Last change was a ${Math.abs(v[i]-v[i-1]).toFixed(2)} point ${v[i]<v[i-1]?"cut":"hike"} in ${m}.`);
+        break;
+      }
+    }
+    if(eff.vals.length)parts.push(`Effective rate ${eff.vals.at(-1).toFixed(2)}% on ${short(eff.dates.at(-1))}.`);
+    document.getElementById("fedline").textContent=parts.join(" ");
+  }
+
+  // ---------- Payment snapshot ----------
+  const pmt=(L,rate)=>{const i=rate/100/12;return L*i/(1-Math.pow(1+i,-360));};
+  const loanEl=document.getElementById("loan");
+  function renderPay(){
+    const L=+loanEl.value.replace(/[^0-9.]/g,"")||0;
+    const {dates,vals}=get("MORTGAGE30US");
+    const el=document.getElementById("payrows");
+    if(!vals.length){el.innerHTML=`<span>No rate data yet</span><span></span>`;return;}
+    const now=vals.at(-1),pNow=pmt(L,now);
+    let rows=`<span>This week at ${now.toFixed(2)}%</span><span class="num">${money(pNow)}/mo</span>`;
+    const j=atOrBefore(dates,new Date(dates.at(-1)-YEAR+3*DAY));
+    if(j>=0){
+      const then=vals[j],pThen=pmt(L,then),diff=pNow-pThen;
+      rows+=`<span>A year ago at ${then.toFixed(2)}%</span><span class="num">${money(pThen)}/mo</span>
+       <span class="total">Difference</span><span class="num total ${diff<0?"good":diff>0?"bad":""}">${sign(Math.round(diff))}${money(Math.abs(diff))}/mo</span>`;
+    }
+    el.innerHTML=rows;
+  }
+  loanEl.addEventListener("input",renderPay);
+  loanEl.addEventListener("blur",()=>{const L=+loanEl.value.replace(/[^0-9.]/g,"")||0;loanEl.value=money(L);});
+
+  // ---------- Housing ----------
+  const housing=[
+    {lbl:"Existing home sales",id:"EXHOSLUSM495S",fmt:v=>(v/1e6).toFixed(2)+"M",goodUp:true},
+    {lbl:"Median existing home price",id:"HOSMEDUSM052N",fmt:v=>money(v),goodUp:null},
+    {lbl:"Housing starts",id:"HOUST",fmt:v=>(v/1e3).toFixed(2)+"M",goodUp:true}
+  ];
+  function renderHousing(){
+    document.getElementById("hcards").innerHTML=housing.map(h=>{
+      const all=get(h.id),dates=all.dates.slice(-24),d=all.vals.slice(-24);
+      if(!d.length)return `<div class="panel hcard"><div class="lbl">${h.lbl}</div><div class="big">—</div><div class="chg">No data yet</div></div>`;
+      const lo=Math.min(...d),hi=Math.max(...d),last=dates.at(-1);
+      const p=d.map((v,i)=>`${(i/Math.max(1,d.length-1)*200).toFixed(1)},${(40-(v-lo)/(hi-lo||1)*36).toFixed(1)}`).join(" ");
+      const month=last.toLocaleDateString("en-US",{month:"short",year:"numeric"});
+      const j=all.dates.findIndex(x=>x.getFullYear()===last.getFullYear()-1&&x.getMonth()===last.getMonth());
+      let chg=`<div class="chg"><span>${month}</span></div>`;
+      if(j>=0){
+        const yoy=(d.at(-1)/all.vals[j]-1)*100;
+        const cls=h.goodUp===null||Math.abs(yoy)<0.05?"":(yoy>0)===h.goodUp?"good":"bad";
+        chg=`<div class="chg ${cls}">${sign(+yoy.toFixed(1))}${Math.abs(yoy).toFixed(1)}% <span>${month} vs a year ago</span></div>`;
+      }
+      return `<div class="panel hcard"><div class="lbl">${h.lbl}</div><div class="big">${h.fmt(d.at(-1))}</div>${chg}
+        <svg viewBox="0 0 200 44" preserveAspectRatio="none" aria-hidden="true"><polyline points="${p}" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"/></svg></div>`;
+    }).join("");
+  }
+
+  // ---------- Market snapshot ----------
+  const two=v=>v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const whole=v=>v.toLocaleString("en-US",{maximumFractionDigits:0});
+  const mkts=[
+    ["S&P 500","SP500",two],
+    ["Dow Jones","DJIA",whole],
+    ["Nasdaq","NASDAQCOM",whole],
+    ["VIX volatility","VIXCLS",v=>v.toFixed(1),true],
+    ["Oil (WTI)","DCOILWTICO",v=>"$"+v.toFixed(2)],
+    ["US dollar index","DTWEXBGS",v=>v.toFixed(1)]
+  ];
+  function renderMarkets(){
+    let latest=null;
+    document.getElementById("mgrid").innerHTML=mkts.map(([n,id,f,downIsGood])=>{
+      const {dates,vals}=get(id);
+      if(!vals.length)return `<div class="mcell"><div class="lbl">${n}</div><div class="v">—</div><div class="chg">No data yet</div></div>`;
+      if(!latest||dates.at(-1)>latest)latest=dates.at(-1);
+      let chg="";
+      if(vals.length>1){
+        const pct=(vals.at(-1)/vals.at(-2)-1)*100, good=downIsGood?pct<0:pct>=0;
+        chg=`<div class="chg ${good?"good":"bad"}">${pct>=0?"+":"−"}${Math.abs(pct).toFixed(2)}%</div>`;
+      }
+      return `<div class="mcell"><div class="lbl">${n}</div><div class="v">${f(vals.at(-1))}</div>${chg}</div>`;
+    }).join("");
+    document.getElementById("mnote").textContent="From FRED, posted once a day after the market closes"+
+      (latest?`. Latest close: ${latest.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})}. The dollar index is the Fed's broad trade-weighted index.`:".");
+  }
+  function marketStatus(){
+    const now=new Date(), et=new Date(now.toLocaleString("en-US",{timeZone:ET}));
+    const mins=et.getHours()*60+et.getMinutes(), wd=et.getDay();
+    const open=wd>0&&wd<6&&mins>=570&&mins<960;
+    const el=document.getElementById("mstatus");
+    el.className="status"+(open?" open":"");
+    el.textContent=open?"Stock market open":"Stock market closed";
+  }
+  marketStatus(); setInterval(marketStatus,60000);
+
+  // ---------- Color scheme ----------
+  const themeSel=document.getElementById("theme"), root=document.documentElement;
+  const darkPalettes={night:1,harbor:1};
+  function applyTheme(v){
+    if(v==="auto"){delete root.dataset.theme;delete root.dataset.palette;}
+    else{root.dataset.theme=darkPalettes[v]?"dark":"light";
+      if(v==="classic")delete root.dataset.palette;else root.dataset.palette=v;}
+    draw();
+  }
+  let savedTheme="auto";
+  try{savedTheme=localStorage.getItem("theme")||"auto";}catch(e){}
+  if(![...themeSel.options].some(o=>o.value===savedTheme))savedTheme="auto";
+  themeSel.value=savedTheme;
+  themeSel.onchange=()=>{try{localStorage.setItem("theme",themeSel.value);}catch(e){}applyTheme(themeSel.value);};
+
+  // ---------- Links (saved only in this browser) ----------
+  const host=u=>{try{return new URL(u).hostname.replace(/^www\./,"");}catch(e){return "";}};
+  function cleanUrl(url){
+    url=String(url||"").trim();
+    if(!/^https?:\/\//i.test(url))url="https://"+url;
+    try{const u=new URL(url);if((u.protocol==="https:"||u.protocol==="http:")&&u.hostname.includes("."))return u.href;}catch(x){}
+    return "";
+  }
+  const load=(k,fallback)=>{try{const q=JSON.parse(localStorage.getItem(k)||"null");if(Array.isArray(q))return q;}catch(e){}return fallback;};
+  const store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
+
+  // My tools tiles
+  let tools=load("tools",[
+    {name:"Mortgage calculator",desc:"Payment, taxes and insurance",sample:1},
+    {name:"Pre-approval letter",desc:"Create a letter for a buyer",sample:1},
+    {name:"Realtor flyer builder",desc:"Listing and open house flyers",sample:1}
+  ]);
+  function addTool(name,desc,replaceIndex){
+    name=(name??prompt("Name of the tool:")??"").trim();
+    if(!name)return;
+    const url=cleanUrl(prompt(`Web address for ${name}:`)??"");
+    if(!url){alert("That doesn't look like a web address. Try something like mytool.com/calculator.");return;}
+    if(desc===undefined)desc=(prompt("Short description (optional):")??"").trim();
+    const t={name,desc,url};
+    if(replaceIndex!==undefined)tools[replaceIndex]=t;else tools.push(t);
+    store("tools",tools);renderTools();
+  }
+  function renderTools(){
+    const el=document.getElementById("tiles");
+    el.innerHTML=tools.map((t,i)=>t.sample
+      ?`<button class="tile" data-sample="${i}" title="Add your link for this tool"><b>${esc(t.name)}</b><span>${esc(t.desc)}</span></button>`
+      :`<div class="toolwrap"><a class="tile" href="${esc(t.url)}" target="_blank" rel="noopener noreferrer"><b>${esc(t.name)}</b><span>${esc(t.desc||host(t.url))}</span></a>
+        <button class="x" data-i="${i}" aria-label="Remove ${esc(t.name)}">×</button></div>`).join("")+
+      `<button class="tile add" id="addTool"><b>Add a tool</b><span>Paste a link to add it here</span></button>`;
+    el.querySelectorAll("[data-sample]").forEach(b=>b.onclick=()=>{const i=+b.dataset.sample;addTool(tools[i].name,tools[i].desc,i);});
+    el.querySelectorAll(".x").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(confirm(`Remove ${tools[i].name}?`)){tools.splice(i,1);store("tools",tools);renderTools();}});
+    document.getElementById("addTool").onclick=()=>addTool();
+  }
+  renderTools();
+
+  // Quick links side panel
+  const GROUPS=["Market","Lenders","Vendors","Other"];
+  const BUILTIN=[
+    {name:"10-year Treasury, live",url:"https://www.cnbc.com/quotes/US10Y",group:"Market"},
+    {name:"MBS and Treasury prices",url:"https://www.mortgagenewsdaily.com/mbs",group:"Market"}
+  ];
+  let qlinks=load("quicklinks",[
+    ...BUILTIN,
+    {name:"Wholesale lender portal",url:"https://example.com",group:"Lenders",sample:1},
+    {name:"Lender rate sheets",url:"https://example.com",group:"Lenders",sample:1},
+    {name:"Pricing engine",url:"https://example.com",group:"Lenders",sample:1},
+    {name:"Credit report vendor",url:"https://example.com",group:"Vendors",sample:1},
+    {name:"Title and escrow",url:"https://example.com",group:"Vendors",sample:1},
+    {name:"Loan origination system",url:"https://example.com",group:"Other",sample:1}
+  ]);
+  try{ // add each built-in market link once, even for someone who saved links before it existed
+    const seen=JSON.parse(localStorage.getItem("builtinAdded")||"[]");
+    BUILTIN.slice().reverse().forEach(l=>{if(!seen.includes(l.url)){if(!qlinks.some(q=>q.url===l.url))qlinks.unshift({...l});seen.push(l.url);}});
+    localStorage.setItem("builtinAdded",JSON.stringify(seen));
+  }catch(e){}
+  const saveLinks=()=>store("quicklinks",qlinks);
+  document.getElementById("qgroup").innerHTML=GROUPS.map(g=>`<option>${g}</option>`).join("");
+  function renderLinks(){
+    const el=document.getElementById("qgroups");
+    if(!qlinks.length){el.innerHTML=`<p class="note" style="margin-top:12px">No links yet. Tap Edit to add your lender pages.</p>`;return;}
+    el.innerHTML=GROUPS.map(g=>{
+      const items=qlinks.map((l,i)=>({...l,i})).filter(l=>l.group===g);
+      if(!items.length)return "";
+      return `<h3>${g}</h3><ul class="qlinks">${items.map(l=>
+        `<li><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.name)}<small>${l.sample?"Sample link":esc(host(l.url))}</small></a>
+         <button class="x" data-i="${l.i}" aria-label="Remove ${esc(l.name)}">×</button></li>`).join("")}</ul>`;
+    }).join("");
+    el.querySelectorAll(".x").forEach(b=>b.onclick=()=>{qlinks.splice(+b.dataset.i,1);saveLinks();renderLinks();});
+  }
+  renderLinks();
+  const sidein=document.getElementById("sidein"),editBtn=document.getElementById("editLinks");
+  editBtn.onclick=()=>{const on=!sidein.classList.contains("editing");sidein.classList.toggle("editing",on);
+    editBtn.setAttribute("aria-pressed",on);editBtn.textContent=on?"Done":"Edit";if(on)document.getElementById("qname").focus();};
+  document.getElementById("addform").onsubmit=e=>{
+    e.preventDefault();
+    const name=document.getElementById("qname").value.trim();
+    const url=cleanUrl(document.getElementById("qurl").value);
+    const err=document.getElementById("qerr");
+    if(!name){err.textContent="Enter a name for the link.";return;}
+    if(!url){err.textContent="Enter a web address like lender.com/login.";return;}
+    err.textContent="";
+    qlinks=qlinks.filter(l=>!l.sample); // first real link replaces the samples
+    qlinks.push({name,url,group:document.getElementById("qgroup").value});
+    saveLinks();renderLinks();
+    document.getElementById("qname").value="";document.getElementById("qurl").value="";document.getElementById("qname").focus();
+  };
+  const side=document.getElementById("side"),backdrop=document.getElementById("backdrop"),sideOpen=document.getElementById("sideOpen");
+  function setSide(open){side.classList.toggle("open",open);backdrop.classList.toggle("open",open);sideOpen.setAttribute("aria-expanded",open);
+    if(open)document.getElementById("editLinks").focus();else sideOpen.focus();}
+  sideOpen.onclick=()=>setSide(true);
+  document.getElementById("sideClose").onclick=()=>setSide(false);
+  backdrop.onclick=()=>setSide(false);
+  addEventListener("keydown",e=>{if(e.key==="Escape"&&side.classList.contains("open"))setSide(false);});
+
+  // ---------- Load data ----------
+  function renderAll(){
+    renderStamp();renderRates();renderAlert();renderEvents();renderFed();renderPay();renderHousing();renderMarkets();draw();
+  }
+  async function refresh(){
+    try{
+      const r=await fetch("data/market.json",{cache:"no-cache"});
+      if(!r.ok)throw new Error(r.status);
+      DATA=await r.json();
+      renderAll();
+    }catch(e){
+      if(!DATA.generated){renderAll();document.getElementById("sample").textContent="Could not load the market data. Check your connection and refresh the page.";}
+    }
+  }
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
+  applyTheme(savedTheme);
+  refresh();
+  setInterval(refresh,30*60*1000); // pick up new numbers if the page stays open
+})();
+</script>
 </body>
 </html>
-
-
-
-
-
-
