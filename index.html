@@ -168,6 +168,17 @@ button.tile{width:100%;text-align:left;cursor:pointer;font:inherit}
 
 /* Board */
 .board{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;margin-top:16px}
+/* Arrange mode */
+.arrbar{display:none;align-items:center;gap:8px;background:var(--ink);color:var(--panel);padding:6px 10px;
+  font-size:.85rem;font-weight:600;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.arranging .arrbar{display:flex}
+.arrbar .grip{flex:1;min-width:0}
+.arrbar button{font-size:.8rem;font-weight:600;background:transparent;color:var(--panel);border:1px solid currentColor;padding:3px 8px;cursor:pointer}
+.arrbar button:disabled{opacity:.4;cursor:default}
+.arrbar button:focus-visible{outline-offset:1px}
+.block.dragging{opacity:.65;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.block.dragging .arrbar,body.dragging{cursor:grabbing}
+body.dragging{user-select:none;-webkit-user-select:none;overflow-anchor:none}
 .board .links,.board .alert,.board .chartbox,.board .grid2,.board .housing,.board #rates{margin-top:0}
 
 /* Market snapshot */
@@ -246,6 +257,8 @@ button.tile{width:100%;text-align:left;cursor:pointer;font:inherit}
       <div class="stamp" id="stamp"></div>
       <div class="toolbar">
         <button class="tbtn" id="sideOpen" aria-controls="side" aria-expanded="false">Lender links</button>
+        <button class="tbtn" id="arrange" aria-pressed="false">Arrange sections</button>
+        <button class="tbtn" id="resetLayout" hidden>Reset layout</button>
         <label for="theme">Colors
           <select id="theme">
             <option value="auto">Match my device</option>
@@ -767,6 +780,106 @@ button.tile{width:100%;text-align:left;cursor:pointer;font:inherit}
   document.getElementById("sideClose").onclick=()=>setSide(false);
   backdrop.onclick=()=>setSide(false);
   addEventListener("keydown",e=>{if(e.key==="Escape"&&side.classList.contains("open"))setSide(false);});
+
+  // ---------- Arrange sections (order saved only in this browser) ----------
+  const board=document.getElementById("board"),arrangeBtn=document.getElementById("arrange"),resetBtn=document.getElementById("resetLayout");
+  const NAMES={tools:"My tools",markets:"Market snapshot",alert:"Rate alert",rates:"Rates",chart:"History chart",events:"Events, Fed and payment",housing:"Housing market"};
+  const blocks=()=>[...board.children].filter(b=>b.classList.contains("block"));
+  const defaultOrder=blocks().map(b=>b.dataset.id);
+  blocks().forEach(b=>{
+    const bar=document.createElement("div");
+    bar.className="arrbar";
+    bar.innerHTML=`<span class="grip">⠿ ${NAMES[b.dataset.id]||b.dataset.id}</span>
+      <button type="button" data-move="-1">Move up</button><button type="button" data-move="1">Move down</button>`;
+    b.prepend(bar);
+  });
+  function updateMoveButtons(){
+    const bs=blocks();
+    bs.forEach((b,i)=>{
+      const [up,down]=b.querySelectorAll(".arrbar button");
+      up.disabled=i===0;down.disabled=i===bs.length-1;
+      up.setAttribute("aria-label",`Move ${NAMES[b.dataset.id]} up`);down.setAttribute("aria-label",`Move ${NAMES[b.dataset.id]} down`);
+    });
+  }
+  function saveOrder(){
+    const order=blocks().map(b=>b.dataset.id);
+    try{
+      if(order.join()===defaultOrder.join())localStorage.removeItem("sectionOrder");
+      else localStorage.setItem("sectionOrder",JSON.stringify(order));
+    }catch(e){}
+  }
+  function applyOrder(order){
+    const byId=Object.fromEntries(blocks().map(b=>[b.dataset.id,b]));
+    // sections missing from a saved order (added later) keep their default spot at the end
+    [...order.filter(id=>byId[id]),...defaultOrder.filter(id=>!order.includes(id))].forEach(id=>board.appendChild(byId[id]));
+    updateMoveButtons();
+  }
+  try{const o=JSON.parse(localStorage.getItem("sectionOrder")||"null");if(Array.isArray(o))applyOrder(o);}catch(e){}
+  updateMoveButtons();
+
+  function setArrange(on){
+    board.classList.toggle("arranging",on);
+    arrangeBtn.setAttribute("aria-pressed",on);
+    arrangeBtn.textContent=on?"Done arranging":"Arrange sections";
+    resetBtn.hidden=!on;
+  }
+  arrangeBtn.onclick=()=>setArrange(!board.classList.contains("arranging"));
+  resetBtn.onclick=()=>{applyOrder(defaultOrder);saveOrder();};
+
+  board.addEventListener("click",e=>{
+    const btn=e.target.closest(".arrbar button");
+    if(!btn||btn.disabled)return;
+    const b=btn.closest(".block"),dir=+btn.dataset.move;
+    if(dir<0)board.insertBefore(b,b.previousElementSibling);
+    else board.insertBefore(b,b.nextElementSibling.nextElementSibling);
+    updateMoveButtons();saveOrder();
+    // moving an element drops its focus; keep it on the same button, or the other one at the ends
+    (btn.disabled?b.querySelector(`[data-move="${-dir}"]`):btn).focus();
+    b.scrollIntoView({block:"nearest"});
+  });
+
+  // Dragging. Movement is tracked on the whole window, so the drag keeps going
+  // after the section (and the bar under the pointer) moves to a new spot.
+  let drag=null;
+  function reorder(y){
+    const b=drag.block,top=b.getBoundingClientRect().top;
+    let prev=b.previousElementSibling,next=b.nextElementSibling,moved=false;
+    while(prev&&y<prev.getBoundingClientRect().top+prev.offsetHeight/2){board.insertBefore(b,prev);prev=b.previousElementSibling;moved=true;}
+    while(next&&y>next.getBoundingClientRect().top+next.offsetHeight/2){board.insertBefore(b,next.nextElementSibling);next=b.nextElementSibling;moved=true;}
+    if(moved){
+      updateMoveButtons();
+      // keep the grabbed bar under the pointer; the other sections shift around it
+      scrollBy(0,b.getBoundingClientRect().top-top);
+    }
+  }
+  function autoScroll(){
+    if(!drag)return;
+    const edge=70,y=drag.y,h=innerHeight;
+    const speed=y<edge?-(edge-y)/4:y>h-edge?(y-(h-edge))/4:0;
+    if(speed){scrollBy(0,speed);reorder(y);}
+    drag.raf=requestAnimationFrame(autoScroll);
+  }
+  function onMove(e){
+    if(!drag||e.pointerId!==drag.id)return;
+    e.preventDefault();
+    drag.y=e.clientY;reorder(e.clientY);
+  }
+  function endDrag(e){
+    if(!drag||(e.type!=="blur"&&e.pointerId!==drag.id))return;
+    cancelAnimationFrame(drag.raf);
+    drag.block.classList.remove("dragging");document.body.classList.remove("dragging");
+    removeEventListener("pointermove",onMove);removeEventListener("pointerup",endDrag);removeEventListener("pointercancel",endDrag);removeEventListener("blur",endDrag);
+    drag=null;saveOrder();
+  }
+  board.addEventListener("pointerdown",e=>{
+    const bar=e.target.closest(".arrbar");
+    if(!bar||e.target.closest("button")||drag||(e.pointerType==="mouse"&&e.button!==0))return;
+    e.preventDefault();
+    drag={block:bar.closest(".block"),id:e.pointerId,y:e.clientY};
+    drag.block.classList.add("dragging");document.body.classList.add("dragging");
+    addEventListener("pointermove",onMove,{passive:false});addEventListener("pointerup",endDrag);addEventListener("pointercancel",endDrag);addEventListener("blur",endDrag);
+    drag.raf=requestAnimationFrame(autoScroll);
+  });
 
   // ---------- Load data ----------
   function renderAll(){
