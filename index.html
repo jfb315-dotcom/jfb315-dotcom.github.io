@@ -27,7 +27,7 @@
   --good:#4CC197; --bad:#F08A73; --brass:#E0B455; --line:#E8EDF5; --grid:#22304D;
   --goodbg:#143329; --badbg:#3A2020;
 }
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + var(--headh,0px) + 8px)}
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);
   font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -36,7 +36,8 @@ body{margin:0;background:var(--paper);color:var(--ink);
 .wrap{min-width:0;padding:28px 0 48px}
 h2{font-size:1.15rem;font-weight:700;margin:0}
 header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 24px;
-  border-bottom:2px solid var(--ink);padding-bottom:14px}
+  border-bottom:2px solid var(--ink);padding-bottom:14px;
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--paper);padding-top:12px;margin-top:-12px}
 h1{font-size:clamp(1.5rem,3.2vw,2rem);font-weight:800;letter-spacing:-.02em;margin:0}
 .stamp{color:var(--muted);font-size:.9rem}
 .sample{display:block;margin-top:14px;font-size:.82rem;color:var(--brass);font-weight:600}
@@ -205,7 +206,12 @@ body.dragging{user-select:none;-webkit-user-select:none;overflow-anchor:none}
 .qlinks a:hover{color:var(--brass)}
 .qlinks a small{display:block;font-weight:400;color:var(--muted);font-size:.78rem}
 .qlinks .x{display:none;background:transparent;border:1px solid var(--rule);color:var(--bad);cursor:pointer;padding:0 7px;font-size:1rem;line-height:1.5}
-.editing .qlinks .x{display:block}
+.qlinks .ed{display:none;background:transparent;border:1px solid var(--rule);color:var(--ink);cursor:pointer;padding:0 7px;font-size:.8rem;font-weight:600;line-height:1.9}
+.editing .qlinks .x,.editing .qlinks .ed{display:block}
+.qlinks li.being-edited a{color:var(--brass)}
+.addform .formbtns{display:flex;gap:8px}
+.addform .formbtns .tbtn{flex:1}
+.addform .formbtns .cancel{background:var(--panel);color:var(--ink);border-color:var(--rule)}
 .addform{display:none;margin-top:14px;border-top:2px solid var(--ink);padding-top:12px;gap:8px}
 .editing .addform{display:grid}
 .addform label{font-size:.8rem;color:var(--muted);display:grid;gap:3px}
@@ -245,7 +251,10 @@ body.dragging{user-select:none;-webkit-user-select:none;overflow-anchor:none}
       <label>Web address<input id="qurl" placeholder="lender.com/login" inputmode="url" autocomplete="off"></label>
       <label>Group<select id="qgroup"></select></label>
       <p class="formerr" id="qerr" role="alert"></p>
-      <button class="tbtn" type="submit">Add link</button>
+      <div class="formbtns">
+        <button class="tbtn" type="submit" id="qsubmit">Add link</button>
+        <button class="tbtn cancel" type="button" id="qcancel" hidden>Cancel</button>
+      </div>
     </form>
     <p class="sidenote">These links are saved only in this browser, not in the page's public code on GitHub.</p>
   </div>
@@ -751,27 +760,52 @@ body.dragging{user-select:none;-webkit-user-select:none;overflow-anchor:none}
       const items=qlinks.map((l,i)=>({...l,i})).filter(l=>l.group===g);
       if(!items.length)return "";
       return `<h3>${g}</h3><ul class="qlinks">${items.map(l=>
-        `<li><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.name)}<small>${l.sample?"Sample link":esc(host(l.url))}</small></a>
+        `<li${l.i===editingLink?' class="being-edited"':""}><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.name)}<small>${l.sample?"Sample link":esc(host(l.url))}</small></a>
+         <button class="ed" data-i="${l.i}" aria-label="Edit ${esc(l.name)}">Edit</button>
          <button class="x" data-i="${l.i}" aria-label="Remove ${esc(l.name)}">×</button></li>`).join("")}</ul>`;
     }).join("");
-    el.querySelectorAll(".x").forEach(b=>b.onclick=()=>{qlinks.splice(+b.dataset.i,1);saveLinks();renderLinks();});
+    el.querySelectorAll(".x").forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.i;
+      if(editingLink===i)stopEditingLink();else if(editingLink!==null&&editingLink>i)editingLink--;
+      qlinks.splice(i,1);saveLinks();renderLinks();
+    });
+    el.querySelectorAll(".ed").forEach(b=>b.onclick=()=>startEditingLink(+b.dataset.i));
   }
+  // Editing a link loads it into the form below; saving changes it in place.
+  let editingLink=null,groupBeforeEdit=null;
+  const qname=document.getElementById("qname"),qurl=document.getElementById("qurl"),qgroup=document.getElementById("qgroup"),
+    qsubmit=document.getElementById("qsubmit"),qcancel=document.getElementById("qcancel"),qerr=document.getElementById("qerr");
+  function startEditingLink(i){
+    const l=qlinks[i];
+    if(editingLink===null)groupBeforeEdit=qgroup.value;
+    editingLink=i;
+    qname.value=l.name;qurl.value=l.sample?"":l.url.replace(/^https:\/\//,"");qgroup.value=l.group;
+    qsubmit.textContent="Save changes";qcancel.hidden=false;qerr.textContent="";
+    renderLinks();qname.focus();qname.select();
+  }
+  function stopEditingLink(){
+    if(editingLink!==null&&groupBeforeEdit)qgroup.value=groupBeforeEdit; // new links go back to the group picked before editing
+    editingLink=null;qname.value="";qurl.value="";qerr.textContent="";
+    qsubmit.textContent="Add link";qcancel.hidden=true;
+  }
+  qcancel.onclick=()=>{stopEditingLink();renderLinks();qname.focus();};
   renderLinks();
   const sidein=document.getElementById("sidein"),editBtn=document.getElementById("editLinks");
   editBtn.onclick=()=>{const on=!sidein.classList.contains("editing");sidein.classList.toggle("editing",on);
-    editBtn.setAttribute("aria-pressed",on);editBtn.textContent=on?"Done":"Edit";if(on)document.getElementById("qname").focus();};
+    editBtn.setAttribute("aria-pressed",on);editBtn.textContent=on?"Done":"Edit";
+    if(on)qname.focus();else if(editingLink!==null){stopEditingLink();renderLinks();}};
   document.getElementById("addform").onsubmit=e=>{
     e.preventDefault();
-    const name=document.getElementById("qname").value.trim();
-    const url=cleanUrl(document.getElementById("qurl").value);
-    const err=document.getElementById("qerr");
-    if(!name){err.textContent="Enter a name for the link.";return;}
-    if(!url){err.textContent="Enter a web address like lender.com/login.";return;}
-    err.textContent="";
-    qlinks=qlinks.filter(l=>!l.sample); // first real link replaces the samples
-    qlinks.push({name,url,group:document.getElementById("qgroup").value});
-    saveLinks();renderLinks();
-    document.getElementById("qname").value="";document.getElementById("qurl").value="";document.getElementById("qname").focus();
+    const name=qname.value.trim(),url=cleanUrl(qurl.value);
+    if(!name){qerr.textContent="Enter a name for the link.";return;}
+    if(!url){qerr.textContent="Enter a web address like lender.com/login.";return;}
+    if(editingLink!==null){
+      qlinks[editingLink]={name,url,group:qgroup.value}; // an edited sample becomes a real link
+    }else{
+      qlinks=qlinks.filter(l=>!l.sample); // first new link replaces the samples
+      qlinks.push({name,url,group:qgroup.value});
+    }
+    stopEditingLink();saveLinks();renderLinks();qname.focus();
   };
   const side=document.getElementById("side"),backdrop=document.getElementById("backdrop"),sideOpen=document.getElementById("sideOpen");
   function setSide(open){side.classList.toggle("open",open);backdrop.classList.toggle("open",open);sideOpen.setAttribute("aria-expanded",open);
@@ -780,6 +814,11 @@ body.dragging{user-select:none;-webkit-user-select:none;overflow-anchor:none}
   document.getElementById("sideClose").onclick=()=>setSide(false);
   backdrop.onclick=()=>setSide(false);
   addEventListener("keydown",e=>{if(e.key==="Escape"&&side.classList.contains("open"))setSide(false);});
+
+  // ---------- Pinned header ----------
+  const headerEl=document.querySelector("header");
+  const setHeadH=()=>root.style.setProperty("--headh",headerEl.offsetHeight+"px");
+  new ResizeObserver(setHeadH).observe(headerEl);setHeadH();
 
   // ---------- Arrange sections (order saved only in this browser) ----------
   const board=document.getElementById("board"),arrangeBtn=document.getElementById("arrange"),resetBtn=document.getElementById("resetLayout");
@@ -854,8 +893,8 @@ body.dragging{user-select:none;-webkit-user-select:none;overflow-anchor:none}
   }
   function autoScroll(){
     if(!drag)return;
-    const edge=70,y=drag.y,h=innerHeight;
-    const speed=y<edge?-(edge-y)/4:y>h-edge?(y-(h-edge))/4:0;
+    const y=drag.y,h=innerHeight,top=headerEl.getBoundingClientRect().bottom+70; // the pinned header covers the top
+    const speed=Math.max(-25,Math.min(25,y<top?-(top-y)/4:y>h-70?(y-(h-70))/4:0));
     if(speed){scrollBy(0,speed);reorder(y);}
     drag.raf=requestAnimationFrame(autoScroll);
   }
