@@ -371,8 +371,9 @@ button,select,input{font:inherit;color:inherit}
     const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
     const COLORS={"Identification":"#1F4E79","Income":"#2E7D5B","Assets and funds to close":"#7B3F8C","Credit and debts":"#1F6F8B","Property":"#8A6116","Loan program":"#5B4A9E"};
     const head=(t,col)=>`<p style="margin:18px 0 6px 0;padding:0 0 3px 0;border-bottom:2px solid ${col};color:${col};font-size:13pt;font-weight:bold">${esc(t)}</p>`;
-    const ul=items=>`<div style="margin:0 0 6px 0">${items}</div>`;
-    const bullet=body=>`<p style="margin:0 0 6px 0;padding-left:18px;text-indent:-14px"><span style="color:#555555">&#8226;</span>&nbsp;&nbsp;${body}</p>`;
+    // Each item is a table row (bullet cell + text cell): Outlook ignores indents but always respects tables.
+    const ul=rows=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`;
+    const bullet=body=>`<tr><td width="26" valign="top" style="width:26px;padding:0 0 7px 8px;${F};color:#555555">&#8226;</td><td valign="top" style="padding:0 0 7px 0;${F}">${body}</td></tr>`;
     const li=i=>bullet(`<b>${esc(nm(i))}</b>${whyFor(i)?` – ${esc(i.why)}`:""}${tip(i)?`<br><i style="color:#8A6116">Tip: ${esc(i.tip)}</i>`:""}`);
     const H=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(name||"there")},</p><p style="margin:0 0 10px 0">${esc(intro)}</p>`+
       docs.map(c=>head(c.name,COLORS[c.name]||"#1F4E79")+ul(c.items.map(li).join(""))).join("")+
