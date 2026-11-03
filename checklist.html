@@ -108,12 +108,8 @@ button,select,input{font:inherit;color:inherit}
 .phead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
 .subj{margin:12px 0 0;font-size:.92rem;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 .subj b{color:var(--muted)}
-.mail{margin-top:12px;padding-top:12px;border-top:1px solid var(--rule);font-size:.95rem}
-.mail p{margin:0 0 10px}
-.mail h3{font-size:.95rem;margin:16px 0 6px}
-.mail ul{margin:0 0 6px;padding-left:1.2em}
-.mail li{margin-bottom:6px}
-.mail .t{color:var(--muted);font-style:italic}
+.mail{margin-top:12px;padding:16px;background:#FFFFFF;color:#222222;border:1px solid var(--rule)}
+.mail .empty{color:#666666}
 .empty{color:var(--muted);font-style:italic}
 .foot{margin-top:24px;font-size:.82rem;color:var(--muted)}
 @media (max-width:640px){.bar{position:static}}
@@ -371,17 +367,17 @@ button,select,input{font:inherit;color:inherit}
       T.push(`- ${nm(i)}${whyFor(i)?`: ${i.why}`:""}`);if(tip(i))T.push(`  Tip: ${i.tip}`);});T.push("");});
     if(tips){T.push("A FEW TIPS TO AVOID DELAYS");tips.items.forEach(i=>T.push(`- ${i.name}: ${i.why}`));T.push("");}
     T.push(outro,"","Thank you,",me||"[Your name]");
-    // HTML (pastes with formatting into Gmail and Outlook)
-    const li=i=>`<li><b>${esc(nm(i))}</b>${whyFor(i)?` – ${esc(i.why)}`:""}${tip(i)?`<br><i style="color:#555">Tip: ${esc(i.tip)}</i>`:""}</li>`;
-    const H=`<p>Hi ${esc(name||"there")},</p><p>${esc(intro)}</p>`+
-      docs.map(c=>`<p style="margin-bottom:4px"><b>${esc(c.name)}</b></p><ul style="margin-top:0">${c.items.map(li).join("")}</ul>`).join("")+
-      (tips?`<p style="margin-bottom:4px"><b>A few tips to avoid delays</b></p><ul style="margin-top:0">${tips.items.map(i=>`<li><b>${esc(i.name)}</b> – ${esc(i.why)}</li>`).join("")}</ul>`:"")+
-      `<p>${esc(outro)}</p><p>Thank you,<br>${esc(me||"[Your name]").replace(/\n/g,"<br>")}</p>`;
-    return {subject,text:T.join("\n"),html:H,n,total:cats.reduce((a,c)=>a+c.items.length,0),
-      preview:`<p>Hi ${esc(name||"there")},</p><p>${esc(intro)}</p>`+
-        docs.map(c=>`<h3>${esc(c.name)}</h3><ul>${c.items.map(i=>`<li><b>${esc(nm(i))}</b>${whyFor(i)?` – ${esc(i.why)}`:""}${tip(i)?`<br><span class="t">Tip: ${esc(i.tip)}</span>`:""}</li>`).join("")}</ul>`).join("")+
-        (tips?`<h3>A few tips to avoid delays</h3><ul>${tips.items.map(i=>`<li><b>${esc(i.name)}</b> – ${esc(i.why)}</li>`).join("")}</ul>`:"")+
-        `<p>${esc(outro)}</p><p>Thank you,<br>${esc(me||"[Your name]")}</p>`};
+    // HTML with inline styles only, so the colors survive pasting into Outlook and Gmail
+    const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
+    const COLORS={"Identification":"#1F4E79","Income":"#2E7D5B","Assets and funds to close":"#7B3F8C","Credit and debts":"#1F6F8B","Property":"#8A6116","Loan program":"#5B4A9E"};
+    const head=(t,col)=>`<p style="margin:18px 0 6px 0;padding:0 0 3px 0;border-bottom:2px solid ${col};color:${col};font-size:13pt;font-weight:bold">${esc(t)}</p>`;
+    const ul=items=>`<ul style="margin:0 0 6px 0;padding-left:22px">${items}</ul>`;
+    const li=i=>`<li style="margin:0 0 6px 0"><b>${esc(nm(i))}</b>${whyFor(i)?` – ${esc(i.why)}`:""}${tip(i)?`<br><i style="color:#8A6116">Tip: ${esc(i.tip)}</i>`:""}</li>`;
+    const H=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(name||"there")},</p><p style="margin:0 0 10px 0">${esc(intro)}</p>`+
+      docs.map(c=>head(c.name,COLORS[c.name]||"#1F4E79")+ul(c.items.map(li).join(""))).join("")+
+      (tips?head("A few tips to avoid delays","#B4412F")+ul(tips.items.map(i=>`<li style="margin:0 0 6px 0"><b>${esc(i.name)}</b> – ${esc(i.why)}</li>`).join("")):"")+
+      `<p style="margin:16px 0 10px 0">${esc(outro)}</p><p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
+    return {subject,text:T.join("\n"),html:H,n,total:cats.reduce((a,c)=>a+c.items.length,0),preview:H};
   }
 
   function renderEmail(){
