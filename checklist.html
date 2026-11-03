@@ -178,7 +178,6 @@ button,select,input{font:inherit;color:inherit}
       </div>
       <div class="opts" style="margin-top:10px">
         <label><input type="checkbox" id="optUp" checked> Add an "Upload documents" button</label>
-        <label><input type="checkbox" id="optPic"> Use a picture button (whole button clickable everywhere)</label>
         <label><input type="checkbox" id="optWhy" checked> Explain why each item is needed (turns all on or off)</label>
       </div>
     </fieldset>
@@ -355,8 +354,6 @@ button,select,input{font:inherit;color:inherit}
   // Upload link: optionally remembered in this browser only (never in the page's public code)
   const getSaved=()=>{try{return localStorage.getItem("req-ulink")||"";}catch(e){return "";}};
   const setSaved=v=>{try{if(v)localStorage.setItem("req-ulink",v);else localStorage.removeItem("req-ulink");}catch(e){}};
-  try{$("optPic").checked=localStorage.getItem("req-pic")==="1";}catch(e){}
-  $("optPic").addEventListener("change",()=>{try{localStorage.setItem("req-pic",$("optPic").checked?"1":"0");}catch(e){}});
   // The saved link fills in every time this page opens. Pasting a different link for one customer
   // doesn't change it; "Save as my link" does.
   function showSaved(){
@@ -410,15 +407,11 @@ button,select,input{font:inherit;color:inherit}
     const intro=`Thanks for starting your ${loan} ${what} with me! To keep your loan moving, please send the ${n===1?"item":"items"} below. Clear photos or PDFs are fine, and you're welcome to send them as you gather them.`;
     const upOn=$("optUp").checked, ulink=$("ulink").value.trim(), href=/^https?:\/\//i.test(ulink)?ulink:(ulink?"https://"+ulink:"");
     const upText="Click the button below to upload your documents securely.";
-    // Picture button: one image, so the whole thing is clickable in every email program.
-    // Text button: the link is styled as the button (with thick borders for size), so the whole
-    // button is clickable in most email programs; classic Outlook makes the words clickable.
+    // The button is one picture, so the whole thing is clickable in every email program (classic Outlook included).
+    // If pictures are blocked, the words UPLOAD DOCUMENTS show instead and are still the link.
     const IMG=new URL("upload-button.png",location.href.startsWith("http")&&location.hostname.endsWith("github.io")?location.href:"https://jfb315-dotcom.github.io/").href;
-    const BTN="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:16pt;font-weight:bold;letter-spacing:1px;color:#FFFFFF;text-decoration:none;display:inline-block;background:#1F4E79;border-top:14px solid #1F4E79;border-bottom:14px solid #1F4E79;border-left:32px solid #1F4E79;border-right:32px solid #1F4E79;border-radius:6px";
-    const upButton=h=>$("optPic").checked
-      ? (h?`<a href="${esc(h)}" style="display:inline-block">`:"")+`<img src="${IMG}" width="300" height="56" alt="UPLOAD DOCUMENTS" style="display:block;border:0;width:300px;height:56px">`+(h?`</a>`:"")
-      : `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#1F4E79" style="background:#1F4E79;border-radius:6px">`+
-        (h?`<a href="${esc(h)}" style="${BTN}">UPLOAD DOCUMENTS</a>`:`<span style="${BTN}">UPLOAD DOCUMENTS</span>`)+`</td></tr></table>`;
+    const upButton=h=>(h?`<a href="${esc(h)}" style="display:inline-block">`:"")+
+      `<img src="${IMG}" width="300" height="56" alt="UPLOAD DOCUMENTS" style="display:block;border:0;width:300px;height:56px;font-family:Calibri,Arial,sans-serif;font-size:16pt;font-weight:bold;color:#1F4E79">`+(h?`</a>`:"");
     const outro="If anything is unclear or doesn't apply to you, just let me know. I'm happy to help.";
     const style=$("estyle").querySelector("input:checked")?.value||"classic";
     const stacked=style==="checklist"||style==="banded";   // explanation on its own line: easiest to read on a phone
