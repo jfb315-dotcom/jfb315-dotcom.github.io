@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Borrower Document Request</title>
+<meta name="description" content="Check the documents you need from a borrower and copy a ready-to-send email with only those items.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  // Use the same color scheme the visitor picked on the dashboard.
+  (function(){
+    var v="auto";try{v=localStorage.getItem("theme")||"auto";}catch(e){}
+    var r=document.documentElement,dark={night:1,harbor:1};
+    if(v!=="auto"){r.dataset.theme=dark[v]?"dark":"light";if(v!=="classic")r.dataset.palette=v;}
+  })();
+</script>
+<style>
+:root{
+  --paper:#F3F5F8; --panel:#FFFFFF; --ink:#14233C; --muted:#5B6A80; --rule:#D9DEE6;
+  --good:#1F7A5A; --bad:#B4412F; --brass:#A97A1E; --goodbg:#E5F3EC; --tipbg:#FBF4E4;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
+    --good:#4CC197; --bad:#F08A73; --brass:#E0B455; --goodbg:#143329; --tipbg:#2C2717;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
+  --good:#4CC197; --bad:#F08A73; --brass:#E0B455; --goodbg:#143329; --tipbg:#2C2717;
+}
+:root[data-palette="forest"]{--paper:#F2F5F1;--panel:#FFFFFF;--ink:#1D3B2A;--muted:#5C6E62;--rule:#D5DDD6;
+  --good:#2C7D4F;--bad:#B4412F;--brass:#A8731F;--goodbg:#E4F1E8;--tipbg:#FAF3E3}
+:root[data-palette="burgundy"]{--paper:#F7F3F2;--panel:#FFFFFF;--ink:#4A1D27;--muted:#7A6266;--rule:#E3D8D8;
+  --good:#1F7A5A;--bad:#C0392B;--brass:#9A7020;--goodbg:#E5F3EC;--tipbg:#FAF3E3}
+:root[data-palette="harbor"]{--paper:#0E1F24;--panel:#15303A;--ink:#E6F1F1;--muted:#94B0B4;--rule:#24454F;
+  --good:#5CCB9E;--bad:#F2907A;--brass:#E8B860;--goodbg:#15372E;--tipbg:#2F2C1A}
+:root[data-palette="night"]{--paper:#0F1726;--panel:#16213A;--ink:#E8EDF5;--muted:#9AA8BD;--rule:#2A3756;
+  --good:#4CC197;--bad:#F08A73;--brass:#E0B455;--goodbg:#143329;--tipbg:#2C2717}
+
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
+  font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
+.back{font-size:.9rem;font-weight:600;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--brass)}
+h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin:8px 0 4px;line-height:1.15}
+.lede{color:var(--muted);margin:0 0 18px;max-width:62ch}
+h2{font-size:1.15rem;font-weight:700;margin:0}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+
+/* Setup */
+.pick{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--ink);padding:16px;display:grid;gap:14px}
+.pick fieldset{border:0;margin:0;padding:0;min-width:0}
+.pick legend{font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:6px;padding:0}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{position:relative}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.seg span{display:block;padding:7px 12px;border:1px solid var(--rule);font-weight:600;font-size:.92rem;background:var(--paper);cursor:pointer}
+.seg input:checked+span{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.seg input:focus-visible+span{outline:3px solid var(--brass);outline-offset:2px}
+.opts{display:flex;flex-wrap:wrap;gap:6px 18px}
+.opts label{display:flex;gap:8px;align-items:center;font-size:.92rem;cursor:pointer}
+.opts input[type=checkbox]{width:18px;height:18px;accent-color:var(--ink)}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:10px}
+.fields label{display:grid;gap:3px;font-size:.85rem;font-weight:700;color:var(--muted)}
+.fields input{padding:8px 10px;border:1px solid var(--rule);background:var(--paper);font-weight:500;color:var(--ink);width:100%}
+
+/* Action bar */
+.bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin:18px 0 6px;
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding:10px 0;border-bottom:2px solid var(--ink)}
+.count{font-weight:700}
+.acts{display:flex;flex-wrap:wrap;gap:6px}
+.tbtn{font-size:.85rem;font-weight:600;background:var(--panel);border:1px solid var(--rule);padding:6px 10px;cursor:pointer}
+.tbtn:hover{border-color:var(--ink)}
+.tbtn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.tbtn:disabled{opacity:.45;cursor:default}
+.toast{font-size:.85rem;color:var(--good);font-weight:600;min-height:1.3em;margin:0}
+
+/* Checklist */
+.cat{margin-top:22px}
+.cathead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.cathead .tbtn{padding:3px 8px;font-size:.8rem}
+.items{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--rule)}
+.item{display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 10px;padding:12px 14px;border-top:1px solid var(--rule);cursor:pointer}
+.item:first-child{border-top:0}
+.item.on{background:var(--goodbg)}
+.item input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--good);cursor:pointer}
+.item label{font-weight:700;cursor:pointer}
+.item .why{grid-column:2;color:var(--muted);font-size:.92rem;margin:0}
+.yrs{grid-column:2;display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:6px;font-size:.9rem;font-weight:600}
+.yrs label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.yrs input{width:18px;height:18px;margin:0}
+.item .tip{grid-column:2;font-size:.88rem;margin:6px 0 0;padding:6px 10px;background:var(--tipbg);border-left:3px solid var(--brass)}
+.item .tip b{color:var(--brass)}
+.whyadd{grid-column:2;display:flex;align-items:center;gap:6px;margin-top:2px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer;width:fit-content}
+.whyadd input{width:16px;height:16px;margin:0;accent-color:var(--ink)}
+.tipadd{display:flex;align-items:center;gap:6px;margin-top:4px;font-weight:600;font-size:.85rem;cursor:pointer;width:fit-content}
+.tipadd input{width:16px;height:16px;margin:0;accent-color:var(--brass)}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.02em;color:var(--muted);border:1px solid var(--rule);padding:0 6px;margin-left:6px;vertical-align:2px}
+.tag.loan{color:var(--brass);border-color:var(--brass)}
+
+/* Email preview */
+.preview{margin-top:32px;background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--good);padding:16px 18px}
+.phead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.estyle{border:0;margin:12px 0 0;padding:0;min-width:0}
+.estyle legend{font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:6px;padding:0}
+.sdesc{font-size:.85rem;color:var(--muted);margin:6px 0 0}
+.subj{margin:12px 0 0;font-size:.92rem;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.subj b{color:var(--muted)}
+.mail{margin-top:12px;padding:16px;background:#FFFFFF;color:#222222;border:1px solid var(--rule)}
+.mail .empty{color:#666666}
+.empty{color:var(--muted);font-style:italic}
+.foot{margin-top:24px;font-size:.82rem;color:var(--muted)}
+@media (max-width:640px){.bar{position:static}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="./">← Mortgage Market Dashboard</a>
+  <h1>Borrower document request</h1>
+  <p class="lede">Pick the borrower's situation, check the documents you need, then copy a ready-to-send email that lists only those items.</p>
+
+  <form class="pick" id="pick" onsubmit="return false">
+    <fieldset>
+      <legend>Borrower's income</legend>
+      <div class="seg">
+        <label><input type="radio" name="who" value="w2" checked><span>W-2 employee</span></label>
+        <label><input type="radio" name="who" value="self"><span>Self-employed</span></label>
+        <label><input type="radio" name="who" value="retired"><span>Retired</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Loan type</legend>
+      <div class="seg">
+        <label><input type="radio" name="loan" value="conv" checked><span>Conventional</span></label>
+        <label><input type="radio" name="loan" value="fha"><span>FHA</span></label>
+        <label><input type="radio" name="loan" value="va"><span>VA</span></label>
+        <label><input type="radio" name="loan" value="usda"><span>USDA</span></label>
+        <label><input type="radio" name="loan" value="jumbo"><span>Jumbo</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Purchase or refinance</legend>
+      <div class="seg">
+        <label><input type="radio" name="purpose" value="buy" checked><span>Purchase</span></label>
+        <label><input type="radio" name="purpose" value="refi"><span>Refinance</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Also show items for</legend>
+      <div class="opts">
+        <label><input type="checkbox" name="gift"> Gift funds</label>
+        <label><input type="checkbox" name="rental"> Other properties or rental income</label>
+        <label><input type="checkbox" name="credit"> Divorce, bankruptcy or foreclosure</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Email details</legend>
+      <div class="fields">
+        <label>Borrower's first name<input id="bname" placeholder="Maria" autocomplete="off"></label>
+        <label>Sign off as<input id="me" placeholder="Your name and phone" autocomplete="off"></label>
+      </div>
+      <div class="opts" style="margin-top:10px">
+        <label><input type="checkbox" id="optWhy" checked> Explain why each item is needed (turns all on or off)</label>
+      </div>
+    </fieldset>
+  </form>
+
+  <div class="bar">
+    <span class="count" id="count">0 items selected</span>
+    <div class="acts">
+      <button class="tbtn" id="typical" type="button">Select the usual items</button>
+      <button class="tbtn" id="clear" type="button">Clear</button>
+      <button class="tbtn primary copyBtn" type="button">Copy email</button>
+    </div>
+  </div>
+  <p class="toast" id="toast" role="status" aria-live="polite"></p>
+
+  <div id="list"></div>
+
+  <section class="preview" aria-labelledby="ph">
+    <div class="phead">
+      <h2 id="ph">Email preview</h2>
+      <button class="tbtn primary copyBtn" type="button">Copy email</button>
+    </div>
+    <fieldset class="estyle" id="estyle">
+      <legend>Email style</legend>
+      <div class="seg">
+        <label><input type="radio" name="estyle" value="classic" checked><span>Classic</span></label>
+        <label><input type="radio" name="estyle" value="checklist"><span>Checklist</span></label>
+        <label><input type="radio" name="estyle" value="banded"><span>Color bands</span></label>
+        <label><input type="radio" name="estyle" value="numbered"><span>Numbered</span></label>
+      </div>
+      <p class="sdesc" id="sdesc"></p>
+    </fieldset>
+    <p class="subj"><b>Subject:</b> <span id="subject"></span> <button class="tbtn" id="copySubj" type="button">Copy subject</button></p>
+    <div class="mail" id="mail"></div>
+  </section>
+
+  <p class="foot">This is a general guide. Requirements vary by lender and loan program. Your selections are kept only until you close this tab; your sign-off is saved in this browser.</p>
+</div>
+
+<script>
+(function(){
+  const LOANS={conv:"conventional",fha:"FHA",va:"VA",usda:"USDA",jumbo:"jumbo"};
+
+  // Each item: id, name, why (one line), tip, show(state), tag, usual (picked by "Select the usual items")
+  const CATS=[
+    {name:"Identification", items:[
+      {id:"id",usual:1,name:"Government photo ID",why:"Confirms your identity. Federal law requires lenders to verify it.",
+        tip:"Make sure it isn't expired, and that the name matches your application exactly."},
+      {id:"ssn",name:"Social Security card for each borrower",why:"Confirms your Social Security number, which is used to pull your credit and match your income records.",
+        tip:"Make sure the name on the card matches your ID. If you can't find it, a W-2 or SSA-1099 showing the full number may work. Ask me first."},
+      {id:"addr",name:"Addresses for the last 2 years",why:"Lets us match your credit history and confirm where you've been living."},
+      {id:"rent",name:"12 months of rent payment history",why:"Shows you pay housing costs on time, which matters most when you have little credit history.",
+        show:s=>s.purpose==="buy",tag:"If renting",tip:"Canceled checks or bank statements showing the payments work best. Payments made by cash or money order are hard to verify."}
+    ]},
+    {name:"Income", items:[
+      {id:"stubs",usual:1,name:"Pay stubs for the last 30 days",why:"Shows your current pay rate and year-to-date earnings.",show:s=>s.who==="w2",
+        tip:"Send every stub from the last 30 days, not just the latest one. They must show your name, employer and year-to-date totals."},
+      {id:"ytd",years:1,name:"Pay stubs with a year-to-date earnings breakdown",why:"Shows base pay, overtime, bonus and commission separately so they can be averaged for qualifying income.",
+        show:s=>s.who==="w2",tag:"Overtime or bonus",tip:"For a past year, send the last pay stub dated in December. It must show year-to-date totals for each type of pay."},
+      {id:"w2s",usual:1,name:"W-2s for the last 2 years",why:"Confirms a 2-year history of earnings.",show:s=>s.who==="w2"},
+      {id:"w2tax",name:"Federal tax returns for the last 2 years (all pages)",why:"Needed when part of your pay is bonus, overtime or commission, or when you have other income.",
+        show:s=>s.who==="w2",tag:"Often needed",tip:"Send the full return with every schedule, not just the first two pages."},
+      {id:"hr",name:"HR or payroll contact",why:"We confirm your job directly with your employer, usually again just before closing.",show:s=>s.who==="w2"},
+      {id:"gap",name:"Letter explaining any job gaps",why:"Gaps of more than a month in the last 2 years need a short explanation.",show:s=>s.who==="w2",tag:"If it applies"},
+      {id:"offer",name:"Signed offer letter",why:"Shows your new salary and start date if you're starting a new job.",show:s=>s.who==="w2",tag:"If it applies"},
+      {id:"ptax",usual:1,name:"Personal tax returns for the last 2 years, all schedules",why:"Your qualifying income comes from the net income on these returns, not your gross sales.",show:s=>s.who==="self",
+        tip:"Send every page and schedule, signed and dated."},
+      {id:"btax",name:"Business tax returns for the last 2 years",why:"Needed if you own 25% or more of a corporation or partnership (Forms 1120, 1120-S or 1065).",show:s=>s.who==="self",tag:"If it applies"},
+      {id:"k1",name:"K-1s for the last 2 years",why:"Shows your share of the business's income and how much was paid out to you.",show:s=>s.who==="self",tag:"If it applies"},
+      {id:"pl",usual:1,name:"Year-to-date profit and loss statement",why:"Shows the business is still earning at the same level since your last tax return.",show:s=>s.who==="self",
+        tip:"Please sign and date it. Let me know if you'd like a template."},
+      {id:"bstmt",usual:1,name:"Business bank statements for the last 2 to 3 months (all pages)",why:"Supports your profit and loss statement and shows the business is active.",show:s=>s.who==="self"},
+      {id:"exists",name:"Proof your business exists",why:"A business license, CPA letter or state registration confirms the business is open and operating.",show:s=>s.who==="self"},
+      {id:"1099",name:"1099s for the last 2 years",why:"Shows contract income if you're paid as an independent contractor.",show:s=>s.who==="self",tag:"If it applies"},
+      {id:"ext",name:"Tax extension and proof of payment",why:"If you filed an extension, this shows the return is coming and any taxes owed are paid.",show:s=>s.who==="self",tag:"If it applies"},
+      {id:"ssa",usual:1,name:"Social Security award letter for this year",why:"Confirms your monthly benefit amount.",show:s=>s.who==="retired",
+        tip:"You can download a benefit verification letter from your my Social Security account at ssa.gov in a few minutes."},
+      {id:"pension",name:"Pension award letter or latest statement",why:"Shows the monthly amount and that payments will continue.",show:s=>s.who==="retired",tag:"If it applies"},
+      {id:"1099r",usual:1,name:"SSA-1099 and 1099-R forms for the last 1 to 2 years",why:"Confirms the total benefits and retirement distributions you received.",show:s=>s.who==="retired"},
+      {id:"rdeposit",name:"Bank statement showing the benefit deposits",why:"Shows the money is landing in your account each month.",show:s=>s.who==="retired"},
+      {id:"ira",name:"Latest retirement account statements (IRA, 401(k), 403(b))",why:"If you take regular withdrawals, this shows there's enough to keep them going for at least 3 years.",show:s=>s.who==="retired",
+        tip:"Send the full quarterly statement. If you're setting up new withdrawals, check with me first on how to document them."},
+      {id:"rtax",name:"Tax returns for the last 2 years",why:"Needed if you have interest, dividend, rental or part-time income besides your benefits.",show:s=>s.who==="retired",tag:"If it applies"},
+      {id:"other",name:"Other benefit letters (VA disability, annuity, survivor benefits)",why:"Each income source needs a letter showing the amount and how long it lasts.",show:s=>s.who==="retired",tag:"If it applies"}
+    ]},
+    {name:"Assets and funds to close", items:[
+      {id:"bank",usual:1,name:"Bank statements for the last 2 months, all accounts, all pages",why:"Shows the funds for your down payment, closing costs and reserves, and where they came from. Include every page of every statement, even the ones that say \"this page intentionally left blank.\" If you moved money between accounts during these months, please send statements for those accounts too.",
+        tip:"Send every page, even blank ones. Any deposit other than regular pay or benefits may need a short letter and a paper trail."},
+      {id:"invest",name:"Most recent investment and retirement statements",why:"Can count toward reserves, which are the months of payments you'd have left after closing."},
+      {id:"emd",name:"Proof your earnest money cleared",why:"A copy of the check or wire receipt and the bank statement showing it left your account.",show:s=>s.purpose==="buy"},
+      {id:"giftl",usual:1,name:"Signed gift letter",why:"States the money is a gift and doesn't need to be repaid.",show:s=>s.gift,tag:"Gift",
+        tip:"I'll send you the gift letter form to use."},
+      {id:"giftp",usual:1,name:"Proof of the gift transfer",why:"The giver's bank statement or wire receipt showing the money moving to you or the title company.",show:s=>s.gift,tag:"Gift"},
+      {id:"bizfunds",name:"CPA letter if using business funds",why:"Confirms that taking the money out won't hurt the business.",show:s=>s.who==="self",tag:"If it applies"},
+      {id:"sale",name:"Settlement statement from selling your current home",why:"Shows the sale proceeds you plan to use.",show:s=>s.purpose==="buy",tag:"If it applies"}
+    ]},
+    {name:"Credit and debts", items:[
+      {id:"inq",name:"Letter explaining recent credit inquiries",why:"Confirms whether recent inquiries led to any new debt."},
+      {id:"late",name:"Letter explaining any late payments or collections",why:"A short explanation helps the underwriter see it was a one-time event."},
+      {id:"divorce",usual:1,name:"Divorce decree and any settlement agreement",why:"Shows alimony or child support and which debts belong to whom.",show:s=>s.credit,tag:"If it applies"},
+      {id:"bk",usual:1,name:"Bankruptcy discharge papers or foreclosure records",why:"Confirms the dates, since every loan program has a waiting period after these events.",show:s=>s.credit,tag:"If it applies"},
+      {id:"reo",usual:1,name:"Mortgage statements, tax bills and insurance for your other properties",why:"Your other housing payments count toward your monthly debts.",show:s=>s.rental},
+      {id:"lease",usual:1,name:"Signed leases for rental properties",why:"Rental income can help you qualify when it's documented.",show:s=>s.rental}
+    ]},
+    {name:"Property", items:[
+      {id:"contract",usual:1,name:"Signed purchase contract with all addenda",why:"Sets the price, dates and terms the loan has to match.",show:s=>s.purpose==="buy",
+        tip:"Send any new addendum as soon as it's signed."},
+      {id:"hoi",usual:1,name:"Homeowners insurance agent's contact information",why:"A policy has to be in place before closing.",show:s=>s.purpose==="buy",
+        tip:"Shop for insurance early. Late quotes are a common reason closings slip."},
+      {id:"hoa",name:"HOA contact information",why:"We verify the dues and, for condos, review the association.",tag:"If it applies"},
+      {id:"mstmt",usual:1,name:"Current mortgage statement",why:"Shows the loan being paid off, the balance and the payment history.",show:s=>s.purpose==="refi"},
+      {id:"dec",usual:1,name:"Homeowners insurance declarations page",why:"Confirms your current coverage and premium.",show:s=>s.purpose==="refi"},
+      {id:"ptaxbill",name:"Most recent property tax bill",why:"Used to figure your new monthly payment and escrow.",show:s=>s.purpose==="refi"},
+      {id:"heloc",name:"Statement for any home equity loan or line of credit",why:"It either gets paid off or that lender has to agree to stay in second place.",show:s=>s.purpose==="refi",tag:"If it applies"}
+    ]},
+    {name:"Loan program", items:[
+      {id:"fha2",name:"Explanations for any collections or judgments",why:"FHA reviews these closely and may require some to be paid or on a payment plan.",show:s=>s.loan==="fha",tag:"FHA"},
+      {id:"fha3",name:"Spouse's debts (community property states)",why:"FHA counts a spouse's debts even when the spouse isn't on the loan.",show:s=>s.loan==="fha",tag:"FHA"},
+      {id:"va1",name:"Certificate of Eligibility (COE)",why:"Proves you qualify for a VA loan. I can usually get it online for you.",show:s=>s.loan==="va",tag:"VA"},
+      {id:"va2",usual:1,name:"DD-214 (member copy 4) or statement of service",why:"Veterans send the DD-214; active-duty borrowers send a statement of service from their commander.",show:s=>s.loan==="va",tag:"VA",
+        tip:"It needs to be member copy 4, which shows the character of service."},
+      {id:"va3",name:"VA disability award letter",why:"If you receive disability pay, you may not have to pay the VA funding fee.",show:s=>s.loan==="va",tag:"VA, if it applies"},
+      {id:"va4",name:"Leave and earnings statement (LES)",why:"For active-duty borrowers, this takes the place of a pay stub.",show:s=>s.loan==="va",tag:"VA, if active duty"},
+      {id:"usda1",usual:1,name:"Income documents for every adult in the household",why:"USDA income limits count everyone living in the home, even people who aren't on the loan.",show:s=>s.loan==="usda",tag:"USDA"},
+      {id:"usda2",name:"Child care cost records",why:"Some expenses can be subtracted from household income for the USDA limit.",show:s=>s.loan==="usda",tag:"USDA, if it applies"},
+      {id:"j1",usual:1,name:"Full tax returns for the last 2 years",why:"Jumbo lenders review every income source and deduction, even for W-2 employees.",show:s=>s.loan==="jumbo"&&s.who==="w2",tag:"Jumbo"},
+      {id:"j2",usual:1,name:"Statements for every account you'll use for reserves",why:"Jumbo loans often require 6 to 12 months of payments in reserve after closing.",show:s=>s.loan==="jumbo",tag:"Jumbo",
+        tip:"Send 2 to 3 months, all pages, including retirement and brokerage accounts."}
+    ]},
+    {name:"Tips to avoid delays", tips:true, items:[
+      {id:"m1",usual:1,name:"Send every page",why:"Include every page of every statement, even the ones that say \"this page intentionally left blank.\""},
+      {id:"m2",usual:1,name:"Explain unusual deposits",why:"Any deposit that isn't regular pay or benefits may need a short letter and proof of where it came from."},
+      {id:"m3",name:"Avoid cash deposits",why:"Cash can't be traced, so it often can't be counted. Talk to me before depositing cash."},
+      {id:"m4",name:"Send statements, not screenshots",why:"Download the official PDF. Screenshots usually lack your name, account number and the bank's name."},
+      {id:"m5",name:"Don't move money between accounts",why:"Every transfer is another trail to document. Leave funds where they are until we talk."},
+      {id:"m6",usual:1,name:"Hold off on new credit and big purchases",why:"A new car, furniture on credit or a store card can affect your approval. Please wait until after closing."},
+      {id:"m7",name:"Tell me about any job change",why:"Employment is checked again right before closing."},
+      {id:"m8",name:"Expect updated documents if closing moves",why:"Pay stubs and bank statements go stale after about 30 to 60 days."},
+      {id:"m9",name:"Sign and date everything",why:"Tax returns, letters of explanation and gift letters need signatures and dates."},
+      {id:"m10",name:"Send clear scans",why:"Scan in good light, keep pages straight, and remove passwords from PDFs."}
+    ]}
+  ];
+
+  const $=id=>document.getElementById(id);
+  const form=$("pick"), list=$("list");
+  // Years offered on the year-to-date pay stub item
+  const Y=new Date().getFullYear(), YEARS=[Y-2,Y-1,Y];
+  let yrs={[Y-1]:1};
+  try{yrs=JSON.parse(sessionStorage.getItem("req-yrs")||"null")||yrs;}catch(e){}
+  const saveYrs=()=>{try{sessionStorage.setItem("req-yrs",JSON.stringify(yrs));}catch(e){}};
+  function nm(i){
+    if(!i.years)return i.name;
+    const ys=YEARS.filter(y=>yrs[y]), past=ys.filter(y=>y<Y), parts=[];
+    if(past.length)parts.push(`final ${past.length>1?"stubs":"stub"} for ${past.join(" and ")}`);
+    if(yrs[Y])parts.push(`most recent stub for ${Y}`);
+    return parts.length?`Pay stubs with a year-to-date earnings breakdown (${parts.join(", ")})`:i.name;
+  }
+  // Tips chosen one at a time for the email
+  let tipOn={};
+  try{tipOn=JSON.parse(sessionStorage.getItem("req-tips")||"{}")||{};}catch(e){}
+  const saveTips=()=>{try{sessionStorage.setItem("req-tips",JSON.stringify(tipOn));}catch(e){}};
+  // Explanations: the main switch sets them all; each item can be changed on its own
+  let whyX={};
+  try{whyX=JSON.parse(sessionStorage.getItem("req-why")||"{}")||{};}catch(e){}
+  const saveWhy=()=>{try{sessionStorage.setItem("req-why",JSON.stringify(whyX));}catch(e){}};
+  const whyFor=i=>(i.id in whyX?whyX[i.id]:$("optWhy").checked);
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+  // Selections last for this tab only, so the next borrower starts fresh.
+  let sel={};
+  try{sel=JSON.parse(sessionStorage.getItem("req-sel")||"{}")||{};}catch(e){}
+  const saveSel=()=>{try{sessionStorage.setItem("req-sel",JSON.stringify(sel));}catch(e){}};
+  try{$("me").value=localStorage.getItem("req-me")||"";}catch(e){}
+  $("me").addEventListener("input",()=>{try{localStorage.setItem("req-me",$("me").value);}catch(e){}});
+
+  function state(){
+    const f=new FormData(form);
+    return {who:f.get("who"),loan:f.get("loan"),purpose:f.get("purpose"),gift:f.has("gift"),rental:f.has("rental"),credit:f.has("credit")};
+  }
+  const visible=s=>CATS.map(c=>({...c,items:c.items.filter(i=>!i.show||i.show(s))})).filter(c=>c.items.length);
+  const chosen=s=>visible(s).map(c=>({...c,items:c.items.filter(i=>sel[i.id])})).filter(c=>c.items.length);
+
+  function renderList(){
+    const s=state();
+    list.innerHTML=visible(s).map(c=>{
+      const allOn=c.items.every(i=>sel[i.id]);
+      return `<section class="cat"><div class="cathead"><h2>${esc(c.name)}</h2>
+        <button class="tbtn" type="button" data-cat="${esc(c.name)}">${allOn?"Clear section":"Select all"}</button></div>
+        <ul class="items">${c.items.map(i=>`<li class="item${sel[i.id]?" on":""}">
+          <input type="checkbox" id="c-${i.id}" data-id="${i.id}"${sel[i.id]?" checked":""}>
+          <label for="c-${i.id}">${esc(i.name)}${i.tag?`<span class="tag${/FHA|VA|USDA|Jumbo/.test(i.tag)?" loan":""}">${esc(i.tag)}</span>`:""}</label>
+          <p class="why">${esc(i.why)}</p>
+          ${c.tips?"":`<label class="whyadd"><input type="checkbox" data-why="${i.id}"${whyFor(i)?" checked":""}> Add this explanation to the email</label>`}
+          ${i.years?`<div class="yrs" role="group" aria-label="Years to request">${YEARS.map(y=>`<label><input type="checkbox" data-year="${y}"${yrs[y]?" checked":""}> ${y===Y?`${y} (most recent stub)`:`${y} (final stub)`}</label>`).join("")}</div>`:""}
+          ${i.tip?`<p class="tip"><b>Tip:</b> ${esc(i.tip)}<label class="tipadd"><input type="checkbox" data-tip="${i.id}"${tipOn[i.id]?" checked":""}> Add this tip to the email</label></p>`:""}
+        </li>`).join("")}</ul></section>`;
+    }).join("");
+    renderEmail();
+  }
+
+  function email(){
+    const s=state(), cats=chosen(s), docs=cats.filter(c=>!c.tips), tips=cats.find(c=>c.tips);
+    const tip=i=>i.tip&&tipOn[i.id];
+    const name=$("bname").value.trim(), me=$("me").value.trim();
+    const n=docs.reduce((a,c)=>a+c.items.length,0);
+    const loan=LOANS[s.loan], what=s.purpose==="buy"?"home purchase":"refinance";
+    const subject=`Documents needed for your ${loan} ${what}`;
+    const intro=`Thanks for starting your ${loan} ${what} with me! To keep your loan moving, please send the ${n===1?"item":"items"} below. Clear photos or PDFs are fine, and you're welcome to send them as you gather them.`;
+    const outro="If anything is unclear or doesn't apply to you, just let me know. I'm happy to help.";
+    const style=$("estyle").querySelector("input:checked")?.value||"classic";
+    const stacked=style==="checklist"||style==="banded";   // explanation on its own line: easiest to read on a phone
+    const COLORS={"Identification":"#1F4E79","Income":"#2E7D5B","Assets and funds to close":"#7B3F8C","Credit and debts":"#1F6F8B","Property":"#8A6116","Loan program":"#5B4A9E"};
+    const colOf=c=>style==="numbered"?"#333333":(COLORS[c.name]||"#1F4E79");
+    let num=0;
+    const mark=(tipsSec)=>tipsSec?"•":style==="numbered"?`${++num}.`:style==="classic"?"•":"☐";
+    // Plain text
+    const T=[`Hi ${name||"there"},`,"",intro,""];
+    num=0;
+    docs.forEach(c=>{T.push(c.name.toUpperCase());c.items.forEach(i=>{
+      const m=mark(false);
+      if(stacked){T.push(`${m} ${nm(i)}`);if(whyFor(i))T.push(`   ${i.why}`);}
+      else T.push(`${m} ${nm(i)}${whyFor(i)?`: ${i.why}`:""}`);
+      if(tip(i))T.push(`   Tip: ${i.tip}`);});T.push("");});
+    if(tips){T.push("A FEW TIPS TO AVOID DELAYS");tips.items.forEach(i=>T.push(`• ${i.name}: ${i.why}`));T.push("");}
+    T.push(outro,"","Thank you,",me||"[Your name]");
+    // HTML with inline styles and tables only, so it looks the same pasted into Outlook or Gmail and read on a phone
+    const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
+    const gap=`<p style="margin:0;font-size:8pt;line-height:8pt">&nbsp;</p>`;
+    const head=(t,col)=>style==="banded"
+      ? gap+`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="${col}" style="background:${col};padding:6px 10px;${F};color:#FFFFFF;font-size:12pt;font-weight:bold">${esc(t)}</td></tr></table>`+`<p style="margin:0;font-size:5pt;line-height:5pt">&nbsp;</p>`
+      : `<p style="margin:18px 0 6px 0;padding:0 0 3px 0;border-bottom:2px solid ${style==="numbered"?"#BBBBBB":col};color:${col};font-size:13pt;font-weight:bold">${esc(t)}</p>`;
+    // Each item is a table row (marker cell + text cell): Outlook ignores indents but always respects tables.
+    const ul=rows=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`;
+    const row=(m,col,body)=>`<tr><td width="30" valign="top" style="width:30px;padding:0 0 8px 8px;${F};color:${col};${m==="☐"?"font-size:13pt;line-height:1.1;":""}${/\d/.test(m)?"font-weight:bold;":""}">${m}</td><td valign="top" style="padding:0 0 8px 0;${F}">${body}</td></tr>`;
+    const body=i=>`<b>${esc(nm(i))}</b>`+(whyFor(i)?(stacked?`<br><span style="color:#555555;font-size:10.5pt">${esc(i.why)}</span>`:` – ${esc(i.why)}`):"")+
+      (tip(i)?`<br><i style="color:#8A6116;font-size:10.5pt">Tip: ${esc(i.tip)}</i>`:"");
+    num=0;
+    const H=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(name||"there")},</p><p style="margin:0 0 10px 0">${esc(intro)}</p>`+
+      (style==="numbered"?`<p style="margin:0 0 10px 0">When you reply, you can refer to items by number.</p>`:"")+
+      docs.map(c=>{const col=colOf(c);return head(c.name,col)+ul(c.items.map(i=>row(mark(false),style==="numbered"?"#1F4E79":col,body(i))).join(""));}).join("")+
+      (tips?head("A few tips to avoid delays","#B4412F")+ul(tips.items.map(i=>row("•","#B4412F",`<b>${esc(i.name)}</b>`+(stacked?`<br><span style="color:#555555;font-size:10.5pt">${esc(i.why)}</span>`:` – ${esc(i.why)}`))).join("")):"")+
+      `<p style="margin:16px 0 10px 0">${esc(outro)}</p><p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
+    return {subject,text:T.join("\n"),html:H,n,total:cats.reduce((a,c)=>a+c.items.length,0),preview:H};
+  }
+
+  const SDESC={
+    classic:"Colored headings with bullets. Compact and familiar; reads best on a computer.",
+    checklist:"Check boxes with each explanation on its own line. Easy to scan on a phone, and borrowers can tick items off as they go.",
+    banded:"Bold color bars for each section with check boxes. The most visual; stands out well on a phone.",
+    numbered:"Simple headings with numbered items, so the borrower can reply \"attached #1 to #4.\""};
+  try{const v=localStorage.getItem("req-style");const r=v&&$("estyle").querySelector(`input[value="${CSS.escape(v)}"]`);if(r)r.checked=true;}catch(e){}
+  $("estyle").addEventListener("change",()=>{try{localStorage.setItem("req-style",$("estyle").querySelector("input:checked").value);}catch(e){}renderEmail();});
+  function renderEmail(){
+    $("sdesc").textContent=SDESC[$("estyle").querySelector("input:checked").value];
+    const e=email();
+    $("count").textContent=`${e.n} document${e.n===1?"":"s"} selected`;
+    $("subject").textContent=e.subject;
+    $("mail").innerHTML=e.n?e.preview:`<p class="empty">Check the documents you need above and the email will build here.</p>`;
+    document.querySelectorAll(".copyBtn").forEach(b=>b.disabled=!e.n);
+  }
+
+  list.addEventListener("change",ev=>{
+    const wy=ev.target.dataset.why;
+    if(wy){whyX[wy]=ev.target.checked;saveWhy();renderEmail();return;}
+    const tp=ev.target.dataset.tip;
+    if(tp){if(ev.target.checked)tipOn[tp]=1;else delete tipOn[tp];saveTips();
+      const cb=ev.target.closest(".item").querySelector("[data-id]");
+      if(ev.target.checked&&!cb.checked){cb.checked=true;cb.dispatchEvent(new Event("change",{bubbles:true}));}else renderEmail();
+      return;}
+    const yr=ev.target.dataset.year;
+    if(yr){if(ev.target.checked)yrs[yr]=1;else delete yrs[yr];saveYrs();
+      const cb=ev.target.closest(".item").querySelector("[data-id]");
+      if(ev.target.checked&&!cb.checked){cb.checked=true;cb.dispatchEvent(new Event("change",{bubbles:true}));}else renderEmail();
+      return;}
+    const id=ev.target.dataset.id;if(!id)return;
+    if(ev.target.checked)sel[id]=1;else delete sel[id];
+    ev.target.closest(".item").classList.toggle("on",ev.target.checked);
+    saveSel();renderEmail();
+  });
+  list.addEventListener("click",ev=>{
+    const b=ev.target.closest("[data-cat]");
+    if(b){const c=visible(state()).find(c=>c.name===b.dataset.cat);const on=!c.items.every(i=>sel[i.id]);
+      c.items.forEach(i=>{if(on)sel[i.id]=1;else delete sel[i.id];});saveSel();renderList();return;}
+    // Let a click anywhere on the row toggle it.
+    const row=ev.target.closest(".item");
+    if(row&&!ev.target.closest("input,label")){const cb=row.querySelector("input");cb.checked=!cb.checked;cb.dispatchEvent(new Event("change",{bubbles:true}));}
+  });
+  form.addEventListener("change",ev=>{if(ev.target.id==="optWhy"){whyX={};saveWhy();}renderList();});
+  form.addEventListener("input",ev=>{if(ev.target.matches("#bname,#me"))renderEmail();});
+
+  $("typical").onclick=()=>{visible(state()).forEach(c=>c.items.forEach(i=>{if(i.usual)sel[i.id]=1;}));saveSel();renderList();};
+  $("clear").onclick=()=>{sel={};tipOn={};whyX={};saveSel();saveTips();saveWhy();renderList();};
+
+  const toast=$("toast");let tt;
+  function say(m){toast.textContent=m;clearTimeout(tt);tt=setTimeout(()=>toast.textContent="",3500);}
+  async function copyRich(html,text){
+    try{
+      if(window.ClipboardItem&&navigator.clipboard.write){
+        await navigator.clipboard.write([new ClipboardItem({"text/html":new Blob([html],{type:"text/html"}),"text/plain":new Blob([text],{type:"text/plain"})})]);
+      }else await navigator.clipboard.writeText(text);
+      return true;
+    }catch(e){
+      try{await navigator.clipboard.writeText(text);return true;}catch(x){window.prompt("Copy this:",text);return false;}
+    }
+  }
+  document.querySelectorAll(".copyBtn").forEach(b=>b.onclick=async()=>{
+    const e=email();if(await copyRich(e.html,e.text))say(`Email copied with ${e.n} document${e.n===1?"":"s"}. Paste it into a new message.`);
+  });
+  $("copySubj").onclick=async()=>{
+    try{await navigator.clipboard.writeText($("subject").textContent);say("Subject copied.");}catch(e){window.prompt("Copy this:",$("subject").textContent);}
+  };
+
+  renderList();
+})();
+</script>
+</body>
+</html>
