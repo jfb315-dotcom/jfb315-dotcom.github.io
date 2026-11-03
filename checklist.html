@@ -167,6 +167,7 @@ button,select,input{font:inherit;color:inherit}
       </div>
       <div class="opts" style="margin-top:10px">
         <label><input type="checkbox" id="optUp" checked> Add an "Upload documents" button</label>
+        <label><input type="checkbox" id="optPic"> Use a picture button (whole button clickable everywhere)</label>
         <label><input type="checkbox" id="remUp"> Remember my upload link in this browser</label>
         <label><input type="checkbox" id="optWhy" checked> Explain why each item is needed (turns all on or off)</label>
       </div>
@@ -344,6 +345,8 @@ button,select,input{font:inherit;color:inherit}
   // Upload link: optionally remembered in this browser only (never in the page's public code)
   const getSaved=()=>{try{return localStorage.getItem("req-ulink")||"";}catch(e){return "";}};
   const setSaved=v=>{try{if(v)localStorage.setItem("req-ulink",v);else localStorage.removeItem("req-ulink");}catch(e){}};
+  try{$("optPic").checked=localStorage.getItem("req-pic")==="1";}catch(e){}
+  $("optPic").addEventListener("change",()=>{try{localStorage.setItem("req-pic",$("optPic").checked?"1":"0");}catch(e){}});
   if(getSaved()){$("ulink").value=getSaved();$("remUp").checked=true;}
   // Saved only when the box is ticked, so pasting a one-off link for a customer doesn't replace it.
   $("remUp").addEventListener("change",()=>setSaved($("remUp").checked?$("ulink").value.trim():""));
@@ -384,6 +387,15 @@ button,select,input{font:inherit;color:inherit}
     const intro=`Thanks for starting your ${loan} ${what} with me! To keep your loan moving, please send the ${n===1?"item":"items"} below. Clear photos or PDFs are fine, and you're welcome to send them as you gather them.`;
     const upOn=$("optUp").checked, ulink=$("ulink").value.trim(), href=/^https?:\/\//i.test(ulink)?ulink:(ulink?"https://"+ulink:"");
     const upText="Click the button below to upload your documents securely.";
+    // Picture button: one image, so the whole thing is clickable in every email program.
+    // Text button: the link is styled as the button (with thick borders for size), so the whole
+    // button is clickable in most email programs; classic Outlook makes the words clickable.
+    const IMG=new URL("upload-button.png",location.href.startsWith("http")&&location.hostname.endsWith("github.io")?location.href:"https://jfb315-dotcom.github.io/").href;
+    const BTN="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:16pt;font-weight:bold;letter-spacing:1px;color:#FFFFFF;text-decoration:none;display:inline-block;background:#1F4E79;border-top:14px solid #1F4E79;border-bottom:14px solid #1F4E79;border-left:32px solid #1F4E79;border-right:32px solid #1F4E79;border-radius:6px";
+    const upButton=h=>$("optPic").checked
+      ? (h?`<a href="${esc(h)}" style="display:inline-block">`:"")+`<img src="${IMG}" width="300" height="56" alt="UPLOAD DOCUMENTS" style="display:block;border:0;width:300px;height:56px">`+(h?`</a>`:"")
+      : `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#1F4E79" style="background:#1F4E79;border-radius:6px">`+
+        (h?`<a href="${esc(h)}" style="${BTN}">UPLOAD DOCUMENTS</a>`:`<span style="${BTN}">UPLOAD DOCUMENTS</span>`)+`</td></tr></table>`;
     const outro="If anything is unclear or doesn't apply to you, just let me know. I'm happy to help.";
     const style=$("estyle").querySelector("input:checked")?.value||"classic";
     const stacked=style==="checklist"||style==="banded";   // explanation on its own line: easiest to read on a phone
@@ -416,11 +428,7 @@ button,select,input{font:inherit;color:inherit}
     num=0;
     const H=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(name||"there")},</p><p style="margin:0 0 10px 0">${esc(intro)}</p>`+
       (upOn?`<p style="margin:0 0 8px 0">${esc(upText)}</p>`+
-        // Button built as a table cell so it keeps its shape in Outlook. With no link yet, the label is plain
-        // text you can right-click in Outlook and choose Link.
-        `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#1F4E79" style="background:#1F4E79;padding:10px 22px;border-radius:4px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:12pt;font-weight:bold;color:#FFFFFF">`+
-        (href?`<a href="${esc(href)}" style="color:#FFFFFF;text-decoration:none">Upload documents</a>`:`Upload documents`)+
-        `</td></tr></table><p style="margin:0;font-size:8pt;line-height:8pt">&nbsp;</p>`:"")+
+        upButton(href)+`<p style="margin:0;font-size:8pt;line-height:8pt">&nbsp;</p>`:"")+
       (style==="numbered"?`<p style="margin:0 0 10px 0">When you reply, you can refer to items by number.</p>`:"")+
       docs.map(c=>{const col=colOf(c);return head(c.name,col)+ul(c.items.map(i=>row(mark(false),style==="numbered"?"#1F4E79":col,body(i))).join(""));}).join("")+
       (tips?head("A few tips to avoid delays","#B4412F")+ul(tips.items.map(i=>row("•","#B4412F",`<b>${esc(i.name)}</b>`+(stacked?`<br><span style="color:#555555;font-size:10.5pt">${esc(i.why)}</span>`:` – ${esc(i.why)}`))).join("")):"")+
