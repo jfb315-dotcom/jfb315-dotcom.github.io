@@ -3,6 +3,7 @@
 A one-page dashboard of mortgage rates, Treasury yields, stock market numbers and housing data, hosted on GitHub Pages.
 
 - `index.html` is the whole page. It reads its numbers from `data/market.json`.
+- `checklist.html` is a borrower document checklist (W-2, self-employed or retired, by loan type). Choices can be preset in the link, for example `checklist.html?who=self&loan=fha&purpose=buy&also=gift`.
 - `scripts/fetch_fred.py` pulls the numbers from the FRED API and writes `data/market.json`.
 - `.github/workflows/update-data.yml` runs that script several times each weekday, saves the data file, and publishes the site. It also republishes whenever `main` changes. Run it by hand from the Actions tab with **Run workflow**.
 

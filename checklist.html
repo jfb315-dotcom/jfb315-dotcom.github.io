@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Loan Document Checklist</title>
+<meta name="description" content="A friendly list of the documents to gather for a mortgage application, for W-2, self-employed and retired borrowers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  // Use the same color scheme the visitor picked on the dashboard.
+  (function(){
+    var v="auto";try{v=localStorage.getItem("theme")||"auto";}catch(e){}
+    var r=document.documentElement,dark={night:1,harbor:1};
+    if(v!=="auto"){r.dataset.theme=dark[v]?"dark":"light";if(v!=="classic")r.dataset.palette=v;}
+  })();
+</script>
+<style>
+:root{
+  --paper:#F3F5F8; --panel:#FFFFFF; --ink:#14233C; --muted:#5B6A80; --rule:#D9DEE6;
+  --good:#1F7A5A; --bad:#B4412F; --brass:#A97A1E; --goodbg:#E5F3EC; --badbg:#F8E7E3; --tipbg:#FBF4E4;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
+    --good:#4CC197; --bad:#F08A73; --brass:#E0B455; --goodbg:#143329; --badbg:#3A2020; --tipbg:#2C2717;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
+  --good:#4CC197; --bad:#F08A73; --brass:#E0B455; --goodbg:#143329; --badbg:#3A2020; --tipbg:#2C2717;
+}
+:root[data-palette="forest"]{--paper:#F2F5F1;--panel:#FFFFFF;--ink:#1D3B2A;--muted:#5C6E62;--rule:#D5DDD6;
+  --good:#2C7D4F;--bad:#B4412F;--brass:#A8731F;--goodbg:#E4F1E8;--badbg:#F8E7E3;--tipbg:#FAF3E3}
+:root[data-palette="burgundy"]{--paper:#F7F3F2;--panel:#FFFFFF;--ink:#4A1D27;--muted:#7A6266;--rule:#E3D8D8;
+  --good:#1F7A5A;--bad:#C0392B;--brass:#9A7020;--goodbg:#E5F3EC;--badbg:#F9E6E3;--tipbg:#FAF3E3}
+:root[data-palette="harbor"]{--paper:#0E1F24;--panel:#15303A;--ink:#E6F1F1;--muted:#94B0B4;--rule:#24454F;
+  --good:#5CCB9E;--bad:#F2907A;--brass:#E8B860;--goodbg:#15372E;--badbg:#3B2424;--tipbg:#2F2C1A}
+:root[data-palette="night"]{--paper:#0F1726;--panel:#16213A;--ink:#E8EDF5;--muted:#9AA8BD;--rule:#2A3756;
+  --good:#4CC197;--bad:#F08A73;--brass:#E0B455;--goodbg:#143329;--badbg:#3A2020;--tipbg:#2C2717}
+
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
+  font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
+a{color:var(--ink)}
+.back{font-size:.9rem;font-weight:600;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--brass)}
+h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin:8px 0 4px;line-height:1.15}
+.lede{color:var(--muted);margin:0 0 18px;max-width:62ch}
+h2{font-size:1.15rem;font-weight:700;margin:0}
+button,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+
+/* Pickers */
+.pick{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--ink);padding:16px;display:grid;gap:14px}
+.pick fieldset{border:0;margin:0;padding:0;min-width:0}
+.pick legend{font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:6px;padding:0}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{position:relative}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.seg span{display:block;padding:7px 12px;border:1px solid var(--rule);font-weight:600;font-size:.92rem;background:var(--paper);cursor:pointer}
+.seg input:checked+span{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.seg input:focus-visible+span{outline:3px solid var(--brass);outline-offset:2px}
+.extras{display:flex;flex-wrap:wrap;gap:6px 18px}
+.extras label{display:flex;gap:8px;align-items:center;font-size:.92rem;cursor:pointer}
+.extras input{width:18px;height:18px;accent-color:var(--ink)}
+
+/* Progress + actions */
+.bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin:18px 0 6px;
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding:10px 0;border-bottom:2px solid var(--ink)}
+.prog{display:flex;align-items:center;gap:10px;font-weight:700;flex:1;min-width:200px}
+.meter{flex:1;max-width:220px;height:8px;background:var(--rule)}
+.meter i{display:block;height:100%;width:0;background:var(--good);transition:width .2s}
+.acts{display:flex;flex-wrap:wrap;gap:6px}
+.tbtn{font-size:.85rem;font-weight:600;background:var(--panel);border:1px solid var(--rule);padding:6px 10px;cursor:pointer}
+.tbtn:hover{border-color:var(--ink)}
+.toast{font-size:.85rem;color:var(--good);font-weight:600;min-height:1.3em;margin:0}
+
+/* Checklist */
+.cat{margin-top:22px}
+.cathead{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}
+.cathead small{color:var(--muted);font-weight:600;font-size:.85rem;white-space:nowrap}
+.catnote{color:var(--muted);font-size:.9rem;margin:-4px 0 8px}
+.items{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--rule)}
+.item{display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 10px;padding:12px 14px;border-top:1px solid var(--rule)}
+.item:first-child{border-top:0}
+.item input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--good);cursor:pointer}
+.item label{font-weight:700;cursor:pointer}
+.item .why{grid-column:2;color:var(--muted);font-size:.92rem;margin:0}
+.item .tip{grid-column:2;font-size:.88rem;margin:6px 0 0;padding:6px 10px;background:var(--tipbg);border-left:3px solid var(--brass)}
+.item .tip b{color:var(--brass)}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.02em;color:var(--muted);border:1px solid var(--rule);padding:0 6px;margin-left:6px;vertical-align:2px}
+.tag.loan{color:var(--brass);border-color:var(--brass)}
+.item.done label{text-decoration:line-through;text-decoration-color:var(--muted);color:var(--muted)}
+
+/* Mistakes */
+.mistakes{margin-top:32px;background:var(--panel);border:1px solid var(--rule);border-left:6px solid var(--bad);padding:16px 18px}
+.mistakes ol{margin:10px 0 0;padding-left:1.3em;display:grid;gap:10px}
+.mistakes li b{display:block}
+.mistakes li span{color:var(--muted);font-size:.92rem}
+.foot{margin-top:24px;font-size:.82rem;color:var(--muted)}
+
+@media print{
+  :root,:root[data-theme],:root[data-palette]{--paper:#fff;--panel:#fff;--ink:#000;--muted:#444;--rule:#bbb;--tipbg:#fff;--brass:#000}
+  .back,.pick,.acts,.toast,.meter{display:none}
+  .bar{position:static;border-bottom:1px solid #000}
+  .item,.mistakes li{break-inside:avoid}
+  .wrap{padding:0}
+}
+@media (max-width:640px){.bar{position:static}}
+@media (prefers-reduced-motion:reduce){.meter i{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="./">← Mortgage Market Dashboard</a>
+  <h1>Your loan document checklist</h1>
+  <p class="lede">Gathering these early is the easiest way to speed up your loan. Pick the options that fit you, check things off as you go, and send the list or print it.</p>
+
+  <form class="pick" id="pick" onsubmit="return false">
+    <fieldset>
+      <legend>How you earn your income</legend>
+      <div class="seg">
+        <label><input type="radio" name="who" value="w2" checked><span>W-2 employee</span></label>
+        <label><input type="radio" name="who" value="self"><span>Self-employed</span></label>
+        <label><input type="radio" name="who" value="retired"><span>Retired</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Loan type</legend>
+      <div class="seg">
+        <label><input type="radio" name="loan" value="conv" checked><span>Conventional</span></label>
+        <label><input type="radio" name="loan" value="fha"><span>FHA</span></label>
+        <label><input type="radio" name="loan" value="va"><span>VA</span></label>
+        <label><input type="radio" name="loan" value="usda"><span>USDA</span></label>
+        <label><input type="radio" name="loan" value="jumbo"><span>Jumbo</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Buying or refinancing?</legend>
+      <div class="seg">
+        <label><input type="radio" name="purpose" value="buy" checked><span>Buying a home</span></label>
+        <label><input type="radio" name="purpose" value="refi"><span>Refinancing</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Show items for these too (if they apply)</legend>
+      <div class="extras">
+        <label><input type="checkbox" name="gift"> Gift money for the down payment</label>
+        <label><input type="checkbox" name="rental"> Other properties or rental income</label>
+        <label><input type="checkbox" name="credit"> Divorce, bankruptcy or foreclosure</label>
+      </div>
+    </fieldset>
+  </form>
+
+  <div class="bar">
+    <div class="prog"><span id="count">0 of 0 ready</span><div class="meter" aria-hidden="true"><i id="meter"></i></div></div>
+    <div class="acts">
+      <button class="tbtn" id="copyLink" type="button">Copy link to this list</button>
+      <button class="tbtn" id="copyText" type="button">Copy as text</button>
+      <button class="tbtn" id="print" type="button">Print</button>
+      <button class="tbtn" id="clear" type="button">Clear checks</button>
+    </div>
+  </div>
+  <p class="toast" id="toast" role="status" aria-live="polite"></p>
+
+  <div id="list"></div>
+
+  <section class="mistakes" aria-labelledby="mh">
+    <h2 id="mh">Common mistakes that slow loans down</h2>
+    <ol>
+      <li><b>Missing pages.</b><span>Send every page of every statement, even the ones that say "this page intentionally left blank." Page 4 of 4 tells the underwriter nothing is missing.</span></li>
+      <li><b>Unexplained deposits.</b><span>Any deposit that isn't your regular paycheck or benefit will probably need a short letter and proof of where it came from. Large ones are the most likely to be questioned. Keep copies of checks and transfer receipts.</span></li>
+      <li><b>Cash deposits.</b><span>Cash can't be traced, so it often can't be counted. Don't deposit cash you've saved at home without talking to your loan officer first.</span></li>
+      <li><b>Screenshots instead of statements.</b><span>Download the official PDF statement. A screenshot or transaction list usually lacks your name, the account number and the bank's name.</span></li>
+      <li><b>Moving money around.</b><span>Each transfer between accounts creates another trail to document. Leave funds where they are until your loan officer tells you where they need to be.</span></li>
+      <li><b>Opening new credit or making big purchases.</b><span>A new car, furniture on credit or even a store card can change your debt-to-income ratio and credit score. Wait until after closing.</span></li>
+      <li><b>Changing jobs mid-process.</b><span>Your employment is checked again right before closing. If a change is coming, tell your loan officer right away.</span></li>
+      <li><b>Outdated documents.</b><span>Pay stubs and bank statements go stale after about 30 to 60 days. Expect to send updated ones if closing moves.</span></li>
+      <li><b>Unsigned or incomplete forms.</b><span>Tax returns, letters of explanation and gift letters need signatures and dates. Check every line before you send.</span></li>
+      <li><b>Blurry photos or locked files.</b><span>Scan in good light, keep pages straight, and remove passwords from PDFs before uploading them.</span></li>
+    </ol>
+  </section>
+
+  <p class="foot">This is a general guide. Your lender may ask for more or fewer items depending on your situation and loan program. Check marks are saved only in this browser.</p>
+</div>
+
+<script>
+(function(){
+  const LOANS={conv:"Conventional",fha:"FHA",va:"VA",usda:"USDA",jumbo:"Jumbo"};
+  const WHO={w2:"W-2 employee",self:"Self-employed",retired:"Retired"};
+
+  // Each item: id, name, why (one line), tip (optional), show(state) (optional), tag (optional label)
+  const CATS=[
+    {name:"Who you are", items:[
+      {id:"id",name:"Government photo ID",why:"Confirms you are who you say you are. Federal law requires lenders to verify it.",
+        tip:"Make sure it isn't expired. The name should match your application exactly, including middle names or suffixes."},
+      {id:"ssn",name:"Social Security number for each borrower",why:"Used to pull your credit report and match it to your income records."},
+      {id:"addr",name:"Addresses for the last 2 years",why:"Lets the lender match your credit history and confirm where you've been living."},
+      {id:"rent",name:"12 months of rent payment history",why:"Shows you pay housing costs on time, which matters most when you have little credit history.",
+        show:s=>s.purpose==="buy",tag:"If renting",tip:"Canceled checks or bank statements showing the payments work best. Payments made by cash or money order are hard to verify."}
+    ]},
+    {name:"Your income", note:{
+        w2:"Shows the lender you have steady pay that's likely to continue.",
+        self:"Self-employed income is averaged over time, so lenders look at your tax returns more than your bank deposits.",
+        retired:"Lenders need to see how much you receive and that it will keep coming for at least 3 more years."}, items:[
+      // W-2
+      {id:"stubs",name:"Pay stubs for the last 30 days",why:"Shows your current pay rate and year-to-date earnings.",show:s=>s.who==="w2",
+        tip:"Stubs must show your name, your employer and year-to-date totals. Send every stub in the 30 days, not only the latest one."},
+      {id:"w2s",name:"W-2s for the last 2 years",why:"Confirms a 2-year history of earnings with your employer.",show:s=>s.who==="w2"},
+      {id:"w2tax",name:"Federal tax returns for the last 2 years (all pages)",why:"Needed if part of your pay is bonus, overtime or commission, if you have other income, or if your loan program requires it.",
+        show:s=>s.who==="w2",tag:"Often requested",tip:"Send the full return with every schedule, not just the first two pages."},
+      {id:"hr",name:"HR or payroll contact",why:"The lender confirms your job directly with your employer, usually again just before closing.",show:s=>s.who==="w2"},
+      {id:"gap",name:"Letter explaining any job gaps",why:"Gaps of more than a month in the last 2 years need a short explanation.",show:s=>s.who==="w2",tag:"If it applies"},
+      {id:"offer",name:"Signed offer letter",why:"If you're starting a new job, it shows your new salary and start date.",show:s=>s.who==="w2",tag:"If it applies"},
+      // Self-employed
+      {id:"ptax",name:"Personal tax returns for the last 2 years, all schedules",why:"Your qualifying income comes from your net income on these returns, not your gross sales.",show:s=>s.who==="self",
+        tip:"Write-offs lower your qualifying income. The lender can add back some items, like depreciation, but not most expenses."},
+      {id:"btax",name:"Business tax returns for the last 2 years",why:"Needed if you own 25% or more of a corporation or partnership (Forms 1120, 1120-S or 1065).",show:s=>s.who==="self",tag:"If it applies"},
+      {id:"k1",name:"K-1s for the last 2 years",why:"Shows your share of the business's income and how much was actually paid out to you.",show:s=>s.who==="self",tag:"If it applies"},
+      {id:"pl",name:"Year-to-date profit and loss statement",why:"Shows the business is still earning at the same level since your last tax return.",show:s=>s.who==="self",
+        tip:"Sign and date it. Some lenders want it prepared or reviewed by your CPA, so ask before you make one yourself."},
+      {id:"bstmt",name:"Business bank statements for the last 2 to 3 months (all pages)",why:"Supports your profit and loss statement and shows the business is active.",show:s=>s.who==="self"},
+      {id:"exists",name:"Proof your business exists",why:"A business license, CPA letter or state registration lets the lender confirm the business is open and operating.",show:s=>s.who==="self"},
+      {id:"1099",name:"1099s for the last 2 years",why:"Shows contract income if you're paid as an independent contractor.",show:s=>s.who==="self",tag:"If it applies"},
+      {id:"ext",name:"Tax extension and proof of payment",why:"If you filed an extension, the lender needs to know the current year's return is coming and any taxes owed are paid.",show:s=>s.who==="self",tag:"If it applies"},
+      // Retired
+      {id:"ssa",name:"Social Security award letter for this year",why:"Confirms your monthly benefit amount.",show:s=>s.who==="retired",
+        tip:"You can download a benefit verification letter from your my Social Security account at ssa.gov in a few minutes."},
+      {id:"pension",name:"Pension award letter or latest statement",why:"Shows the monthly amount and that payments will continue.",show:s=>s.who==="retired",tag:"If it applies"},
+      {id:"1099r",name:"SSA-1099 and 1099-R forms for the last 1 to 2 years",why:"Confirms the total benefits and retirement distributions you received.",show:s=>s.who==="retired"},
+      {id:"rdeposit",name:"Bank statement showing the benefit deposits",why:"Shows the money is actually landing in your account each month.",show:s=>s.who==="retired"},
+      {id:"ira",name:"Latest retirement account statements (IRA, 401(k), 403(b))",why:"If you take regular withdrawals, the lender needs to see there's enough to keep them going for at least 3 years.",show:s=>s.who==="retired",
+        tip:"Send the full quarterly statement. If you're setting up new regular withdrawals, ask your loan officer how to document them first."},
+      {id:"rtax",name:"Tax returns for the last 2 years",why:"Needed if you have interest, dividend, rental or part-time income in addition to your benefits.",show:s=>s.who==="retired",tag:"If it applies"},
+      {id:"other",name:"Other benefit letters (VA disability, annuity, survivor benefits)",why:"Each income source needs its own letter showing the amount and how long it lasts.",show:s=>s.who==="retired",tag:"If it applies",
+        tip:"Income that ends within 3 years, such as a survivor benefit that stops when a child turns 18, usually can't be counted."}
+    ]},
+    {name:"Money for closing", note:"Shows you have the down payment, closing costs and any required reserves, and where that money came from.", items:[
+      {id:"bank",name:"Bank statements for the last 2 months, all accounts, all pages",why:"Proves you have the funds and shows they've been in your account long enough.",
+        tip:"Send every page. Any deposit that isn't regular pay or benefits will probably need a letter and a paper trail, so gather those now."},
+      {id:"invest",name:"Most recent investment and retirement statements",why:"Can count toward reserves, which are the months of payments you'd have left after closing."},
+      {id:"emd",name:"Proof your earnest money cleared",why:"A copy of the check or wire receipt and the bank statement showing it left your account.",show:s=>s.purpose==="buy"},
+      {id:"giftl",name:"Signed gift letter",why:"States the money is a gift and doesn't need to be repaid.",show:s=>s.gift,tag:"Gift",
+        tip:"FHA, VA and conventional loans each have rules about who can give. Use your lender's gift letter form."},
+      {id:"giftp",name:"Proof of the gift transfer",why:"The giver's bank statement or the wire receipt showing the money moving to you or to the title company.",show:s=>s.gift,tag:"Gift"},
+      {id:"bizfunds",name:"CPA letter if using business funds",why:"Confirms that taking the money out won't hurt the business.",show:s=>s.who==="self",tag:"If it applies"},
+      {id:"sale",name:"Settlement statement from selling your current home",why:"Shows the sale proceeds you plan to use.",show:s=>s.purpose==="buy",tag:"If it applies"}
+    ]},
+    {name:"Debts and credit", note:"Your credit report covers most of this. These items explain what the report can't.", items:[
+      {id:"inq",name:"Letter explaining recent credit inquiries",why:"Lenders ask whether recent inquiries led to new debt that isn't on your report yet.",tag:"If asked"},
+      {id:"late",name:"Letter explaining any late payments or collections",why:"A short, honest explanation helps the underwriter see it was a one-time event.",tag:"If it applies"},
+      {id:"divorce",name:"Divorce decree and any settlement agreement",why:"Shows alimony or child support you pay or receive, and which debts belong to whom.",show:s=>s.credit,tag:"If it applies"},
+      {id:"bk",name:"Bankruptcy discharge papers or foreclosure records",why:"Confirms the dates, since every loan program has a waiting period after these events.",show:s=>s.credit,tag:"If it applies"},
+      {id:"reo",name:"Mortgage statements, tax bills and insurance for other properties",why:"Your other housing payments count toward your monthly debts.",show:s=>s.rental},
+      {id:"lease",name:"Signed leases for rental properties",why:"Rental income can help you qualify if it's documented.",show:s=>s.rental,
+        tip:"Most lenders also want the Schedule E from your tax returns, so send both."}
+    ]},
+    {name:"The property", items:[
+      {id:"contract",name:"Signed purchase contract with all addenda",why:"Sets the price, dates and terms the loan has to match.",show:s=>s.purpose==="buy",
+        tip:"Send each new addendum or amendment as soon as it's signed. Price or credit changes affect your loan."},
+      {id:"hoi",name:"Homeowners insurance agent's contact information",why:"The lender needs a policy in place before closing.",show:s=>s.purpose==="buy",
+        tip:"Shop for insurance early. A late quote is one of the most common reasons closings slip."},
+      {id:"hoa",name:"HOA contact information",why:"Lenders verify the dues and, for condos, review the association itself.",tag:"If it applies"},
+      {id:"mstmt",name:"Current mortgage statement",why:"Shows the loan being paid off, the balance and the payment history.",show:s=>s.purpose==="refi"},
+      {id:"dec",name:"Homeowners insurance declarations page",why:"Confirms the current coverage and the premium.",show:s=>s.purpose==="refi"},
+      {id:"ptaxbill",name:"Most recent property tax bill",why:"Used to figure your new monthly payment and escrow.",show:s=>s.purpose==="refi"},
+      {id:"heloc",name:"Statement for any home equity loan or line of credit",why:"The lender has to pay it off or get the other lender to agree to stay in second place.",show:s=>s.purpose==="refi",tag:"If it applies"}
+    ]},
+    {name:"For your loan type", items:[
+      {id:"conv1",name:"No extra documents for most conventional loans",why:"With less than 20% down, private mortgage insurance is arranged by the lender, so there's nothing extra to gather.",show:s=>s.loan==="conv",tag:"Conventional"},
+      {id:"fha1",name:"Gift letter on the lender's FHA form",why:"FHA has strict rules about who can give money and how the transfer is documented.",show:s=>s.loan==="fha"&&s.gift,tag:"FHA"},
+      {id:"fha2",name:"Explanations for any collections or judgments",why:"FHA underwriters review these closely and may require some to be paid or set up on a payment plan.",show:s=>s.loan==="fha",tag:"FHA"},
+      {id:"fha3",name:"Spouse's debts if you live in a community property state",why:"FHA counts a spouse's debts even when the spouse isn't on the loan.",show:s=>s.loan==="fha",tag:"FHA"},
+      {id:"va1",name:"Certificate of Eligibility (COE)",why:"Proves you qualify for a VA loan. Your lender can usually get it online for you.",show:s=>s.loan==="va",tag:"VA"},
+      {id:"va2",name:"DD-214 or statement of service",why:"Veterans send the DD-214 (member 4 copy). Active-duty borrowers send a statement of service from their commander.",show:s=>s.loan==="va",tag:"VA",
+        tip:"The DD-214 needs to be member copy 4, which shows the character of service. Other copies don't."},
+      {id:"va3",name:"VA disability award letter",why:"If you receive disability pay, you may not have to pay the VA funding fee.",show:s=>s.loan==="va",tag:"VA, if it applies"},
+      {id:"va4",name:"Leave and earnings statement (LES)",why:"For active-duty borrowers, this takes the place of a pay stub.",show:s=>s.loan==="va",tag:"VA, if active duty"},
+      {id:"usda1",name:"Income documents for every adult in the household",why:"USDA income limits count everyone living in the home, even people who aren't on the loan.",show:s=>s.loan==="usda",tag:"USDA",
+        tip:"This catches a lot of people. A working adult child or relative living with you counts toward the household limit."},
+      {id:"usda2",name:"Child care cost records",why:"Certain expenses can be subtracted from household income when checking USDA limits.",show:s=>s.loan==="usda",tag:"USDA, if it applies"},
+      {id:"j1",name:"Full tax returns for the last 2 years, even if you're a W-2 employee",why:"Jumbo lenders usually look at every income source and deduction.",show:s=>s.loan==="jumbo",tag:"Jumbo"},
+      {id:"j2",name:"Extra asset statements for reserves",why:"Jumbo loans often require 6 to 12 months of payments in reserve after closing.",show:s=>s.loan==="jumbo",tag:"Jumbo",
+        tip:"Send 2 to 3 months of every account you plan to count, all pages, including retirement and brokerage accounts."}
+    ]}
+  ];
+
+  const form=document.getElementById("pick"), list=document.getElementById("list");
+  let done={};
+  try{done=JSON.parse(localStorage.getItem("checklist-done")||"{}")||{};}catch(e){}
+  const save=()=>{try{localStorage.setItem("checklist-done",JSON.stringify(done));}catch(e){}};
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+  function state(){
+    const f=new FormData(form);
+    return {who:f.get("who"),loan:f.get("loan"),purpose:f.get("purpose"),gift:f.has("gift"),rental:f.has("rental"),credit:f.has("credit")};
+  }
+  function visible(s){
+    return CATS.map(c=>({...c,items:c.items.filter(i=>!i.show||i.show(s))})).filter(c=>c.items.length);
+  }
+
+  // Read choices from the link, if any (lets a loan officer send a pre-set list).
+  const qs=new URLSearchParams(location.search);
+  ["who","loan","purpose"].forEach(k=>{const v=qs.get(k);const el=v&&form.querySelector(`input[name="${k}"][value="${CSS.escape(v)}"]`);if(el)el.checked=true;});
+  (qs.get("also")||"").split(",").forEach(k=>{const el=k&&form.querySelector(`input[type=checkbox][name="${CSS.escape(k)}"]`);if(el)el.checked=true;});
+
+  function render(){
+    const s=state(), cats=visible(s);
+    list.innerHTML=cats.map(c=>{
+      const note=typeof c.note==="object"?c.note[s.who]:c.note;
+      const n=c.items.filter(i=>done[i.id]).length;
+      return `<section class="cat"><div class="cathead"><h2>${esc(c.name)}</h2><small>${n} of ${c.items.length}</small></div>
+        ${note?`<p class="catnote">${esc(note)}</p>`:""}
+        <ul class="items">${c.items.map(i=>`<li class="item${done[i.id]?" done":""}">
+          <input type="checkbox" id="c-${i.id}" data-id="${i.id}"${done[i.id]?" checked":""}>
+          <label for="c-${i.id}">${esc(i.name)}${i.tag?`<span class="tag${/FHA|VA|USDA|Jumbo|Conventional/.test(i.tag)?" loan":""}">${esc(i.tag)}</span>`:""}</label>
+          <p class="why">${esc(i.why)}</p>
+          ${i.tip?`<p class="tip"><b>Tip:</b> ${esc(i.tip)}</p>`:""}
+        </li>`).join("")}</ul></section>`;
+    }).join("");
+    const all=cats.flatMap(c=>c.items), got=all.filter(i=>done[i.id]).length;
+    document.getElementById("count").textContent=`${got} of ${all.length} ready`;
+    document.getElementById("meter").style.width=(all.length?got/all.length*100:0)+"%";
+    document.title=`Loan Document Checklist: ${WHO[s.who]}, ${LOANS[s.loan]}`;
+  }
+
+  list.addEventListener("change",e=>{
+    const id=e.target.dataset.id;if(!id)return;
+    if(e.target.checked)done[id]=1;else delete done[id];
+    save();render();
+    const el=document.getElementById("c-"+id);if(el)el.focus();
+  });
+  form.addEventListener("change",render);
+
+  const toast=document.getElementById("toast");let tt;
+  function say(m){toast.textContent=m;clearTimeout(tt);tt=setTimeout(()=>toast.textContent="",3000);}
+  async function copy(text,msg){
+    try{await navigator.clipboard.writeText(text);say(msg);}
+    catch(e){window.prompt("Copy this:",text);}
+  }
+  function link(){
+    const s=state(),u=new URL(location.href);
+    u.search="";u.searchParams.set("who",s.who);u.searchParams.set("loan",s.loan);u.searchParams.set("purpose",s.purpose);
+    const also=["gift","rental","credit"].filter(k=>s[k]);if(also.length)u.searchParams.set("also",also.join(","));
+    return u.href;
+  }
+  document.getElementById("copyLink").onclick=()=>copy(link(),"Link copied. Anyone who opens it sees this same list.");
+  document.getElementById("copyText").onclick=()=>{
+    const s=state();
+    const lines=[`Loan document checklist: ${WHO[s.who]}, ${LOANS[s.loan]} loan, ${s.purpose==="buy"?"purchase":"refinance"}`,""];
+    visible(s).forEach(c=>{lines.push(c.name.toUpperCase());c.items.forEach(i=>{
+      lines.push(`[${done[i.id]?"x":" "}] ${i.name}${i.tag?` (${i.tag})`:""}`);lines.push(`    Why: ${i.why}`);
+      if(i.tip)lines.push(`    Tip: ${i.tip}`);});lines.push("");});
+    lines.push("Tips: send every page of every statement, explain any unusual deposits, and don't open new credit or move money until after closing.");
+    copy(lines.join("\n"),"Checklist copied. Paste it into an email or text.");
+  };
+  document.getElementById("print").onclick=()=>window.print();
+  document.getElementById("clear").onclick=()=>{if(confirm("Clear all check marks?")){done={};save();render();}};
+
+  render();
+})();
+</script>
+</body>
+</html>

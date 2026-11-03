@@ -163,6 +163,7 @@ button.tile{width:100%;text-align:left;cursor:pointer;font:inherit}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end}
 .tbtn,.toolbar select{font-size:.88rem;font-weight:600;background:var(--panel);color:var(--ink);
   border:1px solid var(--rule);padding:6px 10px;cursor:pointer}
+a.tbtn{text-decoration:none;display:inline-block}
 .tbtn[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .toolbar label{font-size:.88rem;color:var(--muted);display:flex;gap:6px;align-items:center}
 @media (max-width:640px){.headright{align-items:flex-start}.toolbar{justify-content:flex-start}}
@@ -265,6 +266,7 @@ body.dragging{user-select:none;-webkit-user-select:none;overflow-anchor:none}
     <div class="headright">
       <div class="stamp" id="stamp"></div>
       <div class="toolbar">
+        <a class="tbtn" href="checklist.html">Document checklist</a>
         <button class="tbtn" id="sideOpen" aria-controls="side" aria-expanded="false">Lender links</button>
         <button class="tbtn" id="arrange" aria-pressed="false">Arrange sections</button>
         <button class="tbtn" id="resetLayout" hidden>Reset layout</button>
