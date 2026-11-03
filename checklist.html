@@ -308,16 +308,16 @@ button,select,input{font:inherit;color:inherit}
         tip:"Send 2 to 3 months, all pages, including retirement and brokerage accounts."}
     ]},
     {name:"Tips to avoid delays", tips:true, items:[
-      {id:"m1",usual:1,name:"Send every page",why:"Include every page of every statement, even the ones that say \"this page intentionally left blank.\""},
-      {id:"m2",usual:1,name:"Explain unusual deposits",why:"Any deposit that isn't regular pay or benefits may need a short letter and proof of where it came from."},
-      {id:"m3",name:"Avoid cash deposits",why:"Cash can't be traced, so it often can't be counted. Talk to me before depositing cash."},
-      {id:"m4",name:"Send statements, not screenshots",why:"Download the official PDF. Screenshots usually lack your name, account number and the bank's name."},
-      {id:"m5",name:"Don't move money between accounts",why:"Every transfer is another trail to document. Leave funds where they are until we talk."},
-      {id:"m6",usual:1,name:"Hold off on new credit and big purchases",why:"A new car, furniture on credit or a store card can affect your approval. Please wait until after closing."},
-      {id:"m7",name:"Tell me about any job change",why:"Employment is checked again right before closing."},
-      {id:"m8",name:"Expect updated documents if closing moves",why:"Pay stubs and bank statements go stale after about 30 to 60 days."},
-      {id:"m9",name:"Sign and date everything",why:"Tax returns, letters of explanation and gift letters need signatures and dates."},
-      {id:"m10",name:"Send clear scans",why:"Scan in good light, keep pages straight, and remove passwords from PDFs."}
+      {id:"m1",short:"Send every page of every statement, even blank ones.",usual:1,name:"Send every page",why:"Include every page of every statement, even the ones that say \"this page intentionally left blank.\""},
+      {id:"m2",short:"Be ready to explain any deposit that isn't your regular pay.",usual:1,name:"Explain unusual deposits",why:"Any deposit that isn't regular pay or benefits may need a short letter and proof of where it came from."},
+      {id:"m3",short:"Avoid cash deposits. Cash can't be traced.",name:"Avoid cash deposits",why:"Cash can't be traced, so it often can't be counted. Talk to me before depositing cash."},
+      {id:"m4",short:"Send official PDF statements, not screenshots.",name:"Send statements, not screenshots",why:"Download the official PDF. Screenshots usually lack your name, account number and the bank's name."},
+      {id:"m5",short:"Don't move money between accounts until we talk.",name:"Don't move money between accounts",why:"Every transfer is another trail to document. Leave funds where they are until we talk."},
+      {id:"m6",short:"Hold off on new credit and big purchases until after closing.",usual:1,name:"Hold off on new credit and big purchases",why:"A new car, furniture on credit or a store card can affect your approval. Please wait until after closing."},
+      {id:"m7",short:"Tell me right away about any job change.",name:"Tell me about any job change",why:"Employment is checked again right before closing."},
+      {id:"m8",short:"Expect to send updated documents if closing moves.",name:"Expect updated documents if closing moves",why:"Pay stubs and bank statements go stale after about 30 to 60 days."},
+      {id:"m9",short:"Sign and date every form and letter.",name:"Sign and date everything",why:"Tax returns, letters of explanation and gift letters need signatures and dates."},
+      {id:"m10",short:"Send clear scans, and remove passwords from PDFs.",name:"Send clear scans",why:"Scan in good light, keep pages straight, and remove passwords from PDFs."}
     ]}
   ];
 
@@ -430,7 +430,7 @@ button,select,input{font:inherit;color:inherit}
       if(stacked){T.push(`${m} ${nm(i)}`);if(whyFor(i))T.push(`   ${i.why}`);}
       else T.push(`${m} ${nm(i)}${whyFor(i)?`: ${i.why}`:""}`);
       if(tip(i))T.push(`   Tip: ${i.tip}`);});T.push("");});
-    if(tips){T.push("A FEW TIPS TO AVOID DELAYS");tips.items.forEach(i=>T.push(`• ${i.name}: ${i.why}`));T.push("");}
+    if(tips){T.push("Quick tips to avoid delays:");tips.items.forEach(i=>T.push(`• ${i.short}`));T.push("");}
     T.push(outro,"","Thank you,",me||"[Your name]");
     // HTML with inline styles and tables only, so it looks the same pasted into Outlook or Gmail and read on a phone
     const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
@@ -442,14 +442,16 @@ button,select,input{font:inherit;color:inherit}
     const ul=rows=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`;
     const row=(m,col,body)=>`<tr><td width="30" valign="top" style="width:30px;padding:0 0 8px 8px;${F};color:${col};${m==="☐"?"font-size:13pt;line-height:1.1;":""}${/\d/.test(m)?"font-weight:bold;":""}">${m}</td><td valign="top" style="padding:0 0 8px 0;${F}">${body}</td></tr>`;
     const body=i=>`<b>${esc(nm(i))}</b>`+(whyFor(i)?(stacked?`<br><span style="color:#555555;font-size:10.5pt">${esc(i.why)}</span>`:` – ${esc(i.why)}`):"")+
-      (tip(i)?`<br><i style="color:#8A6116;font-size:10.5pt">Tip: ${esc(i.tip)}</i>`:"");
+      (tip(i)?`<br><i style="color:#8A6116;font-size:10pt">Tip: ${esc(i.tip)}</i>`:"");
     num=0;
     const H=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(name||"there")},</p><p style="margin:0 0 10px 0">${esc(intro)}</p>`+
       (upOn?`<p style="margin:0 0 8px 0">${esc(upText)}</p>`+
         upButton(href)+`<p style="margin:0;font-size:8pt;line-height:8pt">&nbsp;</p>`:"")+
       (style==="numbered"?`<p style="margin:0 0 10px 0">When you reply, you can refer to items by number.</p>`:"")+
       docs.map(c=>{const col=colOf(c);return head(c.name,col)+ul(c.items.map(i=>row(mark(false),style==="numbered"?"#1F4E79":col,body(i))).join(""));}).join("")+
-      (tips?head("A few tips to avoid delays","#B4412F")+ul(tips.items.map(i=>row("•","#B4412F",`<b>${esc(i.name)}</b>`+(stacked?`<br><span style="color:#555555;font-size:10.5pt">${esc(i.why)}</span>`:` – ${esc(i.why)}`))).join("")):"")+
+      // Tips: one compact gray box with a short line per tip, so it doesn't take over the email
+      (tips?`<p style="margin:0;font-size:10pt;line-height:10pt">&nbsp;</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#F3F4F6" style="background:#F3F4F6;border-left:4px solid #B4412F;padding:8px 12px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:9.5pt;line-height:1.35;color:#444444">`+
+        `<b style="color:#B4412F;font-size:10pt">Quick tips to avoid delays</b><br>`+tips.items.map(i=>`&#8226;&nbsp;${esc(i.short)}`).join("<br>")+`</td></tr></table>`:"")+
       `<p style="margin:16px 0 10px 0">${esc(outro)}</p><p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     return {subject,text:T.join("\n"),html:H,n,total:cats.reduce((a,c)=>a+c.items.length,0),preview:H};
   }
