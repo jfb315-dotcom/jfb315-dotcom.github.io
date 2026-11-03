@@ -91,6 +91,9 @@ button,select,input{font:inherit;color:inherit}
 .item input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--good);cursor:pointer}
 .item label{font-weight:700;cursor:pointer}
 .item .why{grid-column:2;color:var(--muted);font-size:.92rem;margin:0}
+.yrs{grid-column:2;display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:6px;font-size:.9rem;font-weight:600}
+.yrs label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.yrs input{width:18px;height:18px;margin:0}
 .item .tip{grid-column:2;font-size:.88rem;margin:6px 0 0;padding:6px 10px;background:var(--tipbg);border-left:3px solid var(--brass)}
 .item .tip b{color:var(--brass)}
 .tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.02em;color:var(--muted);border:1px solid var(--rule);padding:0 6px;margin-left:6px;vertical-align:2px}
@@ -206,6 +209,8 @@ button,select,input{font:inherit;color:inherit}
     {name:"Income", items:[
       {id:"stubs",usual:1,name:"Pay stubs for the last 30 days",why:"Shows your current pay rate and year-to-date earnings.",show:s=>s.who==="w2",
         tip:"Send every stub from the last 30 days, not just the latest one. They must show your name, employer and year-to-date totals."},
+      {id:"ytd",years:1,name:"Pay stubs with a year-to-date earnings breakdown",why:"Shows base pay, overtime, bonus and commission separately so they can be averaged for qualifying income.",
+        show:s=>s.who==="w2",tag:"Overtime or bonus",tip:"For a past year, send the last pay stub dated in December. It must show year-to-date totals for each type of pay."},
       {id:"w2s",usual:1,name:"W-2s for the last 2 years",why:"Confirms a 2-year history of earnings.",show:s=>s.who==="w2"},
       {id:"w2tax",name:"Federal tax returns for the last 2 years (all pages)",why:"Needed when part of your pay is bonus, overtime or commission, or when you have other income.",
         show:s=>s.who==="w2",tag:"Often needed",tip:"Send the full return with every schedule, not just the first two pages."},
@@ -292,6 +297,18 @@ button,select,input{font:inherit;color:inherit}
 
   const $=id=>document.getElementById(id);
   const form=$("pick"), list=$("list");
+  // Years offered on the year-to-date pay stub item
+  const Y=new Date().getFullYear(), YEARS=[Y-2,Y-1,Y];
+  let yrs={[Y-1]:1};
+  try{yrs=JSON.parse(sessionStorage.getItem("req-yrs")||"null")||yrs;}catch(e){}
+  const saveYrs=()=>{try{sessionStorage.setItem("req-yrs",JSON.stringify(yrs));}catch(e){}};
+  function nm(i){
+    if(!i.years)return i.name;
+    const ys=YEARS.filter(y=>yrs[y]), past=ys.filter(y=>y<Y), parts=[];
+    if(past.length)parts.push(`final ${past.length>1?"stubs":"stub"} for ${past.join(" and ")}`);
+    if(yrs[Y])parts.push(`most recent stub for ${Y}`);
+    return parts.length?`Pay stubs with a year-to-date earnings breakdown (${parts.join(", ")})`:i.name;
+  }
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
   // Selections last for this tab only, so the next borrower starts fresh.
@@ -318,6 +335,7 @@ button,select,input{font:inherit;color:inherit}
           <input type="checkbox" id="c-${i.id}" data-id="${i.id}"${sel[i.id]?" checked":""}>
           <label for="c-${i.id}">${esc(i.name)}${i.tag?`<span class="tag${/FHA|VA|USDA|Jumbo/.test(i.tag)?" loan":""}">${esc(i.tag)}</span>`:""}</label>
           <p class="why">${esc(i.why)}</p>
+          ${i.years?`<div class="yrs" role="group" aria-label="Years to request">${YEARS.map(y=>`<label><input type="checkbox" data-year="${y}"${yrs[y]?" checked":""}> ${y===Y?`${y} (most recent stub)`:`${y} (final stub)`}</label>`).join("")}</div>`:""}
           ${i.tip?`<p class="tip"><b>Tip:</b> ${esc(i.tip)}</p>`:""}
         </li>`).join("")}</ul></section>`;
     }).join("");
@@ -336,18 +354,18 @@ button,select,input{font:inherit;color:inherit}
     // Plain text
     const T=[`Hi ${name||"there"},`,"",intro,""];
     docs.forEach(c=>{T.push(c.name.toUpperCase());c.items.forEach(i=>{
-      T.push(`- ${i.name}${why?`: ${i.why}`:""}`);if(tip&&i.tip)T.push(`  Tip: ${i.tip}`);});T.push("");});
+      T.push(`- ${nm(i)}${why?`: ${i.why}`:""}`);if(tip&&i.tip)T.push(`  Tip: ${i.tip}`);});T.push("");});
     if(tips){T.push("A FEW TIPS TO AVOID DELAYS");tips.items.forEach(i=>T.push(`- ${i.name}: ${i.why}`));T.push("");}
     T.push(outro,"","Thank you,",me||"[Your name]");
     // HTML (pastes with formatting into Gmail and Outlook)
-    const li=i=>`<li><b>${esc(i.name)}</b>${why?` – ${esc(i.why)}`:""}${tip&&i.tip?`<br><i style="color:#555">Tip: ${esc(i.tip)}</i>`:""}</li>`;
+    const li=i=>`<li><b>${esc(nm(i))}</b>${why?` – ${esc(i.why)}`:""}${tip&&i.tip?`<br><i style="color:#555">Tip: ${esc(i.tip)}</i>`:""}</li>`;
     const H=`<p>Hi ${esc(name||"there")},</p><p>${esc(intro)}</p>`+
       docs.map(c=>`<p style="margin-bottom:4px"><b>${esc(c.name)}</b></p><ul style="margin-top:0">${c.items.map(li).join("")}</ul>`).join("")+
       (tips?`<p style="margin-bottom:4px"><b>A few tips to avoid delays</b></p><ul style="margin-top:0">${tips.items.map(i=>`<li><b>${esc(i.name)}</b> – ${esc(i.why)}</li>`).join("")}</ul>`:"")+
       `<p>${esc(outro)}</p><p>Thank you,<br>${esc(me||"[Your name]").replace(/\n/g,"<br>")}</p>`;
     return {subject,text:T.join("\n"),html:H,n,total:cats.reduce((a,c)=>a+c.items.length,0),
       preview:`<p>Hi ${esc(name||"there")},</p><p>${esc(intro)}</p>`+
-        docs.map(c=>`<h3>${esc(c.name)}</h3><ul>${c.items.map(i=>`<li><b>${esc(i.name)}</b>${why?` – ${esc(i.why)}`:""}${tip&&i.tip?`<br><span class="t">Tip: ${esc(i.tip)}</span>`:""}</li>`).join("")}</ul>`).join("")+
+        docs.map(c=>`<h3>${esc(c.name)}</h3><ul>${c.items.map(i=>`<li><b>${esc(nm(i))}</b>${why?` – ${esc(i.why)}`:""}${tip&&i.tip?`<br><span class="t">Tip: ${esc(i.tip)}</span>`:""}</li>`).join("")}</ul>`).join("")+
         (tips?`<h3>A few tips to avoid delays</h3><ul>${tips.items.map(i=>`<li><b>${esc(i.name)}</b> – ${esc(i.why)}</li>`).join("")}</ul>`:"")+
         `<p>${esc(outro)}</p><p>Thank you,<br>${esc(me||"[Your name]")}</p>`};
   }
@@ -361,6 +379,11 @@ button,select,input{font:inherit;color:inherit}
   }
 
   list.addEventListener("change",ev=>{
+    const yr=ev.target.dataset.year;
+    if(yr){if(ev.target.checked)yrs[yr]=1;else delete yrs[yr];saveYrs();
+      const cb=ev.target.closest(".item").querySelector("[data-id]");
+      if(ev.target.checked&&!cb.checked){cb.checked=true;cb.dispatchEvent(new Event("change",{bubbles:true}));}else renderEmail();
+      return;}
     const id=ev.target.dataset.id;if(!id)return;
     if(ev.target.checked)sel[id]=1;else delete sel[id];
     ev.target.closest(".item").classList.toggle("on",ev.target.checked);
