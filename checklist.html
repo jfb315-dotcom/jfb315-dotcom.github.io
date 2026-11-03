@@ -167,6 +167,7 @@ button,select,input{font:inherit;color:inherit}
       </div>
       <div class="opts" style="margin-top:10px">
         <label><input type="checkbox" id="optUp" checked> Add an "Upload documents" button</label>
+        <label><input type="checkbox" id="remUp"> Remember my upload link in this browser</label>
         <label><input type="checkbox" id="optWhy" checked> Explain why each item is needed (turns all on or off)</label>
       </div>
     </fieldset>
@@ -340,6 +341,12 @@ button,select,input{font:inherit;color:inherit}
   try{sel=JSON.parse(sessionStorage.getItem("req-sel")||"{}")||{};}catch(e){}
   const saveSel=()=>{try{sessionStorage.setItem("req-sel",JSON.stringify(sel));}catch(e){}};
   try{$("me").value=localStorage.getItem("req-me")||"";}catch(e){}
+  // Upload link: optionally remembered in this browser only (never in the page's public code)
+  const getSaved=()=>{try{return localStorage.getItem("req-ulink")||"";}catch(e){return "";}};
+  const setSaved=v=>{try{if(v)localStorage.setItem("req-ulink",v);else localStorage.removeItem("req-ulink");}catch(e){}};
+  if(getSaved()){$("ulink").value=getSaved();$("remUp").checked=true;}
+  // Saved only when the box is ticked, so pasting a one-off link for a customer doesn't replace it.
+  $("remUp").addEventListener("change",()=>setSaved($("remUp").checked?$("ulink").value.trim():""));
   $("me").addEventListener("input",()=>{try{localStorage.setItem("req-me",$("me").value);}catch(e){}});
 
   function state(){
@@ -467,7 +474,7 @@ button,select,input{font:inherit;color:inherit}
   form.addEventListener("input",ev=>{if(ev.target.matches("#bname,#me,#ulink"))renderEmail();});
 
   $("typical").onclick=()=>{visible(state()).forEach(c=>c.items.forEach(i=>{if(i.usual)sel[i.id]=1;}));saveSel();renderList();};
-  $("clear").onclick=()=>{$("ulink").value="";sel={};tipOn={};whyX={};saveSel();saveTips();saveWhy();renderList();};
+  $("clear").onclick=()=>{$("ulink").value=getSaved();sel={};tipOn={};whyX={};saveSel();saveTips();saveWhy();renderList();};
 
   const toast=$("toast");let tt;
   function say(m){toast.textContent=m;clearTimeout(tt);tt=setTimeout(()=>toast.textContent="",3500);}
