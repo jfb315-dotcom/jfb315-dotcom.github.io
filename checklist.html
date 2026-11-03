@@ -364,18 +364,19 @@ button,select,input{font:inherit;color:inherit}
     // Plain text
     const T=[`Hi ${name||"there"},`,"",intro,""];
     docs.forEach(c=>{T.push(c.name.toUpperCase());c.items.forEach(i=>{
-      T.push(`- ${nm(i)}${whyFor(i)?`: ${i.why}`:""}`);if(tip(i))T.push(`  Tip: ${i.tip}`);});T.push("");});
-    if(tips){T.push("A FEW TIPS TO AVOID DELAYS");tips.items.forEach(i=>T.push(`- ${i.name}: ${i.why}`));T.push("");}
+      T.push(`• ${nm(i)}${whyFor(i)?`: ${i.why}`:""}`);if(tip(i))T.push(`  Tip: ${i.tip}`);});T.push("");});
+    if(tips){T.push("A FEW TIPS TO AVOID DELAYS");tips.items.forEach(i=>T.push(`• ${i.name}: ${i.why}`));T.push("");}
     T.push(outro,"","Thank you,",me||"[Your name]");
     // HTML with inline styles only, so the colors survive pasting into Outlook and Gmail
     const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
     const COLORS={"Identification":"#1F4E79","Income":"#2E7D5B","Assets and funds to close":"#7B3F8C","Credit and debts":"#1F6F8B","Property":"#8A6116","Loan program":"#5B4A9E"};
     const head=(t,col)=>`<p style="margin:18px 0 6px 0;padding:0 0 3px 0;border-bottom:2px solid ${col};color:${col};font-size:13pt;font-weight:bold">${esc(t)}</p>`;
-    const ul=items=>`<ul style="margin:0 0 6px 0;padding-left:22px">${items}</ul>`;
-    const li=i=>`<li style="margin:0 0 6px 0"><b>${esc(nm(i))}</b>${whyFor(i)?` – ${esc(i.why)}`:""}${tip(i)?`<br><i style="color:#8A6116">Tip: ${esc(i.tip)}</i>`:""}</li>`;
+    const ul=items=>`<div style="margin:0 0 6px 0">${items}</div>`;
+    const bullet=body=>`<p style="margin:0 0 6px 0;padding-left:18px;text-indent:-14px"><span style="color:#555555">&#8226;</span>&nbsp;&nbsp;${body}</p>`;
+    const li=i=>bullet(`<b>${esc(nm(i))}</b>${whyFor(i)?` – ${esc(i.why)}`:""}${tip(i)?`<br><i style="color:#8A6116">Tip: ${esc(i.tip)}</i>`:""}`);
     const H=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(name||"there")},</p><p style="margin:0 0 10px 0">${esc(intro)}</p>`+
       docs.map(c=>head(c.name,COLORS[c.name]||"#1F4E79")+ul(c.items.map(li).join(""))).join("")+
-      (tips?head("A few tips to avoid delays","#B4412F")+ul(tips.items.map(i=>`<li style="margin:0 0 6px 0"><b>${esc(i.name)}</b> – ${esc(i.why)}</li>`).join("")):"")+
+      (tips?head("A few tips to avoid delays","#B4412F")+ul(tips.items.map(i=>bullet(`<b>${esc(i.name)}</b> – ${esc(i.why)}`)).join("")):"")+
       `<p style="margin:16px 0 10px 0">${esc(outro)}</p><p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     return {subject,text:T.join("\n"),html:H,n,total:cats.reduce((a,c)=>a+c.items.length,0),preview:H};
   }
