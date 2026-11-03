@@ -106,6 +106,9 @@ button,select,input{font:inherit;color:inherit}
 /* Email preview */
 .preview{margin-top:32px;background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--good);padding:16px 18px}
 .phead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.estyle{border:0;margin:12px 0 0;padding:0;min-width:0}
+.estyle legend{font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:6px;padding:0}
+.sdesc{font-size:.85rem;color:var(--muted);margin:6px 0 0}
 .subj{margin:12px 0 0;font-size:.92rem;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 .subj b{color:var(--muted)}
 .mail{margin-top:12px;padding:16px;background:#FFFFFF;color:#222222;border:1px solid var(--rule)}
@@ -184,6 +187,16 @@ button,select,input{font:inherit;color:inherit}
       <h2 id="ph">Email preview</h2>
       <button class="tbtn primary copyBtn" type="button">Copy email</button>
     </div>
+    <fieldset class="estyle" id="estyle">
+      <legend>Email style</legend>
+      <div class="seg">
+        <label><input type="radio" name="estyle" value="classic" checked><span>Classic</span></label>
+        <label><input type="radio" name="estyle" value="checklist"><span>Checklist</span></label>
+        <label><input type="radio" name="estyle" value="banded"><span>Color bands</span></label>
+        <label><input type="radio" name="estyle" value="numbered"><span>Numbered</span></label>
+      </div>
+      <p class="sdesc" id="sdesc"></p>
+    </fieldset>
     <p class="subj"><b>Subject:</b> <span id="subject"></span> <button class="tbtn" id="copySubj" type="button">Copy subject</button></p>
     <div class="mail" id="mail"></div>
   </section>
@@ -361,28 +374,51 @@ button,select,input{font:inherit;color:inherit}
     const subject=`Documents needed for your ${loan} ${what}`;
     const intro=`Thanks for starting your ${loan} ${what} with me! To keep your loan moving, please send the ${n===1?"item":"items"} below. Clear photos or PDFs are fine, and you're welcome to send them as you gather them.`;
     const outro="If anything is unclear or doesn't apply to you, just let me know. I'm happy to help.";
+    const style=$("estyle").querySelector("input:checked")?.value||"classic";
+    const stacked=style==="checklist"||style==="banded";   // explanation on its own line: easiest to read on a phone
+    const COLORS={"Identification":"#1F4E79","Income":"#2E7D5B","Assets and funds to close":"#7B3F8C","Credit and debts":"#1F6F8B","Property":"#8A6116","Loan program":"#5B4A9E"};
+    const colOf=c=>style==="numbered"?"#333333":(COLORS[c.name]||"#1F4E79");
+    let num=0;
+    const mark=(tipsSec)=>tipsSec?"•":style==="numbered"?`${++num}.`:style==="classic"?"•":"☐";
     // Plain text
     const T=[`Hi ${name||"there"},`,"",intro,""];
+    num=0;
     docs.forEach(c=>{T.push(c.name.toUpperCase());c.items.forEach(i=>{
-      T.push(`• ${nm(i)}${whyFor(i)?`: ${i.why}`:""}`);if(tip(i))T.push(`  Tip: ${i.tip}`);});T.push("");});
+      const m=mark(false);
+      if(stacked){T.push(`${m} ${nm(i)}`);if(whyFor(i))T.push(`   ${i.why}`);}
+      else T.push(`${m} ${nm(i)}${whyFor(i)?`: ${i.why}`:""}`);
+      if(tip(i))T.push(`   Tip: ${i.tip}`);});T.push("");});
     if(tips){T.push("A FEW TIPS TO AVOID DELAYS");tips.items.forEach(i=>T.push(`• ${i.name}: ${i.why}`));T.push("");}
     T.push(outro,"","Thank you,",me||"[Your name]");
-    // HTML with inline styles only, so the colors survive pasting into Outlook and Gmail
+    // HTML with inline styles and tables only, so it looks the same pasted into Outlook or Gmail and read on a phone
     const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
-    const COLORS={"Identification":"#1F4E79","Income":"#2E7D5B","Assets and funds to close":"#7B3F8C","Credit and debts":"#1F6F8B","Property":"#8A6116","Loan program":"#5B4A9E"};
-    const head=(t,col)=>`<p style="margin:18px 0 6px 0;padding:0 0 3px 0;border-bottom:2px solid ${col};color:${col};font-size:13pt;font-weight:bold">${esc(t)}</p>`;
-    // Each item is a table row (bullet cell + text cell): Outlook ignores indents but always respects tables.
+    const gap=`<p style="margin:0;font-size:8pt;line-height:8pt">&nbsp;</p>`;
+    const head=(t,col)=>style==="banded"
+      ? gap+`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="${col}" style="background:${col};padding:6px 10px;${F};color:#FFFFFF;font-size:12pt;font-weight:bold">${esc(t)}</td></tr></table>`+`<p style="margin:0;font-size:5pt;line-height:5pt">&nbsp;</p>`
+      : `<p style="margin:18px 0 6px 0;padding:0 0 3px 0;border-bottom:2px solid ${style==="numbered"?"#BBBBBB":col};color:${col};font-size:13pt;font-weight:bold">${esc(t)}</p>`;
+    // Each item is a table row (marker cell + text cell): Outlook ignores indents but always respects tables.
     const ul=rows=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`;
-    const bullet=body=>`<tr><td width="26" valign="top" style="width:26px;padding:0 0 7px 8px;${F};color:#555555">&#8226;</td><td valign="top" style="padding:0 0 7px 0;${F}">${body}</td></tr>`;
-    const li=i=>bullet(`<b>${esc(nm(i))}</b>${whyFor(i)?` – ${esc(i.why)}`:""}${tip(i)?`<br><i style="color:#8A6116">Tip: ${esc(i.tip)}</i>`:""}`);
+    const row=(m,col,body)=>`<tr><td width="30" valign="top" style="width:30px;padding:0 0 8px 8px;${F};color:${col};${m==="☐"?"font-size:13pt;line-height:1.1;":""}${/\d/.test(m)?"font-weight:bold;":""}">${m}</td><td valign="top" style="padding:0 0 8px 0;${F}">${body}</td></tr>`;
+    const body=i=>`<b>${esc(nm(i))}</b>`+(whyFor(i)?(stacked?`<br><span style="color:#555555;font-size:10.5pt">${esc(i.why)}</span>`:` – ${esc(i.why)}`):"")+
+      (tip(i)?`<br><i style="color:#8A6116;font-size:10.5pt">Tip: ${esc(i.tip)}</i>`:"");
+    num=0;
     const H=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(name||"there")},</p><p style="margin:0 0 10px 0">${esc(intro)}</p>`+
-      docs.map(c=>head(c.name,COLORS[c.name]||"#1F4E79")+ul(c.items.map(li).join(""))).join("")+
-      (tips?head("A few tips to avoid delays","#B4412F")+ul(tips.items.map(i=>bullet(`<b>${esc(i.name)}</b> – ${esc(i.why)}`)).join("")):"")+
+      (style==="numbered"?`<p style="margin:0 0 10px 0">When you reply, you can refer to items by number.</p>`:"")+
+      docs.map(c=>{const col=colOf(c);return head(c.name,col)+ul(c.items.map(i=>row(mark(false),style==="numbered"?"#1F4E79":col,body(i))).join(""));}).join("")+
+      (tips?head("A few tips to avoid delays","#B4412F")+ul(tips.items.map(i=>row("•","#B4412F",`<b>${esc(i.name)}</b>`+(stacked?`<br><span style="color:#555555;font-size:10.5pt">${esc(i.why)}</span>`:` – ${esc(i.why)}`))).join("")):"")+
       `<p style="margin:16px 0 10px 0">${esc(outro)}</p><p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     return {subject,text:T.join("\n"),html:H,n,total:cats.reduce((a,c)=>a+c.items.length,0),preview:H};
   }
 
+  const SDESC={
+    classic:"Colored headings with bullets. Compact and familiar; reads best on a computer.",
+    checklist:"Check boxes with each explanation on its own line. Easy to scan on a phone, and borrowers can tick items off as they go.",
+    banded:"Bold color bars for each section with check boxes. The most visual; stands out well on a phone.",
+    numbered:"Simple headings with numbered items, so the borrower can reply \"attached #1 to #4.\""};
+  try{const v=localStorage.getItem("req-style");const r=v&&$("estyle").querySelector(`input[value="${CSS.escape(v)}"]`);if(r)r.checked=true;}catch(e){}
+  $("estyle").addEventListener("change",()=>{try{localStorage.setItem("req-style",$("estyle").querySelector("input:checked").value);}catch(e){}renderEmail();});
   function renderEmail(){
+    $("sdesc").textContent=SDESC[$("estyle").querySelector("input:checked").value];
     const e=email();
     $("count").textContent=`${e.n} document${e.n===1?"":"s"} selected`;
     $("subject").textContent=e.subject;
