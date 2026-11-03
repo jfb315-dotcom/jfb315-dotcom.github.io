@@ -67,6 +67,12 @@ button,select,input{font:inherit;color:inherit}
 .opts input[type=checkbox]{width:18px;height:18px;accent-color:var(--ink)}
 .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:10px}
 .fields label{display:grid;gap:3px;font-size:.85rem;font-weight:700;color:var(--muted)}
+.uplink{display:grid;gap:3px;font-size:.85rem;font-weight:700;color:var(--muted);grid-column:1/-1}
+.uprow{display:flex;gap:6px}
+.uprow input{flex:1;min-width:0}
+.uprow .tbtn{white-space:nowrap}
+.upnote{margin:0;font-weight:500;font-size:.8rem;overflow-wrap:anywhere}
+.upnote button{background:none;border:0;padding:0;color:var(--bad);font-weight:600;font-size:.8rem;cursor:pointer;text-decoration:underline}
 .fields input{padding:8px 10px;border:1px solid var(--rule);background:var(--paper);font-weight:500;color:var(--ink);width:100%}
 
 /* Action bar */
@@ -163,12 +169,16 @@ button,select,input{font:inherit;color:inherit}
       <div class="fields">
         <label>Borrower's first name<input id="bname" placeholder="Maria" autocomplete="off"></label>
         <label>Sign off as<input id="me" placeholder="Your name and phone" autocomplete="off"></label>
-        <label>Add upload documents link<input id="ulink" placeholder="Paste this customer's Dropbox request link (optional)" inputmode="url" autocomplete="off"></label>
+        <div class="uplink">
+          <label for="ulink">Add upload documents link</label>
+          <div class="uprow"><input id="ulink" placeholder="Paste your Dropbox request link" inputmode="url" autocomplete="off">
+            <button class="tbtn" type="button" id="saveUp">Save as my link</button></div>
+          <p class="upnote" id="upnote"></p>
+        </div>
       </div>
       <div class="opts" style="margin-top:10px">
         <label><input type="checkbox" id="optUp" checked> Add an "Upload documents" button</label>
         <label><input type="checkbox" id="optPic"> Use a picture button (whole button clickable everywhere)</label>
-        <label><input type="checkbox" id="remUp"> Remember my upload link in this browser</label>
         <label><input type="checkbox" id="optWhy" checked> Explain why each item is needed (turns all on or off)</label>
       </div>
     </fieldset>
@@ -347,9 +357,22 @@ button,select,input{font:inherit;color:inherit}
   const setSaved=v=>{try{if(v)localStorage.setItem("req-ulink",v);else localStorage.removeItem("req-ulink");}catch(e){}};
   try{$("optPic").checked=localStorage.getItem("req-pic")==="1";}catch(e){}
   $("optPic").addEventListener("change",()=>{try{localStorage.setItem("req-pic",$("optPic").checked?"1":"0");}catch(e){}});
-  if(getSaved()){$("ulink").value=getSaved();$("remUp").checked=true;}
-  // Saved only when the box is ticked, so pasting a one-off link for a customer doesn't replace it.
-  $("remUp").addEventListener("change",()=>setSaved($("remUp").checked?$("ulink").value.trim():""));
+  // The saved link fills in every time this page opens. Pasting a different link for one customer
+  // doesn't change it; "Save as my link" does.
+  function showSaved(){
+    const v=getSaved();
+    $("upnote").innerHTML=v?`Saved link (fills in automatically on this computer): ${esc(v)} · <button type="button" id="forgetUp">Forget</button>`
+      :"Tip: paste your link and press “Save as my link” so it's here every time.";
+    const f=$("forgetUp");if(f)f.onclick=()=>{setSaved("");showSaved();say("Saved link forgotten.");};
+  }
+  if(getSaved())$("ulink").value=getSaved();
+  $("saveUp").onclick=()=>{
+    const v=$("ulink").value.trim();
+    if(!v){say("Paste your link in the box first, then press Save.");$("ulink").focus();return;}
+    setSaved(v);showSaved();
+    if(getSaved()===v){const b=$("saveUp");b.textContent="Saved ✓";setTimeout(()=>b.textContent="Save as my link",2000);}
+    say(getSaved()===v?"Link saved. It will fill in automatically on this computer.":"This browser isn't letting the page save. It may be in private mode.");
+  };
   $("me").addEventListener("input",()=>{try{localStorage.setItem("req-me",$("me").value);}catch(e){}});
 
   function state(){
@@ -503,6 +526,7 @@ button,select,input{font:inherit;color:inherit}
     try{await navigator.clipboard.writeText($("subject").textContent);say("Subject copied.");}catch(e){window.prompt("Copy this:",$("subject").textContent);}
   };
 
+  showSaved();
   renderList();
 })();
 </script>
