@@ -417,8 +417,8 @@ button,select,input{font:inherit;color:inherit}
     const outro="If anything is unclear or doesn't apply to you, just let me know. I'm happy to help.";
     const style=$("estyle").querySelector("input:checked")?.value||"classic";
     const stacked=style==="checklist"||style==="banded";   // explanation on its own line: easiest to read on a phone
-    const COLORS={"Identification":"#1F4E79","Income":"#2E7D5B","Assets and funds to close":"#7B3F8C","Credit and debts":"#1F6F8B","Property":"#8A6116","Loan program":"#5B4A9E"};
-    const colOf=c=>style==="numbered"?"#333333":(COLORS[c.name]||"#1F4E79");
+    // Every section heading uses the upload button's blue; only the tips box is red.
+    const colOf=c=>"#1F4E79";
     let num=0;
     const mark=(tipsSec)=>tipsSec?"•":style==="numbered"?`${++num}.`:style==="classic"?"•":"☐";
     // Plain text
@@ -437,7 +437,7 @@ button,select,input{font:inherit;color:inherit}
     const gap=`<p style="margin:0;font-size:8pt;line-height:8pt">&nbsp;</p>`;
     const head=(t,col)=>style==="banded"
       ? gap+`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="${col}" style="background:${col};padding:6px 10px;${F};color:#FFFFFF;font-size:12pt;font-weight:bold">${esc(t)}</td></tr></table>`+`<p style="margin:0;font-size:5pt;line-height:5pt">&nbsp;</p>`
-      : `<p style="margin:18px 0 6px 0;padding:0 0 3px 0;border-bottom:2px solid ${style==="numbered"?"#BBBBBB":col};color:${col};font-size:13pt;font-weight:bold">${esc(t)}</p>`;
+      : `<p style="margin:18px 0 6px 0;padding:0 0 3px 0;border-bottom:2px solid ${col};color:${col};font-size:13pt;font-weight:bold">${esc(t)}</p>`;
     // Each item is a table row (marker cell + text cell): Outlook ignores indents but always respects tables.
     const ul=rows=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`;
     const row=(m,col,body)=>`<tr><td width="30" valign="top" style="width:30px;padding:0 0 8px 8px;${F};color:${col};${m==="☐"?"font-size:13pt;line-height:1.1;":""}${/\d/.test(m)?"font-weight:bold;":""}">${m}</td><td valign="top" style="padding:0 0 8px 0;${F}">${body}</td></tr>`;
