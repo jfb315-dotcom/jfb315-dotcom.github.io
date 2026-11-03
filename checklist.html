@@ -411,7 +411,7 @@ button,select,input{font:inherit;color:inherit}
     const upText="Click the button below to upload your documents securely.";
     // The button is one picture, so the whole thing is clickable in every email program (classic Outlook included).
     // If pictures are blocked, the words UPLOAD DOCUMENTS show instead and are still the link.
-    const IMG=new URL("upload-button.png",location.href.startsWith("http")&&location.hostname.endsWith("github.io")?location.href:"https://jfb315-dotcom.github.io/").href;
+    const IMG=new URL("upload-button-v2.png",location.href.startsWith("http")&&location.hostname.endsWith("github.io")?location.href:"https://jfb315-dotcom.github.io/").href;
     const upButton=h=>(h?`<a href="${esc(h)}" style="display:inline-block">`:"")+
       `<img src="${IMG}" width="300" height="56" alt="UPLOAD DOCUMENTS" style="display:block;border:0;width:300px;height:56px;font-family:Calibri,Arial,sans-serif;font-size:16pt;font-weight:bold;color:#1F4E79">`+(h?`</a>`:"");
     const outro="If anything is unclear or doesn't apply to you, just let me know. I'm happy to help.";
