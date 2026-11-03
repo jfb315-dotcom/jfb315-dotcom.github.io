@@ -96,6 +96,8 @@ button,select,input{font:inherit;color:inherit}
 .yrs input{width:18px;height:18px;margin:0}
 .item .tip{grid-column:2;font-size:.88rem;margin:6px 0 0;padding:6px 10px;background:var(--tipbg);border-left:3px solid var(--brass)}
 .item .tip b{color:var(--brass)}
+.tipadd{display:flex;align-items:center;gap:6px;margin-top:4px;font-weight:600;font-size:.85rem;cursor:pointer;width:fit-content}
+.tipadd input{width:16px;height:16px;margin:0;accent-color:var(--brass)}
 .tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.02em;color:var(--muted);border:1px solid var(--rule);padding:0 6px;margin-left:6px;vertical-align:2px}
 .tag.loan{color:var(--brass);border-color:var(--brass)}
 
@@ -163,7 +165,6 @@ button,select,input{font:inherit;color:inherit}
       </div>
       <div class="opts" style="margin-top:10px">
         <label><input type="checkbox" id="optWhy" checked> Explain why each item is needed</label>
-        <label><input type="checkbox" id="optTip"> Include the tip under each item</label>
       </div>
     </fieldset>
   </form>
@@ -309,6 +310,10 @@ button,select,input{font:inherit;color:inherit}
     if(yrs[Y])parts.push(`most recent stub for ${Y}`);
     return parts.length?`Pay stubs with a year-to-date earnings breakdown (${parts.join(", ")})`:i.name;
   }
+  // Tips chosen one at a time for the email
+  let tipOn={};
+  try{tipOn=JSON.parse(sessionStorage.getItem("req-tips")||"{}")||{};}catch(e){}
+  const saveTips=()=>{try{sessionStorage.setItem("req-tips",JSON.stringify(tipOn));}catch(e){}};
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
   // Selections last for this tab only, so the next borrower starts fresh.
@@ -336,7 +341,7 @@ button,select,input{font:inherit;color:inherit}
           <label for="c-${i.id}">${esc(i.name)}${i.tag?`<span class="tag${/FHA|VA|USDA|Jumbo/.test(i.tag)?" loan":""}">${esc(i.tag)}</span>`:""}</label>
           <p class="why">${esc(i.why)}</p>
           ${i.years?`<div class="yrs" role="group" aria-label="Years to request">${YEARS.map(y=>`<label><input type="checkbox" data-year="${y}"${yrs[y]?" checked":""}> ${y===Y?`${y} (most recent stub)`:`${y} (final stub)`}</label>`).join("")}</div>`:""}
-          ${i.tip?`<p class="tip"><b>Tip:</b> ${esc(i.tip)}</p>`:""}
+          ${i.tip?`<p class="tip"><b>Tip:</b> ${esc(i.tip)}${i.tipsCat?"":`<label class="tipadd"><input type="checkbox" data-tip="${i.id}"${tipOn[i.id]?" checked":""}> Add this tip to the email</label>`}</p>`:""}
         </li>`).join("")}</ul></section>`;
     }).join("");
     renderEmail();
@@ -344,7 +349,7 @@ button,select,input{font:inherit;color:inherit}
 
   function email(){
     const s=state(), cats=chosen(s), docs=cats.filter(c=>!c.tips), tips=cats.find(c=>c.tips);
-    const why=$("optWhy").checked, tip=$("optTip").checked;
+    const why=$("optWhy").checked, tip=i=>i.tip&&tipOn[i.id];
     const name=$("bname").value.trim(), me=$("me").value.trim();
     const n=docs.reduce((a,c)=>a+c.items.length,0);
     const loan=LOANS[s.loan], what=s.purpose==="buy"?"home purchase":"refinance";
@@ -354,18 +359,18 @@ button,select,input{font:inherit;color:inherit}
     // Plain text
     const T=[`Hi ${name||"there"},`,"",intro,""];
     docs.forEach(c=>{T.push(c.name.toUpperCase());c.items.forEach(i=>{
-      T.push(`- ${nm(i)}${why?`: ${i.why}`:""}`);if(tip&&i.tip)T.push(`  Tip: ${i.tip}`);});T.push("");});
+      T.push(`- ${nm(i)}${why?`: ${i.why}`:""}`);if(tip(i))T.push(`  Tip: ${i.tip}`);});T.push("");});
     if(tips){T.push("A FEW TIPS TO AVOID DELAYS");tips.items.forEach(i=>T.push(`- ${i.name}: ${i.why}`));T.push("");}
     T.push(outro,"","Thank you,",me||"[Your name]");
     // HTML (pastes with formatting into Gmail and Outlook)
-    const li=i=>`<li><b>${esc(nm(i))}</b>${why?` – ${esc(i.why)}`:""}${tip&&i.tip?`<br><i style="color:#555">Tip: ${esc(i.tip)}</i>`:""}</li>`;
+    const li=i=>`<li><b>${esc(nm(i))}</b>${why?` – ${esc(i.why)}`:""}${tip(i)?`<br><i style="color:#555">Tip: ${esc(i.tip)}</i>`:""}</li>`;
     const H=`<p>Hi ${esc(name||"there")},</p><p>${esc(intro)}</p>`+
       docs.map(c=>`<p style="margin-bottom:4px"><b>${esc(c.name)}</b></p><ul style="margin-top:0">${c.items.map(li).join("")}</ul>`).join("")+
       (tips?`<p style="margin-bottom:4px"><b>A few tips to avoid delays</b></p><ul style="margin-top:0">${tips.items.map(i=>`<li><b>${esc(i.name)}</b> – ${esc(i.why)}</li>`).join("")}</ul>`:"")+
       `<p>${esc(outro)}</p><p>Thank you,<br>${esc(me||"[Your name]").replace(/\n/g,"<br>")}</p>`;
     return {subject,text:T.join("\n"),html:H,n,total:cats.reduce((a,c)=>a+c.items.length,0),
       preview:`<p>Hi ${esc(name||"there")},</p><p>${esc(intro)}</p>`+
-        docs.map(c=>`<h3>${esc(c.name)}</h3><ul>${c.items.map(i=>`<li><b>${esc(nm(i))}</b>${why?` – ${esc(i.why)}`:""}${tip&&i.tip?`<br><span class="t">Tip: ${esc(i.tip)}</span>`:""}</li>`).join("")}</ul>`).join("")+
+        docs.map(c=>`<h3>${esc(c.name)}</h3><ul>${c.items.map(i=>`<li><b>${esc(nm(i))}</b>${why?` – ${esc(i.why)}`:""}${tip(i)?`<br><span class="t">Tip: ${esc(i.tip)}</span>`:""}</li>`).join("")}</ul>`).join("")+
         (tips?`<h3>A few tips to avoid delays</h3><ul>${tips.items.map(i=>`<li><b>${esc(i.name)}</b> – ${esc(i.why)}</li>`).join("")}</ul>`:"")+
         `<p>${esc(outro)}</p><p>Thank you,<br>${esc(me||"[Your name]")}</p>`};
   }
@@ -379,6 +384,11 @@ button,select,input{font:inherit;color:inherit}
   }
 
   list.addEventListener("change",ev=>{
+    const tp=ev.target.dataset.tip;
+    if(tp){if(ev.target.checked)tipOn[tp]=1;else delete tipOn[tp];saveTips();
+      const cb=ev.target.closest(".item").querySelector("[data-id]");
+      if(ev.target.checked&&!cb.checked){cb.checked=true;cb.dispatchEvent(new Event("change",{bubbles:true}));}else renderEmail();
+      return;}
     const yr=ev.target.dataset.year;
     if(yr){if(ev.target.checked)yrs[yr]=1;else delete yrs[yr];saveYrs();
       const cb=ev.target.closest(".item").querySelector("[data-id]");
@@ -401,7 +411,7 @@ button,select,input{font:inherit;color:inherit}
   form.addEventListener("input",ev=>{if(ev.target.matches("#bname,#me"))renderEmail();});
 
   $("typical").onclick=()=>{visible(state()).forEach(c=>c.items.forEach(i=>{if(i.usual)sel[i.id]=1;}));saveSel();renderList();};
-  $("clear").onclick=()=>{sel={};saveSel();renderList();};
+  $("clear").onclick=()=>{sel={};tipOn={};saveSel();saveTips();renderList();};
 
   const toast=$("toast");let tt;
   function say(m){toast.textContent=m;clearTimeout(tt);tt=setTimeout(()=>toast.textContent="",3500);}
