@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Client Tracker</title>
+<meta name="description" content="Track borrowers, loan milestones and notes, and copy milestone update emails. Saved only in this browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  // Use the same color scheme the visitor picked on the dashboard.
+  (function(){
+    var v="auto";try{v=localStorage.getItem("theme")||"auto";}catch(e){}
+    var r=document.documentElement,dark={night:1,harbor:1};
+    if(v!=="auto"){r.dataset.theme=dark[v]?"dark":"light";if(v!=="classic")r.dataset.palette=v;}
+  })();
+</script>
+<style>
+:root{
+  --paper:#F3F5F8; --panel:#FFFFFF; --ink:#14233C; --muted:#5B6A80; --rule:#D9DEE6;
+  --good:#2C5234; --goodtxt:#1F7A5A; --bad:#B4412F; --brass:#A97A1E; --goodbg:#E5F3EC; --tipbg:#FBF4E4;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
+    --good:#3F8A55; --goodtxt:#4CC197; --bad:#F08A73; --brass:#E0B455; --goodbg:#143329; --tipbg:#2C2717;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
+  --good:#3F8A55; --goodtxt:#4CC197; --bad:#F08A73; --brass:#E0B455; --goodbg:#143329; --tipbg:#2C2717;
+}
+:root[data-palette="forest"]{--paper:#F2F5F1;--panel:#FFFFFF;--ink:#1D3B2A;--muted:#5C6E62;--rule:#D5DDD6;--bad:#B4412F;--brass:#A8731F;--goodbg:#E4F1E8;--tipbg:#FAF3E3}
+:root[data-palette="burgundy"]{--paper:#F7F3F2;--panel:#FFFFFF;--ink:#4A1D27;--muted:#7A6266;--rule:#E3D8D8;--bad:#C0392B;--brass:#9A7020;--goodbg:#E5F3EC;--tipbg:#FAF3E3}
+:root[data-palette="harbor"]{--paper:#0E1F24;--panel:#15303A;--ink:#E6F1F1;--muted:#94B0B4;--rule:#24454F;--bad:#F2907A;--brass:#E8B860;--goodbg:#15372E;--tipbg:#2F2C1A}
+:root[data-palette="night"]{--paper:#0F1726;--panel:#16213A;--ink:#E8EDF5;--muted:#9AA8BD;--rule:#2A3756;--bad:#F08A73;--brass:#E0B455;--goodbg:#143329;--tipbg:#2C2717}
+
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
+  font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 20px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
+a{color:inherit}
+.back{font-size:.9rem;font-weight:600;color:var(--muted);text-decoration:none;background:none;border:0;padding:0;cursor:pointer;font-family:inherit}
+.back:hover{color:var(--brass)}
+h1{font-size:clamp(1.6rem,4vw,2.1rem);font-weight:800;letter-spacing:-.02em;margin:6px 0 2px;line-height:1.15}
+h2{font-size:1.15rem;font-weight:700;margin:0}
+h3{font-size:1rem;font-weight:700;margin:0}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.top{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:12px}
+.acts{display:flex;flex-wrap:wrap;gap:6px}
+.tbtn{font-size:.88rem;font-weight:600;background:var(--panel);border:1px solid var(--rule);padding:7px 12px;cursor:pointer;color:var(--ink);text-decoration:none;display:inline-block}
+.tbtn:hover{border-color:var(--ink)}
+.tbtn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.tbtn.danger{color:var(--bad)}
+.tbtn:disabled{opacity:.45;cursor:default}
+.note-local{font-size:.82rem;color:var(--muted);margin:8px 0 0}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--panel);
+  padding:10px 16px;font-weight:600;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100vw - 32px);text-align:center;z-index:50}
+.toast.on{opacity:1}
+.panel{background:var(--panel);border:1px solid var(--rule);padding:16px}
+.backupwarn{margin-top:12px;padding:10px 14px;background:var(--tipbg);border-left:4px solid var(--brass);font-size:.9rem;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
+
+/* List */
+.listbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:16px 0 10px}
+.tabs{display:flex;border:1px solid var(--rule)}
+.tabs button{background:var(--panel);border:0;border-right:1px solid var(--rule);padding:7px 14px;font-weight:600;font-size:.9rem;cursor:pointer;color:var(--muted)}
+.tabs button:last-child{border-right:0}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.search{padding:8px 10px;border:1px solid var(--rule);background:var(--panel);min-width:0;flex:1;max-width:320px}
+.rows{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--rule)}
+.rows li{border-top:1px solid var(--rule)}
+.rows li:first-child{border-top:0}
+.row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.4fr);gap:6px 20px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:14px 16px;cursor:pointer;color:var(--ink)}
+.row:hover{background:var(--paper)}
+.row .nm{font-weight:700;font-size:1.02rem}
+.row .sub{font-size:.85rem;color:var(--muted)}
+.bar{height:8px;background:var(--rule);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--good)}
+.row .stat{font-size:.85rem;margin-top:5px;display:flex;justify-content:space-between;gap:8px}
+.row .stat b{font-weight:600}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+@media (max-width:640px){.row{grid-template-columns:1fr}.row .stat{flex-direction:column;gap:0}.search{max-width:none;flex-basis:100%}}
+
+/* Detail */
+.dhead{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-start;justify-content:space-between;margin-top:6px}
+.dhead .info{font-size:.9rem;color:var(--muted)}
+.dhead .info span+span::before{content:" · "}
+.seg{display:inline-flex;border:1px solid var(--rule)}
+.seg button{background:var(--panel);border:0;border-right:1px solid var(--rule);padding:6px 12px;font-weight:600;font-size:.85rem;cursor:pointer;color:var(--muted)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.stack{display:grid;gap:16px}
+
+/* Milestone tracker (horizontal, like a lender portal) */
+.tracker{display:grid;grid-template-columns:repeat(9,1fr);margin:16px 0 4px;position:relative}
+.tracker .st{text-align:center;position:relative;font-size:.74rem;line-height:1.25;padding:0 2px}
+.tracker .st::before{content:"";position:absolute;top:15px;left:-50%;width:100%;height:2px;background:var(--rule);z-index:0}
+.tracker .st:first-child::before{display:none}
+.tracker .st.done::before,.tracker .st.next::before{background:var(--good)}
+.dot{width:32px;height:32px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;font-weight:700;font-size:.85rem;position:relative;z-index:1;
+  background:var(--panel);border:2px solid var(--rule);color:var(--muted)}
+.done .dot{background:var(--good);border-color:var(--good);color:#fff}
+.next .dot{background:var(--brass);border-color:var(--brass);color:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--brass) 25%,transparent)}
+.tracker .lbl{font-weight:600}
+.tracker .dt{color:var(--muted);font-size:.7rem}
+@media (max-width:760px){.tracker{display:none}}
+
+.msl{list-style:none;margin:10px 0 0;padding:0}
+.msl li{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--rule)}
+.msl li:first-child{border-top:0}
+.msl .dot{width:26px;height:26px;margin:0;font-size:.75rem}
+.msl label{font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px}
+.msl input[type=checkbox]{width:18px;height:18px;accent-color:var(--good);margin:0}
+.msl input[type=date]{padding:4px 6px;border:1px solid var(--rule);background:var(--paper);font-size:.85rem;max-width:150px}
+.msl .nexttag{font-size:.72rem;font-weight:700;color:var(--brass);border:1px solid var(--brass);padding:0 6px;margin-left:6px}
+
+/* Forms */
+.field{display:grid;gap:3px;font-size:.85rem;font-weight:700;color:var(--muted)}
+.field input,.field select,.field textarea{padding:8px 10px;border:1px solid var(--rule);background:var(--paper);font-weight:500;color:var(--ink);width:100%}
+.field textarea{min-height:84px;resize:vertical}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:10px}
+
+/* Notes */
+.notes{list-style:none;margin:12px 0 0;padding:0}
+.notes li{border-top:1px solid var(--rule);padding:10px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px}
+.notes .when{font-size:.78rem;color:var(--muted)}
+.notes .txt{white-space:pre-wrap;overflow-wrap:anywhere;grid-column:1}
+.notes .auto .txt{color:var(--muted);font-style:italic}
+.notes .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;line-height:1;padding:2px 6px;grid-row:1/3;grid-column:2;align-self:start}
+.notes .x:hover{color:var(--bad)}
+
+/* Email preview */
+.mail{margin-top:12px;padding:16px;background:#FFFFFF;color:#222222;border:1px solid var(--rule)}
+.subj{font-size:.9rem;margin:10px 0 0;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+
+dialog{border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 40px)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog form{padding:18px;display:grid;gap:12px}
+.dlgbtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="./">← Mortgage Market Dashboard</a>
+  <div id="app"></div>
+  <p class="note-local">Client information is saved only in this browser on this device. It is never put in the website's public code. Use <b>Download backup</b> regularly so nothing is lost.</p>
+</div>
+
+<dialog id="dlg">
+  <form method="dialog" id="cform">
+    <h2 id="dlgTitle">New client</h2>
+    <div class="fgrid">
+      <label class="field">First name *<input name="first" required autocomplete="off"></label>
+      <label class="field">Last name<input name="last" autocomplete="off"></label>
+      <label class="field">Email<input name="email" type="email" autocomplete="off"></label>
+      <label class="field">Phone<input name="phone" type="tel" autocomplete="off"></label>
+    </div>
+    <label class="field">Property address<input name="address" autocomplete="off"></label>
+    <div class="fgrid">
+      <label class="field">Loan type<select name="loan">
+        <option value="conv">Conventional</option><option value="fha">FHA</option><option value="va">VA</option><option value="usda">USDA</option><option value="jumbo">Jumbo</option></select></label>
+      <label class="field">Purchase or refinance<select name="purpose"><option value="buy">Purchase</option><option value="refi">Refinance</option></select></label>
+      <label class="field">Borrower's income<select name="who"><option value="w2">W-2 employee</option><option value="self">Self-employed</option><option value="retired">Retired</option></select></label>
+      <label class="field">Target closing date<input name="closing" type="date"></label>
+    </div>
+    <div class="dlgbtns">
+      <button class="tbtn" value="cancel" formnovalidate>Cancel</button>
+      <button class="tbtn primary" value="save" id="dlgSave">Save client</button>
+    </div>
+  </form>
+</dialog>
+<input type="file" id="restoreFile" accept="application/json,.json" hidden>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const LOANS={conv:"Conventional",fha:"FHA",va:"VA",usda:"USDA",jumbo:"Jumbo"};
+  const PURP={buy:"purchase",refi:"refinance"};
+  const WHO={w2:"W-2",self:"Self-employed",retired:"Retired"};
+
+  // Milestones, in order. "msg" is the default line for the update email; it can be edited before copying.
+  const MS=[
+    {k:"contract",   name:"Contract received",              msg:"We have your signed purchase contract, and your loan is officially underway."},
+    {k:"discSent",   name:"Disclosures sent",               msg:"Your initial loan disclosures have been sent. Please review and e-sign them as soon as you can so we can keep things moving."},
+    {k:"discSigned", name:"Disclosures signed",             msg:"Thank you for signing your disclosures. Next, your file goes to underwriting."},
+    {k:"submitted",  name:"Loan submitted to underwriting", msg:"Your loan has been submitted to underwriting for review. I'll let you know as soon as we hear back."},
+    {k:"condAppr",   name:"Conditionally approved",         msg:"Great news: your loan is conditionally approved! The underwriter has a short list of items to finalize, and I'll help you with each one."},
+    {k:"apprOrdered",name:"Appraisal ordered",              msg:"The appraisal has been ordered. The appraiser may reach out to you or your agent to schedule a visit."},
+    {k:"apprRecv",   name:"Appraisal received",             msg:"The appraisal is back, and we're one step closer to the finish line."},
+    {k:"addlDocs",   name:"Additional documents requested", msg:"The underwriter has asked for a few more items. I'll send you the list, and please send them as soon as you can."},
+    {k:"ctc",        name:"Clear to close",                 msg:"You're clear to close! The title company will reach out to schedule your closing. Congratulations!"}
+  ];
+  const purposeFix=(c,m)=>c.purpose==="refi"&&m.k==="contract"?"We have everything we need to start your refinance, and your loan is officially underway.":m.msg;
+
+  // ---------- Storage (this browser only) ----------
+  const KEY="clients-v1";
+  let clients=[];
+  try{clients=JSON.parse(localStorage.getItem(KEY)||"[]")||[];}catch(e){clients=[];}
+  let storageOK=true;
+  function save(){
+    try{localStorage.setItem(KEY,JSON.stringify(clients));storageOK=true;}
+    catch(e){storageOK=false;say("This browser isn't letting the page save. It may be in private mode.");}
+  }
+  try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}catch(e){}
+  const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+  const fmt=iso=>{if(!iso)return"";const [y,m,d]=iso.split("-").map(Number);return new Date(y,m-1,d).toLocaleDateString(undefined,{month:"short",day:"numeric"});};
+  const stamp=()=>new Date().toISOString();
+  const fmtStamp=s=>new Date(s).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+  const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  const fullName=c=>[c.first,c.last].filter(Boolean).join(" ");
+  const doneCount=c=>MS.filter(m=>c.ms&&c.ms[m.k]).length;
+  const current=c=>{let cur=null;MS.forEach(m=>{if(c.ms&&c.ms[m.k])cur=m;});return cur;};
+  const nextStep=c=>MS.find(m=>!(c.ms&&c.ms[m.k]))||null;
+  const touch=c=>{c.updated=stamp();};
+
+  const toastEl=$("toast");let tt;
+  function say(m){toastEl.textContent=m;toastEl.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove("on"),3200);}
+
+  // ---------- Routing: #client=<id> shows one client; otherwise the list ----------
+  let tab="active", q="";
+  window.addEventListener("hashchange",render);
+  function go(id){location.hash=id?"client="+id:"";}
+  function render(){
+    const m=location.hash.match(/client=([\w]+)/);
+    const c=m&&clients.find(x=>x.id===m[1]);
+    if(c)renderClient(c);else renderList();
+    window.scrollTo(0,0);
+  }
+
+  // ---------- Backup ----------
+  function backupNote(){
+    if(!clients.length)return"";
+    let last=null;try{last=localStorage.getItem("clients-backup");}catch(e){}
+    const days=last?Math.floor((Date.now()-new Date(last))/864e5):null;
+    if(last&&days<7)return"";
+    return `<div class="backupwarn"><span>${last?`Your last backup was ${days} days ago.`:"You haven't downloaded a backup yet."} Client info lives only in this browser, so keep a copy.</span><button class="tbtn" data-act="backup">Download backup</button></div>`;
+  }
+  function backup(){
+    const blob=new Blob([JSON.stringify({app:"client-tracker",version:1,saved:stamp(),clients},null,2)],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`clients-backup-${today()}.json`;
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    try{localStorage.setItem("clients-backup",stamp());}catch(e){}
+    say("Backup downloaded. Keep it somewhere safe, like your work drive.");render();
+  }
+  $("restoreFile").addEventListener("change",async ev=>{
+    const f=ev.target.files[0];ev.target.value="";if(!f)return;
+    try{
+      const data=JSON.parse(await f.text());
+      const list=Array.isArray(data)?data:data.clients;
+      if(!Array.isArray(list)||list.some(c=>!c||typeof c.id!=="string"||typeof c.first!=="string"))throw new Error("bad");
+      const mode=clients.length?confirm(`Restore ${list.length} client(s) from this backup?\n\nOK = add them to your current list (matching clients are replaced)\nCancel = don't restore`):true;
+      if(!mode)return;
+      list.forEach(c=>{const i=clients.findIndex(x=>x.id===c.id);if(i>=0)clients[i]=c;else clients.push(c);});
+      save();say(`Restored ${list.length} client(s).`);go("");render();
+    }catch(e){alert("That file isn't a client tracker backup.");}
+  });
+
+  // ---------- Client list ----------
+  function renderList(){
+    const act=clients.filter(c=>c.status!=="inactive"), ina=clients.filter(c=>c.status==="inactive");
+    const shown=(tab==="active"?act:ina).filter(c=>!q||(fullName(c)+" "+(c.address||"")+" "+(c.email||"")).toLowerCase().includes(q.toLowerCase()))
+      .sort((a,b)=>(b.updated||"").localeCompare(a.updated||""));
+    $("app").innerHTML=`
+      <div class="top">
+        <div><h1>Clients</h1><div class="muted small">${act.length} active · ${ina.length} inactive</div></div>
+        <div class="acts">
+          <button class="tbtn primary" data-act="new">+ New client</button>
+          <button class="tbtn" data-act="backup"${clients.length?"":" disabled"}>Download backup</button>
+          <button class="tbtn" data-act="restore">Restore backup</button>
+        </div>
+      </div>
+      ${backupNote()}
+      <div class="listbar">
+        <div class="tabs" role="group" aria-label="Show">
+          <button data-tab="active" aria-pressed="${tab==="active"}">Active (${act.length})</button>
+          <button data-tab="inactive" aria-pressed="${tab==="inactive"}">Inactive (${ina.length})</button>
+        </div>
+        <input class="search" id="search" type="search" placeholder="Search name, address or email" value="${esc(q)}" aria-label="Search clients">
+      </div>
+      ${shown.length?`<ul class="rows">${shown.map(c=>{
+        const n=doneCount(c), cur=current(c), nx=nextStep(c);
+        return `<li><button class="row" data-open="${c.id}">
+          <div><div class="nm">${esc(fullName(c))}</div>
+            <div class="sub">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.address?" · "+esc(c.address):""}</div></div>
+          <div><div class="bar" aria-hidden="true"><i style="width:${n/MS.length*100}%"></i></div>
+            <div class="stat"><span><b>${cur?esc(cur.name):"Not started"}</b>${cur?" · "+fmt(c.ms[cur.k]):""}</span>
+            <span class="muted">${nx?"Next: "+esc(nx.name):"Done"}</span></div></div>
+        </button></li>`;}).join("")}</ul>`
+      :`<div class="panel empty">${clients.length?(q?"No clients match that search.":`No ${tab} clients.`):`No clients yet. Press <b>+ New client</b> to add your first one.`}</div>`}`;
+    const s=$("search");
+    s.addEventListener("input",()=>{q=s.value;const pos=s.selectionStart;renderList();const n=$("search");n.focus();n.setSelectionRange(pos,pos);});
+  }
+
+  // ---------- New / edit client ----------
+  let editing=null;
+  function openForm(c){
+    editing=c||null;
+    const f=$("cform");f.reset();
+    $("dlgTitle").textContent=c?"Edit client":"New client";
+    if(c)["first","last","email","phone","address","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
+    $("dlg").showModal();f.elements.first.focus();
+  }
+  $("dlg").addEventListener("close",()=>{
+    if($("dlg").returnValue!=="save")return;
+    const f=$("cform"), v=k=>f.elements[k].value.trim();
+    if(!v("first"))return;
+    const data={first:v("first"),last:v("last"),email:v("email"),phone:v("phone"),address:v("address"),loan:v("loan"),purpose:v("purpose"),who:v("who"),closing:v("closing")};
+    if(editing){Object.assign(editing,data);touch(editing);save();render();say("Client updated.");}
+    else{
+      const c={id:uid(),...data,status:"active",ms:{},notes:[],created:stamp()};touch(c);
+      clients.push(c);save();go(c.id);say("Client added.");
+    }
+  });
+
+  // ---------- One client ----------
+  let annKey=null, annMsg={}, includeAll=true;
+  function renderClient(c){
+    const n=doneCount(c), nx=nextStep(c), cur=current(c);
+    if(!annKey||!MS.some(m=>m.k===annKey))annKey=cur?cur.k:"contract";
+    const ann=MS.find(m=>m.k===annKey);
+    const docLink=`checklist.html?${new URLSearchParams({who:c.who||"w2",loan:c.loan||"conv",purpose:c.purpose||"buy",name:c.first||"",client:c.id})}`;
+    let me="";try{me=localStorage.getItem("req-me")||"";}catch(e){}
+    $("app").innerHTML=`
+      <button class="back" data-act="list">← All clients</button>
+      <div class="dhead">
+        <div>
+          <h1>${esc(fullName(c))}</h1>
+          <div class="info">${[LOANS[c.loan]+" "+PURP[c.purpose],WHO[c.who],c.address,c.closing?"Closing "+fmt(c.closing):"",c.phone,c.email].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>
+        </div>
+        <div class="acts">
+          <div class="seg" role="group" aria-label="Status">
+            <button data-status="active" aria-pressed="${c.status!=="inactive"}">Active</button>
+            <button data-status="inactive" aria-pressed="${c.status==="inactive"}">Inactive</button>
+          </div>
+          <button class="tbtn" data-act="edit">Edit</button>
+          <button class="tbtn danger" data-act="delete">Delete</button>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline">
+          <h2>Loan milestones</h2><span class="muted small">${n} of ${MS.length} complete${nx?" · Next: <b style=\"color:var(--brass)\">"+esc(nx.name)+"</b>":""}</span>
+        </div>
+        <div class="tracker" aria-hidden="true">${MS.map((m,i)=>{
+          const st=c.ms[m.k]?"done":(nx&&nx.k===m.k?"next":"");
+          return `<div class="st ${st}"><div class="dot">${st==="done"?"✓":i+1}</div><div class="lbl">${esc(m.name)}</div><div class="dt">${c.ms[m.k]?fmt(c.ms[m.k]):""}</div></div>`;}).join("")}</div>
+        <ul class="msl">${MS.map((m,i)=>{
+          const d=c.ms[m.k], st=d?"done":(nx&&nx.k===m.k?"next":"");
+          return `<li class="${st}"><span class="dot">${d?"✓":i+1}</span>
+            <label><input type="checkbox" data-ms="${m.k}"${d?" checked":""}>${esc(m.name)}${st==="next"?'<span class="nexttag">NEXT</span>':""}</label>
+            ${d?`<input type="date" data-msdate="${m.k}" value="${d}" aria-label="Date for ${esc(m.name)}">`:`<span class="muted small">—</span>`}</li>`;}).join("")}</ul>
+      </div>
+
+      <div class="grid">
+        <div class="stack">
+          <div class="panel">
+            <h2>Send a milestone update</h2>
+            <p class="muted small" style="margin:4px 0 10px">Pick the milestone, adjust the message if you like, then copy the email into Outlook.</p>
+            <div class="fgrid">
+              <label class="field">Milestone to announce<select id="annSel">${MS.map(m=>`<option value="${m.k}"${m.k===annKey?" selected":""}>${esc(m.name)}${c.ms[m.k]?"":" (not checked yet)"}</option>`).join("")}</select></label>
+              <label class="field">Sign off as<input id="me" value="${esc(me)}" placeholder="Your name and phone" autocomplete="off"></label>
+            </div>
+            <label class="field" style="margin-top:10px">Message<textarea id="annMsg">${esc(annMsg[c.id+annKey]??purposeFix(c,ann))}</textarea></label>
+            <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incAll"${includeAll?" checked":""} style="width:18px;height:18px;accent-color:var(--ink)"> Show the full milestone list in the email</label>
+            <div class="acts" style="margin-top:12px">
+              <button class="tbtn primary" data-act="copyMail">Copy email</button>
+              <button class="tbtn" data-act="copySubj">Copy subject</button>
+            </div>
+            <p class="subj"><b class="muted">Subject:</b> <span id="subjTxt"></span></p>
+            <div class="mail" id="mailPrev"></div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="panel">
+            <h2>Documents</h2>
+            <p class="muted small" style="margin:4px 0 10px">Opens the document request page set up for ${esc(c.first)}'s loan.</p>
+            <a class="tbtn primary" href="${docLink}">Build document request</a>
+          </div>
+          <div class="panel">
+            <h2>Notes</h2>
+            <label class="field" style="margin-top:10px"><span class="muted" style="font-weight:600">Add a note</span><textarea id="noteTxt" placeholder="Called about appraisal, waiting on HOA cert…"></textarea></label>
+            <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addNote">Add note</button></div>
+            <ul class="notes">${(c.notes||[]).slice().reverse().map(nt=>`<li class="${nt.auto?"auto":""}"><span class="when">${fmtStamp(nt.t)}</span><span class="txt">${esc(nt.text)}</span><button class="x" data-delnote="${nt.t}" aria-label="Delete note">×</button></li>`).join("")||`<li><span class="txt muted">No notes yet.</span></li>`}</ul>
+          </div>
+        </div>
+      </div>`;
+    renderMail(c);
+    $("annSel").addEventListener("change",e=>{annKey=e.target.value;renderClient(c);});
+    $("annMsg").addEventListener("input",e=>{annMsg[c.id+annKey]=e.target.value;renderMail(c);});
+    $("incAll").addEventListener("change",e=>{includeAll=e.target.checked;renderMail(c);});
+    $("me").addEventListener("input",e=>{try{localStorage.setItem("req-me",e.target.value);}catch(x){}renderMail(c);});
+  }
+
+  // ---------- Milestone update email (inline styles + tables so it pastes well into Outlook) ----------
+  function buildMail(c){
+    const ann=MS.find(m=>m.k===annKey), msg=($("annMsg")?.value??purposeFix(c,ann)).trim(), me=($("me")?.value||"").trim();
+    const n=doneCount(c), nx=nextStep(c), pct=Math.round(n/MS.length*100);
+    const subject=`Loan update: ${ann.name}`;
+    const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
+    const BLUE="#1F4E79", GREEN="#2C5234", GOLD="#A97A1E", GRAY="#9AA3AE";
+    const date=c.ms[ann.k]?fmt(c.ms[ann.k]):"";
+    const bar=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>`+
+      (pct>0?`<td width="${pct}%" bgcolor="${GREEN}" style="background:${GREEN};height:10px;font-size:1px;line-height:1px">&nbsp;</td>`:"")+
+      (pct<100?`<td bgcolor="#DDE2E8" style="background:#DDE2E8;height:10px;font-size:1px;line-height:1px">&nbsp;</td>`:"")+`</tr></table>`;
+    const rows=MS.map(m=>{
+      const d=c.ms[m.k], isNext=nx&&nx.k===m.k;
+      const mark=d?"&#10003;":isNext?"&#9679;":"&#9675;";
+      const mc=d?GREEN:isNext?GOLD:GRAY;
+      const txt=d?`<b>${esc(m.name)}</b> <span style="color:#777777">${fmt(d)}</span>`:isNext?`<b style="color:${GOLD}">Next: ${esc(m.name)}</b>`:`<span style="color:${GRAY}">${esc(m.name)}</span>`;
+      return `<tr><td width="26" valign="top" style="width:26px;padding:0 0 5px 4px;${F};color:${mc};font-weight:bold">${mark}</td><td valign="top" style="padding:0 0 5px 0;${F}">${txt}</td></tr>`;
+    }).join("");
+    const html=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(c.first||"there")},</p>`+
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#EAF2EC" style="background:#EAF2EC;border-left:5px solid ${GREEN};padding:10px 14px;${F}">`+
+      `<span style="font-size:9.5pt;color:${GREEN};font-weight:bold;letter-spacing:.5px">MILESTONE REACHED${date?" · "+esc(date.toUpperCase()):""}</span><br>`+
+      `<span style="font-size:15pt;font-weight:bold;color:${BLUE}">${esc(ann.name)}</span></td></tr></table>`+
+      `<p style="margin:12px 0 12px 0">${esc(msg).replace(/\n/g,"<br>")}</p>`+
+      (includeAll?`<p style="margin:16px 0 6px 0;color:${BLUE};font-size:12pt;font-weight:bold;border-bottom:2px solid ${BLUE};padding-bottom:3px">Your loan progress</p>`+
+        `<p style="margin:0 0 6px 0;font-size:10pt;color:#555555">${n} of ${MS.length} steps complete</p>`+bar+
+        `<p style="margin:0;font-size:6pt;line-height:6pt">&nbsp;</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`:"")+
+      `<p style="margin:14px 0 10px 0">If you have any questions, just reply to this email or give me a call.</p><p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
+    const T=[`Hi ${c.first||"there"},`,"",`MILESTONE REACHED${date?" ("+date+")":""}: ${ann.name}`,"",msg,""];
+    if(includeAll){T.push(`YOUR LOAN PROGRESS (${n} of ${MS.length} steps complete)`);
+      MS.forEach(m=>{const d=c.ms[m.k];T.push(d?`✓ ${m.name} (${fmt(d)})`:nx&&nx.k===m.k?`➜ Next: ${m.name}`:`○ ${m.name}`);});T.push("");}
+    T.push("If you have any questions, just reply to this email or give me a call.","","Thank you,",me||"[Your name]");
+    return {subject,html,text:T.join("\n"),ann};
+  }
+  function renderMail(c){const e=buildMail(c);$("subjTxt").textContent=e.subject;$("mailPrev").innerHTML=e.html;}
+
+  async function copyRich(html,text){
+    try{
+      if(window.ClipboardItem&&navigator.clipboard.write)
+        await navigator.clipboard.write([new ClipboardItem({"text/html":new Blob([html],{type:"text/html"}),"text/plain":new Blob([text],{type:"text/plain"})})]);
+      else await navigator.clipboard.writeText(text);
+      return true;
+    }catch(e){try{await navigator.clipboard.writeText(text);return true;}catch(x){window.prompt("Copy this:",text);return false;}}
+  }
+  async function copyText(t){try{await navigator.clipboard.writeText(t);return true;}catch(e){window.prompt("Copy this:",t);return false;}}
+
+  // ---------- Clicks ----------
+  const curClient=()=>{const m=location.hash.match(/client=([\w]+)/);return m&&clients.find(x=>x.id===m[1]);};
+  document.addEventListener("click",async ev=>{
+    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote]");if(!t)return;
+    const c=curClient();
+    if(t.dataset.tab){tab=t.dataset.tab;renderList();return;}
+    if(t.dataset.open){annKey=null;go(t.dataset.open);return;}
+    if(t.dataset.status&&c){c.status=t.dataset.status;touch(c);save();renderClient(c);say(c.status==="inactive"?"Moved to inactive.":"Marked active.");return;}
+    if(t.dataset.delnote&&c){c.notes=c.notes.filter(n=>n.t!==t.dataset.delnote);save();renderClient(c);return;}
+    switch(t.dataset.act){
+      case "new":openForm();break;
+      case "edit":openForm(c);break;
+      case "list":go("");break;
+      case "backup":backup();break;
+      case "restore":$("restoreFile").click();break;
+      case "delete":
+        if(c&&confirm(`Delete ${fullName(c)} and all their notes? This can't be undone.\n\nTip: use "Inactive" instead to keep their history.`)){
+          clients=clients.filter(x=>x.id!==c.id);save();go("");say("Client deleted.");}
+        break;
+      case "addNote":{
+        const v=$("noteTxt").value.trim();if(!v){$("noteTxt").focus();return;}
+        c.notes=c.notes||[];c.notes.push({t:stamp(),text:v});touch(c);save();renderClient(c);say("Note added.");break;}
+      case "copyMail":{
+        const e=buildMail(c);
+        if(await copyRich(e.html,e.text)){
+          c.notes=c.notes||[];c.notes.push({t:stamp(),text:`Milestone email copied: ${e.ann.name}`,auto:true});touch(c);save();renderClient(c);
+          say("Email copied. Paste it into a new Outlook message.");}
+        break;}
+      case "copySubj":{const e=buildMail(c);if(await copyText(e.subject))say("Subject copied.");break;}
+    }
+  });
+  document.addEventListener("change",ev=>{
+    const c=curClient();if(!c)return;
+    const k=ev.target.dataset.ms, kd=ev.target.dataset.msdate;
+    if(k){
+      if(ev.target.checked){c.ms[k]=today();annKey=k;}else delete c.ms[k];
+      touch(c);save();renderClient(c);
+      if(ev.target.checked)say(`${MS.find(m=>m.k===k).name} checked. The update email below is ready to copy.`);
+    }else if(kd&&ev.target.value){c.ms[kd]=ev.target.value;touch(c);save();renderClient(c);}
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

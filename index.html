@@ -722,7 +722,7 @@ body.dragging{user-select:none;-webkit-user-select:none;overflow-anchor:none}
   function renderTools(){
     const el=document.getElementById("tiles");
     // Built-in tile for the document request page (part of this site, so it can't be removed)
-    el.innerHTML=`<a class="tile" href="checklist.html"><b>Document request</b><span>Build a borrower documents email</span></a>`+tools.map((t,i)=>t.sample
+    el.innerHTML=`<a class="tile" href="clients.html"><b>Clients</b><span>Track loans, notes and milestones</span></a><a class="tile" href="checklist.html"><b>Document request</b><span>Build a borrower documents email</span></a>`+tools.map((t,i)=>t.sample
       ?`<button class="tile" data-sample="${i}" title="Add your link for this tool"><b>${esc(t.name)}</b><span>${esc(t.desc)}</span></button>`
       :`<div class="toolwrap"><a class="tile" href="${esc(t.url)}" target="_blank" rel="noopener noreferrer"><b>${esc(t.name)}</b><span>${esc(t.desc||host(t.url))}</span></a>
         <button class="x" data-i="${i}" aria-label="Remove ${esc(t.name)}">×</button></div>`).join("")+

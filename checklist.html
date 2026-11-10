@@ -126,7 +126,7 @@ button,select,input{font:inherit;color:inherit}
 </head>
 <body>
 <div class="wrap">
-  <a class="back" href="./">← Mortgage Market Dashboard</a>
+  <a class="back" href="./">← Mortgage Market Dashboard</a> <a class="back" id="backClient" href="clients.html" hidden style="margin-left:14px">← Back to client</a>
   <h1>Borrower document request</h1>
   <p class="lede">Pick the borrower's situation, check the documents you need, then copy a ready-to-send email that lists only those items.</p>
 
@@ -520,12 +520,28 @@ button,select,input{font:inherit;color:inherit}
     }
   }
   document.querySelectorAll(".copyBtn").forEach(b=>b.onclick=async()=>{
-    const e=email();if(await copyRich(e.html,e.text))say(`Email copied with ${e.n} document${e.n===1?"":"s"}. Paste it into a new message.`);
+    const e=email();if(await copyRich(e.html,e.text)){logToClient(e.n);say(`Email copied with ${e.n} document${e.n===1?"":"s"}. Paste it into a new message.`);}
   });
   $("copySubj").onclick=async()=>{
     try{await navigator.clipboard.writeText($("subject").textContent);say("Subject copied.");}catch(e){window.prompt("Copy this:",$("subject").textContent);}
   };
 
+  // Opened from a client's page: set up for that borrower and start with a fresh selection.
+  const qs=new URLSearchParams(location.search), clientId=qs.get("client");
+  ["who","loan","purpose"].forEach(k=>{const v=qs.get(k);const el=v&&form.querySelector(`input[name="${k}"][value="${CSS.escape(v)}"]`);if(el)el.checked=true;});
+  if(qs.get("name"))$("bname").value=qs.get("name");
+  if(clientId){
+    const b=$("backClient");b.hidden=false;b.href="clients.html#client="+encodeURIComponent(clientId);
+    let last="";try{last=sessionStorage.getItem("req-client")||"";sessionStorage.setItem("req-client",clientId);}catch(e){}
+    if(last!==clientId){sel={};tipOn={};whyX={};saveSel();saveTips();saveWhy();}
+  }
+  // Log the copied request on the client's notes (client data stays in this browser).
+  function logToClient(n){
+    if(!clientId)return;
+    try{const all=JSON.parse(localStorage.getItem("clients-v1")||"[]");const c=all.find(x=>x.id===clientId);if(!c)return;
+      c.notes=c.notes||[];c.notes.push({t:new Date().toISOString(),text:`Document request email copied (${n} document${n===1?"":"s"})`,auto:true});
+      c.updated=new Date().toISOString();localStorage.setItem("clients-v1",JSON.stringify(all));}catch(e){}
+  }
   showSaved();
   renderList();
 })();
