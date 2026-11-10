@@ -151,6 +151,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 .clist .ct{white-space:pre-wrap;overflow-wrap:anywhere}
 .clist li.done .ct{text-decoration:line-through;color:var(--muted)}
 .clist li.done .cn{color:var(--muted)}
+.clist li.csep{display:block;padding:10px 0 2px;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .clist .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;line-height:1;padding:2px 6px}
 .clist .x:hover{color:var(--bad)}
 .msl .nexttag{font-size:.72rem;font-weight:700;color:var(--brass);border:1px solid var(--brass);padding:0 6px;margin-left:6px}
@@ -174,6 +175,33 @@ button,select,input,textarea{font:inherit;color:inherit}
 .mail{margin-top:12px;padding:16px;background:#FFFFFF;color:#222222;border:1px solid var(--rule)}
 .subj{font-size:.9rem;margin:10px 0 0;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 
+/* Printable desk sheet: only the sheet prints */
+#printSheet{display:none}
+@media print{
+  @page{margin:.5in}
+  body{background:#fff!important;color:#000!important}
+  body>*:not(#printSheet){display:none!important}
+  #printSheet{display:block;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:10.5pt;color:#000;line-height:1.35}
+  #printSheet .ph{display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #000;padding-bottom:6px}
+  #printSheet h1{font-size:18pt;margin:0}
+  #printSheet .pr{text-align:right;font-size:9pt;color:#444;white-space:nowrap}
+  #printSheet .close{margin-top:8px;padding:6px 10px;border:1.5px solid #000;font-size:11pt}
+  #printSheet h2{font-size:12pt;margin:14px 0 4px;border-bottom:1px solid #888;padding-bottom:2px}
+  #printSheet h2 span{font-weight:400;font-size:9.5pt;color:#444}
+  #printSheet table{width:100%;border-collapse:collapse}
+  #printSheet td{padding:2px 4px;vertical-align:top}
+  #printSheet td.b{width:22px;font-size:13pt;line-height:1}
+  #printSheet td.n{width:24px;font-weight:700}
+  #printSheet td.d{width:70px;text-align:right;color:#444}
+  #printSheet tr.sub td{font-size:9.5pt;padding-left:22px}
+  #printSheet tr.done td{color:#666;text-decoration:line-through}
+  #printSheet tr.done td.b{text-decoration:none}
+  #printSheet .nt{margin:0;padding-left:16px;font-size:9.5pt}
+  #printSheet .nt span{color:#555}
+  #printSheet .none{color:#555;margin:2px 0}
+  #printSheet .lines{height:1.2in;background:repeating-linear-gradient(#fff 0 26px,#999 26px 27px);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printSheet tr,#printSheet li{break-inside:avoid}
+}
 dialog{border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 40px)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
 dialog form{padding:18px;display:grid;gap:12px}
@@ -210,6 +238,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     </div>
   </form>
 </dialog>
+<div id="printSheet" aria-hidden="true"></div>
 <input type="file" id="restoreFile" accept="application/json,.json" hidden>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -276,7 +305,11 @@ dialog form{padding:18px;display:grid;gap:12px}
     // Lines above the first numbered item (like "Conditions for approval:") are a heading, not a condition.
     return (sawNum?out.slice(firstNum):out).filter(Boolean);
   }
-  const openConds=c=>(c.conds||[]).filter(x=>!x.done);
+  // Each condition keeps the number it was given when added, so #3 stays #3 when the list re-sorts.
+  function numberConds(c){let max=0;(c.conds||[]).forEach(x=>{if(x.n>max)max=x.n;});(c.conds||[]).forEach(x=>{if(!x.n)x.n=++max;});}
+  const openConds=c=>(numberConds(c),(c.conds||[]).filter(x=>!x.done).sort((a,b)=>a.n-b.n));
+  // Open conditions first, then cleared ones; each group in number order.
+  const sortedConds=c=>(numberConds(c),(c.conds||[]).slice().sort((a,b)=>(a.done-b.done)||(a.n-b.n)));
   let condOpen={};
 
   // ---------- Storage (this browser only) ----------
@@ -422,6 +455,7 @@ dialog form{padding:18px;display:grid;gap:12px}
             <button data-status="active" aria-pressed="${c.status!=="inactive"}">Active</button>
             <button data-status="inactive" aria-pressed="${c.status==="inactive"}">Inactive</button>
           </div>
+          <button class="tbtn" data-act="print">Print sheet</button>
           <button class="tbtn" data-act="edit">Edit</button>
           <button class="tbtn danger" data-act="delete">Delete</button>
         </div>
@@ -461,6 +495,7 @@ dialog form{padding:18px;display:grid;gap:12px}
             <div class="acts" style="margin-top:12px">
               <button class="tbtn primary" data-act="copyMail">Copy email</button>
               <button class="tbtn" data-act="copySubj">Copy subject</button>
+              <button class="tbtn" data-act="copyBar" title="Copies just the milestone tracker picture to paste into any email">Copy progress bar only</button>
             </div>
             <p class="subj"><b class="muted">Subject:</b> <span id="subjTxt"></span></p>
             <div class="mail" id="mailPrev"></div>
@@ -481,7 +516,7 @@ dialog form{padding:18px;display:grid;gap:12px}
         </div>
       </div>`;
     renderMail(c);
-    $("annSel").addEventListener("change",e=>{annKey=e.target.value;renderClient(c);});
+    $("annSel").addEventListener("change",e=>{annKey=e.target.value;if(annKey==="condAppr"&&openConds(c).length)includeConds=true;renderClient(c);});
     $("annMsg").addEventListener("input",e=>{annMsg[c.id+annKey]=e.target.value;renderMail(c);});
     $("incAll").addEventListener("change",e=>{includeAll=e.target.checked;renderMail(c);});
     $("incConds").addEventListener("change",e=>{includeConds=e.target.checked;renderMail(c);});
@@ -499,12 +534,34 @@ dialog form{padding:18px;display:grid;gap:12px}
     if(!show)return banner;
     return banner+`<div class="panel conds">
         ${all.length?`<div class="chead"><h3>Conditions <span class="muted small">${open.length} open · ${all.length-open.length} cleared</span></h3><button class="tbtn danger" data-act="clearConds">Remove all</button></div>
-        <ol class="clist">${all.map((x,i)=>`<li class="${x.done?"done":""}"><span class="cn">${i+1}</span>
+        <ol class="clist">${sortedConds(c).map((x,i,arr)=>`${x.done&&(i===0||!arr[i-1].done)?`<li class="csep">Cleared</li>`:""}<li class="${x.done?"done":""}"><span class="cn">${x.n}</span>
           <label><input type="checkbox" data-cond="${x.id}"${x.done?" checked":""} aria-label="Cleared"><span class="ct">${esc(x.text)}</span></label>
-          <button class="x" data-delcond="${x.id}" aria-label="Remove condition ${i+1}">×</button></li>`).join("")}</ol>`:""}
+          <button class="x" data-delcond="${x.id}" aria-label="Remove condition ${x.n}">×</button></li>`).join("")}</ol>`:""}
         <label class="field" style="margin-top:12px">Paste conditions from your processor's email<textarea id="condTxt" placeholder="1. Updated pay stub covering 30 days&#10;2. Letter of explanation for large deposit on 10/14&#10;3. Signed gift letter"></textarea></label>
         <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addConds">Add conditions</button><span class="muted small" style="align-self:center">Numbered lines become separate conditions. Check each one off as it clears.</span></div>
       </div>`;
+  }
+
+  // ---------- Printable desk sheet ----------
+  function printSheet(c){
+    const box=d=>d?"&#9745;":"&#9744;";
+    const info=[LOANS[c.loan]+" "+PURP[c.purpose],WHO[c.who]+" borrower",c.address,c.phone,c.email].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; ");
+    const ms=MAIN.map((nd,i)=>{const d=c.ms[nodeKey(nd)];
+      return `<tr><td class="b">${box(d)}</td><td><b>${i+1}. ${esc(nd.name)}</b></td><td class="d">${d?fmt(d):""}</td></tr>`+
+        (nd.subs||[]).map(k=>{const sd=c.ms[k];return `<tr class="sub"><td></td><td>${box(sd)} ${esc(msBy(k).name)}${k==="closingSched"&&c.closingAt?" — <b>"+esc(fmtWhen(c.closingAt))+"</b>":""}</td><td class="d">${sd?fmt(sd):""}</td></tr>`;}).join("");}).join("");
+    const conds=sortedConds(c), open=conds.filter(x=>!x.done), done=conds.filter(x=>x.done);
+    const notes=(c.notes||[]).filter(x=>!x.auto).slice(-8).reverse();
+    $("printSheet").innerHTML=`
+      <div class="ph"><div><h1>${esc(fullName(c))}</h1><div>${info}</div></div>
+        <div class="pr">Printed ${new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}<br>${doneCount(c)} of ${MAIN.length} steps complete</div></div>
+      ${c.closingAt||c.closing?`<div class="close">Closing: <b>${c.closingAt?esc(fmtWhen(c.closingAt)):"target "+esc(fmt(c.closing))}</b></div>`:""}
+      <h2>Milestones</h2><table class="ms">${ms}</table>
+      <h2>Conditions ${conds.length?`<span>${open.length} open · ${done.length} cleared</span>`:""}</h2>
+      ${conds.length?`<table class="cd">${open.map(x=>`<tr><td class="b">&#9744;</td><td class="n">${x.n}.</td><td>${esc(x.text)}</td></tr>`).join("")}
+        ${done.map(x=>`<tr class="done"><td class="b">&#9745;</td><td class="n">${x.n}.</td><td>${esc(x.text)}</td></tr>`).join("")}</table>`:`<p class="none">No conditions yet.</p>`}
+      ${notes.length?`<h2>Recent notes</h2><ul class="nt">${notes.map(x=>`<li><span>${fmtStamp(x.t)}</span> ${esc(x.text)}</li>`).join("")}</ul>`:""}
+      <h2>Notes</h2><div class="lines"></div>`;
+    window.print();
   }
 
   // ---------- Milestone update email (inline styles + tables so it pastes well into Outlook) ----------
@@ -543,20 +600,20 @@ dialog form{padding:18px;display:grid;gap:12px}
       fc(GREEN,"2","9.5",`<b>MILESTONE REACHED${date?" · "+esc(date.toUpperCase()):""}</b>`)+`<br>`+
       fc(BLUE,"4","15",`<b>${esc(ann.name)}</b>`)+`</td></tr></table>`+sp(12)+
       `<p style="margin:0">${esc(msg).replace(/\n/g,"<br>")}</p>`+sp(14)+
+      (condsOn?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Items still needed</b>")}</td></tr></table>`+sp(6)+
+        `<p style="margin:0">${fc("#555555","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
+        `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${oc.map(x=>row(`${x.n}.`,GOLD,esc(x.text),false)).join("")}</table>`+sp(14):"")+
       (includeAll?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Your loan progress</b>")}</td></tr></table>`+sp(6)+
         `<p style="margin:0">${fc("#555555","2","10",`${n} of ${T7} steps complete`)}</p>`+sp(10)+tracker+sp(10)+
         `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`+sp(8):"")+
-      (condsOn?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Items still needed</b>")}</td></tr></table>`+sp(6)+
-        `<p style="margin:0">${fc("#555555","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
-        `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${oc.map((x,i)=>row(`${i+1}.`,GOLD,esc(x.text),false)).join("")}</table>`+sp(8):"")+
       `<p style="margin:0">If you have any questions, just reply to this email or give me a call.</p>`+sp(10)+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     const T=[`Hi ${c.first||"there"},`,"",`MILESTONE REACHED${date?" ("+date+")":""}: ${ann.name}`,"",msg,""];
+    if(condsOn){T.push("ITEMS STILL NEEDED","The underwriter is asking for the following. Please send them as soon as you can.");oc.forEach(x=>T.push(`${x.n}. ${x.text}`));T.push("");}
     if(includeAll){T.push(`YOUR LOAN PROGRESS (${n} of ${T7} steps complete)`);
       MAIN.forEach((nd,i)=>{const d=c.ms[nodeKey(nd)];T.push(d?`✓ ${nd.name} (${fmt(d)})`:i===stage?`➜ Next: ${nd.name}`:`○ ${nd.name}`);
         (nd.subs||[]).forEach(k=>{const sd=c.ms[k];T.push(`     ${sd?"✓":"○"} ${msBy(k).name}${sd?" ("+(k==="closingSched"&&c.closingAt?fmtWhen(c.closingAt):fmt(sd))+")":""}`);});});T.push("");}
-    if(condsOn){T.push("ITEMS STILL NEEDED","The underwriter is asking for the following. Please send them as soon as you can.");oc.forEach((x,i)=>T.push(`${i+1}. ${x.text}`));T.push("");}
     T.push("If you have any questions, just reply to this email or give me a call.","","Thank you,",me||"[Your name]");
-    return {subject,html,text:T.join("\n"),ann};
+    return {subject,html,text:T.join("\n"),ann,tracker,n,T7,nx};
   }
   function renderMail(c){const e=buildMail(c);$("subjTxt").textContent=e.subject;$("mailPrev").innerHTML=e.html;}
 
@@ -603,10 +660,19 @@ dialog form{padding:18px;display:grid;gap:12px}
       case "addConds":{
         const items=parseConds($("condTxt").value);if(!items.length){$("condTxt").focus();return;}
         c.conds=c.conds||[];const have=new Set(c.conds.filter(x=>!x.done).map(x=>x.text.toLowerCase()));
-        let added=0;items.forEach(t=>{if(!have.has(t.toLowerCase())){c.conds.push({id:uid(),text:t,done:false,added:stamp()});added++;}});
+        numberConds(c);let max=c.conds.reduce((m,x)=>Math.max(m,x.n||0),0);
+        let added=0;items.forEach(t=>{if(!have.has(t.toLowerCase())){c.conds.push({id:uid(),n:++max,text:t,done:false,added:stamp()});added++;}});
+        if(added&&annKey==="condAppr")includeConds=true;
         c.notes=c.notes||[];if(added)c.notes.push({t:stamp(),text:`${added} underwriting condition${added===1?"":"s"} added`,auto:true});
         touch(c);save();condOpen[c.id]=true;renderClient(c);say(added?`Added ${added} condition${added===1?"":"s"}.`:"Those conditions are already on the list.");break;}
       case "clearConds":if(confirm("Remove all conditions for this client?")){c.conds=[];touch(c);save();renderClient(c);}break;
+      case "copyBar":{
+        const e=buildMail(c);
+        const html=`<div style="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt">${e.tracker}</div>`;
+        const text=`Loan progress: ${e.n} of ${e.T7} steps complete${e.nx?". Next: "+e.nx.name:""}`;
+        if(await copyRich(html,text))say("Progress bar copied. Paste it into your email.");
+        break;}
+      case "print":printSheet(c);break;
       case "copySubj":{const e=buildMail(c);if(await copyText(e.subject))say("Subject copied.");break;}
     }
   });
@@ -617,7 +683,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     if(ev.target.hasAttribute("data-closeat")){c.closingAt=ev.target.value;delete annMsg[c.id+"closingSched"];touch(c);save();renderClient(c);return;}
     const k=ev.target.dataset.ms, kd=ev.target.dataset.msdate;
     if(k){
-      if(ev.target.checked){c.ms[k]=today();annKey=k;}else delete c.ms[k];
+      if(ev.target.checked){c.ms[k]=today();annKey=k;if(k==="condAppr"&&openConds(c).length)includeConds=true;}else delete c.ms[k];
       touch(c);save();renderClient(c);
       if(ev.target.checked)say(`${MS.find(m=>m.k===k).name} checked. The update email below is ready to copy.`);
     }else if(kd&&ev.target.value){c.ms[kd]=ev.target.value;touch(c);save();renderClient(c);}
