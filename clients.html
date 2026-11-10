@@ -98,7 +98,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 .stack{display:grid;gap:16px}
 
 /* Milestone tracker (horizontal, like a lender portal) */
-.tracker{display:grid;grid-template-columns:repeat(7,1fr);margin:16px 0 4px;position:relative}
+.tracker{display:grid;grid-template-columns:repeat(8,1fr);margin:16px 0 4px;position:relative}
 .tracker .st{text-align:center;position:relative;font-size:.74rem;line-height:1.25;padding:0 2px}
 .tracker .st::before{content:"";position:absolute;top:15px;left:-50%;width:100%;height:2px;background:var(--rule);z-index:0}
 .tracker .st:first-child::before{display:none}
@@ -125,6 +125,34 @@ button,select,input,textarea{font:inherit;color:inherit}
 .msl li.sub .dot{width:18px;height:18px;font-size:.65rem;border-width:2px}
 .msl li.sub label{font-weight:500}
 .msl .grp{font-weight:700}
+.lblwrap{display:grid;gap:4px}
+.closeat{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);font-weight:600}
+.closeat input{padding:4px 6px;border:1px solid var(--rule);background:var(--paper);font-size:.85rem}
+/* Conditions banner and list */
+.cbanner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--rule);border-left:5px solid var(--brass);border-radius:10px;padding:10px 14px;margin-top:12px}
+.cbanner .arrow{color:var(--brass);font-weight:700;font-size:1.15rem;line-height:1}
+.cbanner .cnum{background:var(--brass);color:#fff;border-radius:999px;min-width:28px;height:28px;padding:0 6px;display:grid;place-items:center;font-weight:700;font-size:.82rem}
+.cbanner b{color:var(--brass)}
+.cbanner .grow{flex:1;min-width:200px;font-size:.92rem}
+.cbanner.clear{border-left-color:var(--good)}
+.cbanner.clear .arrow,.cbanner.clear b{color:var(--goodtxt)}
+.cbanner.clear .cnum{background:var(--good)}
+.cbanner.empty{border-left-color:var(--rule)}
+.cbanner.empty .arrow{color:var(--muted)}
+.tbtn.gold{background:var(--brass);border-color:var(--brass);color:#fff;border-radius:6px}
+.conds{margin-top:8px}
+.chead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.clist{list-style:none;margin:10px 0 0;padding:0}
+.clist li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:start;padding:8px 0;border-top:1px solid var(--rule)}
+.clist li:first-child{border-top:0}
+.clist .cn{font-weight:700;color:var(--brass);text-align:right}
+.clist label{display:flex;gap:8px;align-items:flex-start;cursor:pointer}
+.clist input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--good);flex:none}
+.clist .ct{white-space:pre-wrap;overflow-wrap:anywhere}
+.clist li.done .ct{text-decoration:line-through;color:var(--muted)}
+.clist li.done .cn{color:var(--muted)}
+.clist .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;line-height:1;padding:2px 6px}
+.clist .x:hover{color:var(--bad)}
 .msl .nexttag{font-size:.72rem;font-weight:700;color:var(--brass);border:1px solid var(--brass);padding:0 6px;margin-left:6px}
 
 /* Forms */
@@ -204,21 +232,52 @@ dialog form{padding:18px;display:grid;gap:12px}
     {k:"addlDocsRecv",name:"Additional documents received", short:"Docs received", msg:"Thank you! We received your additional documents and passed them to the underwriter for review."},
     {k:"apprOrdered",name:"Appraisal ordered",   short:"Ordered",  msg:"The appraisal has been ordered. The appraiser may reach out to you or your agent to schedule a visit."},
     {k:"apprRecv",   name:"Appraisal received",  short:"Received", msg:"The appraisal is back, and we're one step closer to the finish line."},
+    {k:"ctcSubmitted",name:"Submitted for clear to close", msg:"Your file has been submitted to the underwriter for final clear to close. We're almost there!"},
+    {k:"closingSched",name:"Closing scheduled with title company", short:"Closing scheduled", msg:""},
     {k:"ctc",        name:"Clear to close",                 msg:"You're clear to close! The title company will reach out to schedule your closing. Congratulations!"}
   ];
   const msBy=k=>MS.find(m=>m.k===k);
-  const TRACK_H=101; // display height of the tracker pictures at 600px wide
+  const TRACK_H=90; // display height of the tracker pictures at 600px wide
   // The main chain shown in the tracker. Two steps carry sub-steps listed underneath them.
   // "Appraisal" has no checkbox of its own: it is complete when "Appraisal received" is checked.
   const MAIN=[
     {k:"contract"},{k:"discSent"},{k:"discSigned"},{k:"submitted"},
     {k:"condAppr",subs:["addlDocs","addlDocsRecv"]},
     {k:"appraisal",name:"Appraisal",group:true,doneKey:"apprRecv",subs:["apprOrdered","apprRecv"]},
+    {k:"ctcSubmitted",subs:["closingSched"]},
     {k:"ctc"}
   ].map(n=>({...n,name:n.name||msBy(n.k).name}));
   // Order used for "Next": additional documents are optional, so they are not part of it.
-  const PATH=["contract","discSent","discSigned","submitted","condAppr","apprOrdered","apprRecv","ctc"];
-  const purposeFix=(c,m)=>c.purpose==="refi"&&m.k==="contract"?"We have everything we need to start your refinance, and your loan is officially underway.":m.msg;
+  const PATH=["contract","discSent","discSigned","submitted","condAppr","apprOrdered","apprRecv","ctcSubmitted","ctc"];
+  const fmtWhen=v=>v?new Date(v).toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):"";
+  // Default email message for a milestone (a few depend on the client's details).
+  const purposeFix=(c,m)=>{
+    if(c.purpose==="refi"&&m.k==="contract")return "We have everything we need to start your refinance, and your loan is officially underway.";
+    if(m.k==="closingSched")return `Your closing has been scheduled with the title company${c.closingAt?" for "+fmtWhen(c.closingAt):""}. Please bring a valid photo ID, and I'll confirm the final details with you beforehand.`;
+    return m.msg;
+  };
+  // ---------- Underwriting conditions (stips) ----------
+  // Pasted text is split into one condition per number ("1.", "2)", "#3", "Condition 4:"); lines without a number join the one above.
+  function parseConds(txt){
+    const NUM=[
+      /^(?:condition|cond|item|stip|prior to doc|ptd|ptf)\.?\s*#?\s*(\d{1,3})\s*[\.\):\-–]*\s+(.*)$/i, // "Condition 4: ..." / "Item 4 ..."
+      /^#\s*(\d{1,3})\s*[\.\):\-–]*\s+(.*)$/,                                                        // "#3 ..." / "#3. ..."
+      /^\(?(\d{1,3})\s*[\.\):\-–]+\s*(.*)$/,                                                         // "1. ..." / "2) ..." / "(3) ..."
+    ];
+    const out=[];let sawNum=false,firstNum=-1;
+    String(txt).replace(/\r/g,"").split("\n").forEach(line=>{
+      const t=line.trim();if(!t)return;
+      let m=null;for(const re of NUM){m=t.match(re);if(m)break;}
+      if(m){if(!sawNum){sawNum=true;firstNum=out.length;}out.push(m[2].trim());}
+      else if(/^[\-•*·]\s+/.test(t))out.push(t.replace(/^[\-•*·]\s+/,""));
+      else if(out.length)out[out.length-1]=(out[out.length-1]+" "+t).trim();
+      else out.push(t);
+    });
+    // Lines above the first numbered item (like "Conditions for approval:") are a heading, not a condition.
+    return (sawNum?out.slice(firstNum):out).filter(Boolean);
+  }
+  const openConds=c=>(c.conds||[]).filter(x=>!x.done);
+  let condOpen={};
 
   // ---------- Storage (this browser only) ----------
   const KEY="clients-v1";
@@ -312,7 +371,7 @@ dialog form{padding:18px;display:grid;gap:12px}
         const n=doneCount(c), cur=current(c), nx=nextStep(c);
         return `<li><button class="row" data-open="${c.id}">
           <div><div class="nm">${esc(fullName(c))}</div>
-            <div class="sub">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.address?" · "+esc(c.address):""}</div></div>
+            <div class="sub">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.address?" · "+esc(c.address):""}${openConds(c).length?` · <b style="color:var(--brass)">${openConds(c).length} condition${openConds(c).length===1?"":"s"} open</b>`:""}</div></div>
           <div><div class="bar" aria-hidden="true"><i style="width:${n/MAIN.length*100}%"></i></div>
             <div class="stat"><span><b>${cur?esc(cur.name):"Not started"}</b>${cur?" · "+fmt(c.ms[cur.k]):""}</span>
             <span class="muted">${nx?"Next: "+esc(nx.name):"Done"}</span></div></div>
@@ -344,7 +403,7 @@ dialog form{padding:18px;display:grid;gap:12px}
   });
 
   // ---------- One client ----------
-  let annKey=null, annMsg={}, includeAll=true;
+  let annKey=null, annMsg={}, includeAll=true, includeConds=false;
   function renderClient(c){
     const n=doneCount(c), nx=nextStep(c), cur=current(c), stg=stageOf(c);
     if(!annKey||!MS.some(m=>m.k===annKey))annKey=cur?cur.k:"contract";
@@ -380,11 +439,12 @@ dialog form{padding:18px;display:grid;gap:12px}
           const st=nodeDone(c,nd)?"done":(i===stg?"next":"");
           const item=(k,sub)=>{const m=msBy(k), d=c.ms[k], isNx=nx&&nx.k===k;
             return `<li class="${sub?"sub ":""}${d?"done":isNx?"next":""}"><span class="dot">${d?"✓":sub?"":i+1}</span>
-            <label><input type="checkbox" data-ms="${k}"${d?" checked":""}>${esc(sub?m.short:m.name)}${isNx?'<span class="nexttag">NEXT</span>':""}</label>
+            <div class="lblwrap"><label><input type="checkbox" data-ms="${k}"${d?" checked":""}>${esc(sub?m.short:m.name)}${isNx?'<span class="nexttag">NEXT</span>':""}</label>${k==="closingSched"?`<label class="closeat">Closing date &amp; time <input type="datetime-local" data-closeat value="${esc(c.closingAt||"")}"></label>`:""}</div>
             ${d?`<input type="date" data-msdate="${k}" value="${d}" aria-label="Date for ${esc(m.name)}">`:`<span class="muted small">—</span>`}</li>`;};
           const head=nd.group?`<li class="${st}"><span class="dot">${st==="done"?"✓":i+1}</span><span class="grp">${esc(nd.name)} <span class="muted small">(check the steps below)</span></span><span></span></li>`:item(nd.k,false);
           return head+(nd.subs||[]).map(k=>item(k,true)).join("");}).join("")}</ul>
       </div>
+      ${condsBlock(c)}
 
       <div class="grid">
         <div class="stack">
@@ -397,6 +457,7 @@ dialog form{padding:18px;display:grid;gap:12px}
             </div>
             <label class="field" style="margin-top:10px">Message<textarea id="annMsg">${esc(annMsg[c.id+annKey]??purposeFix(c,ann))}</textarea></label>
             <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incAll"${includeAll?" checked":""} style="width:18px;height:18px;accent-color:var(--ink)"> Show the full milestone list in the email</label>
+            <label style="display:flex;gap:8px;align-items:center;margin-top:6px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incConds"${includeConds?" checked":""}${openConds(c).length?"":" disabled"} style="width:18px;height:18px;accent-color:var(--ink)"> Include open conditions${openConds(c).length?` (${openConds(c).length})`:" (none open)"}</label>
             <div class="acts" style="margin-top:12px">
               <button class="tbtn primary" data-act="copyMail">Copy email</button>
               <button class="tbtn" data-act="copySubj">Copy subject</button>
@@ -423,22 +484,43 @@ dialog form{padding:18px;display:grid;gap:12px}
     $("annSel").addEventListener("change",e=>{annKey=e.target.value;renderClient(c);});
     $("annMsg").addEventListener("input",e=>{annMsg[c.id+annKey]=e.target.value;renderMail(c);});
     $("incAll").addEventListener("change",e=>{includeAll=e.target.checked;renderMail(c);});
+    $("incConds").addEventListener("change",e=>{includeConds=e.target.checked;renderMail(c);});
     $("me").addEventListener("input",e=>{try{localStorage.setItem("req-me",e.target.value);}catch(x){}renderMail(c);});
+  }
+
+  function condsBlock(c){
+    const all=c.conds||[], open=openConds(c), show=condOpen[c.id]??false;
+    const banner=all.length
+      ?`<div class="cbanner${open.length?"":" clear"}"><span class="arrow" aria-hidden="true">→</span><span class="cnum">${open.length||"✓"}</span>
+          <span class="grow">${open.length?`<b>Conditional approval.</b> Underwriting conditions are open for review.`:`<b>All conditions cleared.</b> ${all.length} of ${all.length} checked off.`}</span>
+          <button class="tbtn gold" data-act="toggleConds" aria-expanded="${show}">${show?"Hide conditions":"View conditions"}</button></div>`
+      :`<div class="cbanner empty"><span class="arrow" aria-hidden="true">+</span><span class="grow muted">No underwriting conditions yet. Paste them here when your processor sends them.</span>
+          <button class="tbtn" data-act="toggleConds" aria-expanded="${show}">${show?"Close":"Add conditions"}</button></div>`;
+    if(!show)return banner;
+    return banner+`<div class="panel conds">
+        ${all.length?`<div class="chead"><h3>Conditions <span class="muted small">${open.length} open · ${all.length-open.length} cleared</span></h3><button class="tbtn danger" data-act="clearConds">Remove all</button></div>
+        <ol class="clist">${all.map((x,i)=>`<li class="${x.done?"done":""}"><span class="cn">${i+1}</span>
+          <label><input type="checkbox" data-cond="${x.id}"${x.done?" checked":""} aria-label="Cleared"><span class="ct">${esc(x.text)}</span></label>
+          <button class="x" data-delcond="${x.id}" aria-label="Remove condition ${i+1}">×</button></li>`).join("")}</ol>`:""}
+        <label class="field" style="margin-top:12px">Paste conditions from your processor's email<textarea id="condTxt" placeholder="1. Updated pay stub covering 30 days&#10;2. Letter of explanation for large deposit on 10/14&#10;3. Signed gift letter"></textarea></label>
+        <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addConds">Add conditions</button><span class="muted small" style="align-self:center">Numbered lines become separate conditions. Check each one off as it clears.</span></div>
+      </div>`;
   }
 
   // ---------- Milestone update email (inline styles + tables so it pastes well into Outlook) ----------
   function buildMail(c){
     const ann=MS.find(m=>m.k===annKey), msg=($("annMsg")?.value??purposeFix(c,ann)).trim(), me=($("me")?.value||"").trim();
     const n=doneCount(c), nx=nextStep(c), stage=stageOf(c), T7=MAIN.length;
+    const oc=openConds(c), condsOn=includeConds&&oc.length>0;
     const subject=`Loan update: ${ann.name}`;
     const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
     const BLUE="#1F4E79", GREEN="#2C5234", GOLD="#A97A1E", GRAY="#9AA3AE";
     const date=c.ms[ann.k]?fmt(c.ms[ann.k]):"";
     // Tracker picture (hosted on the site; no client details in it): one per combination of the main stage,
     // the appraisal sub-steps (none / ordered / received) and the additional documents (none / requested / received).
-    const ap=c.ms.apprRecv?2:c.ms.apprOrdered?1:0, dc=c.ms.addlDocsRecv?2:c.ms.addlDocs?1:0;
+    const ap=c.ms.apprRecv?2:c.ms.apprOrdered?1:0, dc=c.ms.addlDocsRecv?2:c.ms.addlDocs?1:0, cs=c.ms.closingSched?1:0;
     const SITE=location.protocol.startsWith("http")&&location.hostname.endsWith("github.io")?location.href:"https://jfb315-dotcom.github.io/";
-    const trackImg=new URL(`img/tracker2/t-${stage}-${ap}-${dc}.png`,SITE).href;
+    const trackImg=new URL(`img/tracker3/t-${stage}-${ap}-${dc}-${cs}.png`,SITE).href;
     const tracker=`<img src="${trackImg}" width="600" height="${TRACK_H}" alt="Loan progress: ${n} of ${T7} steps complete${nx?", next: "+esc(nx.name):""}" style="display:block;border:0;width:100%;max-width:600px;height:auto">`;
     // Outlook can drop inline styles on text when pasting, so colors and sizes are also set with <font> tags,
     // the heading underline sits on a table cell, and spacing comes from spacer rows. Each survives a paste.
@@ -453,7 +535,8 @@ dialog form{padding:18px;display:grid;gap:12px}
       const mark=d?"&#10003;":isNext?"&#9679;":"&#9675;", mc=d?GREEN:isNext?GOLD:GRAY;
       const txt=d?`<b>${esc(nd.name)}</b> ${fc("#777777","","",fmt(d))}`:isNext?fc(GOLD,"","",`<b>Next: ${esc(nd.name)}</b>`):fc(GRAY,"","",esc(nd.name));
       return row(mark,mc,txt,false)+(nd.subs||[]).map(k=>{const sd=c.ms[k], m=msBy(k);
-        return row(sd?"&#10003;":"&#9675;",sd?GREEN:GRAY,fc(sd?"#333333":GRAY,"2","10",esc(m.name)+(sd?" "+fc("#777777","2","10",fmt(sd)):"")),true);}).join("");
+        const when=k==="closingSched"&&sd&&c.closingAt?" "+fc(BLUE,"2","10",`<b>${esc(fmtWhen(c.closingAt))}</b>`):"";
+        return row(sd?"&#10003;":"&#9675;",sd?GREEN:GRAY,fc(sd?"#333333":GRAY,"2","10",esc(m.name)+(sd&&!when?" "+fc("#777777","2","10",fmt(sd)):"")+when),true);}).join("");
     }).join("");
     const html=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(c.first||"there")},</p>`+sp(6)+
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#EAF2EC" style="background:#EAF2EC;border-left:5px solid ${GREEN};padding:10px 14px;${F}">`+
@@ -463,11 +546,15 @@ dialog form{padding:18px;display:grid;gap:12px}
       (includeAll?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Your loan progress</b>")}</td></tr></table>`+sp(6)+
         `<p style="margin:0">${fc("#555555","2","10",`${n} of ${T7} steps complete`)}</p>`+sp(10)+tracker+sp(10)+
         `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`+sp(8):"")+
+      (condsOn?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Items still needed</b>")}</td></tr></table>`+sp(6)+
+        `<p style="margin:0">${fc("#555555","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
+        `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${oc.map((x,i)=>row(`${i+1}.`,GOLD,esc(x.text),false)).join("")}</table>`+sp(8):"")+
       `<p style="margin:0">If you have any questions, just reply to this email or give me a call.</p>`+sp(10)+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     const T=[`Hi ${c.first||"there"},`,"",`MILESTONE REACHED${date?" ("+date+")":""}: ${ann.name}`,"",msg,""];
     if(includeAll){T.push(`YOUR LOAN PROGRESS (${n} of ${T7} steps complete)`);
       MAIN.forEach((nd,i)=>{const d=c.ms[nodeKey(nd)];T.push(d?`✓ ${nd.name} (${fmt(d)})`:i===stage?`➜ Next: ${nd.name}`:`○ ${nd.name}`);
-        (nd.subs||[]).forEach(k=>{const sd=c.ms[k];T.push(`     ${sd?"✓":"○"} ${msBy(k).name}${sd?" ("+fmt(sd)+")":""}`);});});T.push("");}
+        (nd.subs||[]).forEach(k=>{const sd=c.ms[k];T.push(`     ${sd?"✓":"○"} ${msBy(k).name}${sd?" ("+(k==="closingSched"&&c.closingAt?fmtWhen(c.closingAt):fmt(sd))+")":""}`);});});T.push("");}
+    if(condsOn){T.push("ITEMS STILL NEEDED","The underwriter is asking for the following. Please send them as soon as you can.");oc.forEach((x,i)=>T.push(`${i+1}. ${x.text}`));T.push("");}
     T.push("If you have any questions, just reply to this email or give me a call.","","Thank you,",me||"[Your name]");
     return {subject,html,text:T.join("\n"),ann};
   }
@@ -486,11 +573,12 @@ dialog form{padding:18px;display:grid;gap:12px}
   // ---------- Clicks ----------
   const curClient=()=>{const m=location.hash.match(/client=([\w]+)/);return m&&clients.find(x=>x.id===m[1]);};
   document.addEventListener("click",async ev=>{
-    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote]");if(!t)return;
+    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote],[data-delcond]");if(!t)return;
     const c=curClient();
     if(t.dataset.tab){tab=t.dataset.tab;renderList();return;}
     if(t.dataset.open){annKey=null;go(t.dataset.open);return;}
     if(t.dataset.status&&c){c.status=t.dataset.status;touch(c);save();renderClient(c);say(c.status==="inactive"?"Moved to inactive.":"Marked active.");return;}
+    if(t.dataset.delcond&&c){c.conds=(c.conds||[]).filter(x=>x.id!==t.dataset.delcond);touch(c);save();renderClient(c);return;}
     if(t.dataset.delnote&&c){c.notes=c.notes.filter(n=>n.t!==t.dataset.delnote);save();renderClient(c);return;}
     switch(t.dataset.act){
       case "new":openForm();break;
@@ -511,11 +599,22 @@ dialog form{padding:18px;display:grid;gap:12px}
           c.notes=c.notes||[];c.notes.push({t:stamp(),text:`Milestone email copied: ${e.ann.name}`,auto:true});touch(c);save();renderClient(c);
           say("Email copied. Paste it into a new Outlook message.");}
         break;}
+      case "toggleConds":condOpen[c.id]=!(condOpen[c.id]??false);renderClient(c);break;
+      case "addConds":{
+        const items=parseConds($("condTxt").value);if(!items.length){$("condTxt").focus();return;}
+        c.conds=c.conds||[];const have=new Set(c.conds.filter(x=>!x.done).map(x=>x.text.toLowerCase()));
+        let added=0;items.forEach(t=>{if(!have.has(t.toLowerCase())){c.conds.push({id:uid(),text:t,done:false,added:stamp()});added++;}});
+        c.notes=c.notes||[];if(added)c.notes.push({t:stamp(),text:`${added} underwriting condition${added===1?"":"s"} added`,auto:true});
+        touch(c);save();condOpen[c.id]=true;renderClient(c);say(added?`Added ${added} condition${added===1?"":"s"}.`:"Those conditions are already on the list.");break;}
+      case "clearConds":if(confirm("Remove all conditions for this client?")){c.conds=[];touch(c);save();renderClient(c);}break;
       case "copySubj":{const e=buildMail(c);if(await copyText(e.subject))say("Subject copied.");break;}
     }
   });
   document.addEventListener("change",ev=>{
     const c=curClient();if(!c)return;
+    if(ev.target.dataset.cond){const x=(c.conds||[]).find(y=>y.id===ev.target.dataset.cond);
+      if(x){x.done=ev.target.checked;x.doneAt=x.done?stamp():undefined;touch(c);save();renderClient(c);if(!openConds(c).length&&x.done)say("All conditions cleared!");}return;}
+    if(ev.target.hasAttribute("data-closeat")){c.closingAt=ev.target.value;delete annMsg[c.id+"closingSched"];touch(c);save();renderClient(c);return;}
     const k=ev.target.dataset.ms, kd=ev.target.dataset.msdate;
     if(k){
       if(ev.target.checked){c.ms[k]=today();annKey=k;}else delete c.ms[k];
