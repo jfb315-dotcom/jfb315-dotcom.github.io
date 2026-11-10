@@ -407,6 +407,11 @@ dialog form{padding:18px;display:grid;gap:12px}
     const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
     const BLUE="#1F4E79", GREEN="#2C5234", GOLD="#A97A1E", GRAY="#9AA3AE";
     const date=c.ms[ann.k]?fmt(c.ms[ann.k]):"";
+    // Tracker picture (hosted on the site; no client details in it). Picks the stage by the first unchecked step.
+    const stage=nx?MS.indexOf(nx):MS.length;
+    const SITE=location.protocol.startsWith("http")&&location.hostname.endsWith("github.io")?location.href:"https://jfb315-dotcom.github.io/";
+    const trackImg=new URL(`img/tracker/tracker-${stage}.png`,SITE).href;
+    const tracker=`<img src="${trackImg}" width="600" height="78" alt="Loan progress: ${n} of ${MS.length} steps complete${nx?", next: "+esc(nx.name):""}" style="display:block;border:0;width:100%;max-width:600px;height:auto">`;
     const bar=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>`+
       (pct>0?`<td width="${pct}%" bgcolor="${GREEN}" style="background:${GREEN};height:10px;font-size:1px;line-height:1px">&nbsp;</td>`:"")+
       (pct<100?`<td bgcolor="#DDE2E8" style="background:#DDE2E8;height:10px;font-size:1px;line-height:1px">&nbsp;</td>`:"")+`</tr></table>`;
@@ -427,7 +432,7 @@ dialog form{padding:18px;display:grid;gap:12px}
       fc(BLUE,"4","15",`<b>${esc(ann.name)}</b>`)+`</td></tr></table>`+sp(12)+
       `<p style="margin:0">${esc(msg).replace(/\n/g,"<br>")}</p>`+sp(14)+
       (includeAll?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Your loan progress</b>")}</td></tr></table>`+sp(6)+
-        `<p style="margin:0">${fc("#555555","2","10",`${n} of ${MS.length} steps complete`)}</p>`+sp(6)+bar+sp(8)+
+        `<p style="margin:0">${fc("#555555","2","10",`${n} of ${MS.length} steps complete`)}</p>`+sp(10)+tracker+sp(10)+
         `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`+sp(8):"")+
       `<p style="margin:0">If you have any questions, just reply to this email or give me a call.</p>`+sp(10)+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     const T=[`Hi ${c.first||"there"},`,"",`MILESTONE REACHED${date?" ("+date+")":""}: ${ann.name}`,"",msg,""];
