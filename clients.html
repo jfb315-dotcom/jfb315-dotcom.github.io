@@ -410,22 +410,26 @@ dialog form{padding:18px;display:grid;gap:12px}
     const bar=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>`+
       (pct>0?`<td width="${pct}%" bgcolor="${GREEN}" style="background:${GREEN};height:10px;font-size:1px;line-height:1px">&nbsp;</td>`:"")+
       (pct<100?`<td bgcolor="#DDE2E8" style="background:#DDE2E8;height:10px;font-size:1px;line-height:1px">&nbsp;</td>`:"")+`</tr></table>`;
+    // Outlook can drop inline styles on text when pasting, so colors and sizes are also set with <font> tags,
+    // the heading underline sits on a table cell, and spacing comes from spacer rows. Each survives a paste.
+    const fc=(col,size,pt,inner)=>`<font color="${col}"${size?` size="${size}"`:""} face="Calibri, Arial, sans-serif" style="color:${col}${pt?`;font-size:${pt}pt`:""}">${inner}</font>`;
+    const sp=h=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td height="${h}" style="height:${h}px;font-size:1px;line-height:1px">&nbsp;</td></tr></table>`;
     const rows=MS.map(m=>{
       const d=c.ms[m.k], isNext=nx&&nx.k===m.k;
       const mark=d?"&#10003;":isNext?"&#9679;":"&#9675;";
       const mc=d?GREEN:isNext?GOLD:GRAY;
-      const txt=d?`<b>${esc(m.name)}</b> <span style="color:#777777">${fmt(d)}</span>`:isNext?`<b style="color:${GOLD}">Next: ${esc(m.name)}</b>`:`<span style="color:${GRAY}">${esc(m.name)}</span>`;
-      return `<tr><td width="26" valign="top" style="width:26px;padding:0 0 5px 4px;${F};color:${mc};font-weight:bold">${mark}</td><td valign="top" style="padding:0 0 5px 0;${F}">${txt}</td></tr>`;
+      const txt=d?`<b>${esc(m.name)}</b> ${fc("#777777","","",fmt(d))}`:isNext?fc(GOLD,"","",`<b>Next: ${esc(m.name)}</b>`):fc(GRAY,"","",esc(m.name));
+      return `<tr><td width="26" valign="top" style="width:26px;padding:0 0 5px 4px;${F}">${fc(mc,"","",`<b>${mark}</b>`)}</td><td valign="top" style="padding:0 0 5px 0;${F}">${txt}</td></tr>`;
     }).join("");
-    const html=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(c.first||"there")},</p>`+
+    const html=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(c.first||"there")},</p>`+sp(6)+
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#EAF2EC" style="background:#EAF2EC;border-left:5px solid ${GREEN};padding:10px 14px;${F}">`+
-      `<span style="font-size:9.5pt;color:${GREEN};font-weight:bold;letter-spacing:.5px">MILESTONE REACHED${date?" · "+esc(date.toUpperCase()):""}</span><br>`+
-      `<span style="font-size:15pt;font-weight:bold;color:${BLUE}">${esc(ann.name)}</span></td></tr></table>`+
-      `<p style="margin:12px 0 12px 0">${esc(msg).replace(/\n/g,"<br>")}</p>`+
-      (includeAll?`<p style="margin:16px 0 6px 0;color:${BLUE};font-size:12pt;font-weight:bold;border-bottom:2px solid ${BLUE};padding-bottom:3px">Your loan progress</p>`+
-        `<p style="margin:0 0 6px 0;font-size:10pt;color:#555555">${n} of ${MS.length} steps complete</p>`+bar+
-        `<p style="margin:0;font-size:6pt;line-height:6pt">&nbsp;</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`:"")+
-      `<p style="margin:14px 0 10px 0">If you have any questions, just reply to this email or give me a call.</p><p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
+      fc(GREEN,"2","9.5",`<b>MILESTONE REACHED${date?" · "+esc(date.toUpperCase()):""}</b>`)+`<br>`+
+      fc(BLUE,"4","15",`<b>${esc(ann.name)}</b>`)+`</td></tr></table>`+sp(12)+
+      `<p style="margin:0">${esc(msg).replace(/\n/g,"<br>")}</p>`+sp(14)+
+      (includeAll?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Your loan progress</b>")}</td></tr></table>`+sp(6)+
+        `<p style="margin:0">${fc("#555555","2","10",`${n} of ${MS.length} steps complete`)}</p>`+sp(6)+bar+sp(8)+
+        `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`+sp(8):"")+
+      `<p style="margin:0">If you have any questions, just reply to this email or give me a call.</p>`+sp(10)+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     const T=[`Hi ${c.first||"there"},`,"",`MILESTONE REACHED${date?" ("+date+")":""}: ${ann.name}`,"",msg,""];
     if(includeAll){T.push(`YOUR LOAN PROGRESS (${n} of ${MS.length} steps complete)`);
       MS.forEach(m=>{const d=c.ms[m.k];T.push(d?`✓ ${m.name} (${fmt(d)})`:nx&&nx.k===m.k?`➜ Next: ${m.name}`:`○ ${m.name}`);});T.push("");}
