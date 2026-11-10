@@ -4,6 +4,7 @@ A one-page dashboard of mortgage rates, Treasury yields, stock market numbers an
 
 - `index.html` is the whole page. It reads its numbers from `data/market.json`.
 - `checklist.html` builds a document request email: pick the borrower type and loan type, check the documents you need, and copy an email that lists only those items.
+- `clients.html` is a client tracker: active and inactive clients, loan milestones, notes, and a milestone update email to copy. Client information is saved only in the browser (with a backup download), never in this repository.
 - `scripts/fetch_fred.py` pulls the numbers from the FRED API and writes `data/market.json`.
 - `.github/workflows/update-data.yml` runs that script several times each weekday, saves the data file, and publishes the site. It also republishes whenever `main` changes. Run it by hand from the Actions tab with **Run workflow**.
 
