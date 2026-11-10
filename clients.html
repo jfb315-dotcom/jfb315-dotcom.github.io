@@ -436,7 +436,8 @@ dialog form{padding:18px;display:grid;gap:12px}
   });
 
   // ---------- One client ----------
-  let annKey=null, annMsg={}, includeAll=true, includeConds=false;
+  let annKey=null, annMsg={}, includeAll=true, includeConds=false, includeList=false;
+  try{includeList=localStorage.getItem("ms-list")==="1";}catch(e){}
   function renderClient(c){
     const n=doneCount(c), nx=nextStep(c), cur=current(c), stg=stageOf(c);
     if(!annKey||!MS.some(m=>m.k===annKey))annKey=cur?cur.k:"contract";
@@ -490,12 +491,12 @@ dialog form{padding:18px;display:grid;gap:12px}
               <label class="field">Sign off as<input id="me" value="${esc(me)}" placeholder="Your name and phone" autocomplete="off"></label>
             </div>
             <label class="field" style="margin-top:10px">Message<textarea id="annMsg">${esc(annMsg[c.id+annKey]??purposeFix(c,ann))}</textarea></label>
-            <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incAll"${includeAll?" checked":""} style="width:18px;height:18px;accent-color:var(--ink)"> Show the full milestone list in the email</label>
+            <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incAll"${includeAll?" checked":""} style="width:18px;height:18px;accent-color:var(--ink)"> Show the progress bar in the email</label>
+            <label style="display:flex;gap:8px;align-items:center;margin:6px 0 0 26px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incList"${includeList?" checked":""}${includeAll?"":" disabled"} style="width:18px;height:18px;accent-color:var(--ink)"> Also list each step with dates under the bar</label>
             <label style="display:flex;gap:8px;align-items:center;margin-top:6px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incConds"${includeConds?" checked":""}${openConds(c).length?"":" disabled"} style="width:18px;height:18px;accent-color:var(--ink)"> Include open conditions${openConds(c).length?` (${openConds(c).length})`:" (none open)"}</label>
             <div class="acts" style="margin-top:12px">
               <button class="tbtn primary" data-act="copyMail">Copy email</button>
               <button class="tbtn" data-act="copySubj">Copy subject</button>
-              <button class="tbtn" data-act="copyBar" title="Copies just the milestone tracker picture to paste into any email">Copy progress bar only</button>
             </div>
             <p class="subj"><b class="muted">Subject:</b> <span id="subjTxt"></span></p>
             <div class="mail" id="mailPrev"></div>
@@ -518,8 +519,9 @@ dialog form{padding:18px;display:grid;gap:12px}
     renderMail(c);
     $("annSel").addEventListener("change",e=>{annKey=e.target.value;if(annKey==="condAppr"&&openConds(c).length)includeConds=true;renderClient(c);});
     $("annMsg").addEventListener("input",e=>{annMsg[c.id+annKey]=e.target.value;renderMail(c);});
-    $("incAll").addEventListener("change",e=>{includeAll=e.target.checked;renderMail(c);});
+    $("incAll").addEventListener("change",e=>{includeAll=e.target.checked;$("incList").disabled=!includeAll;renderMail(c);});
     $("incConds").addEventListener("change",e=>{includeConds=e.target.checked;renderMail(c);});
+    $("incList").addEventListener("change",e=>{includeList=e.target.checked;try{localStorage.setItem("ms-list",includeList?"1":"0");}catch(x){}renderMail(c);});
     $("me").addEventListener("input",e=>{try{localStorage.setItem("req-me",e.target.value);}catch(x){}renderMail(c);});
   }
 
@@ -604,8 +606,8 @@ dialog form{padding:18px;display:grid;gap:12px}
         `<p style="margin:0">${fc("#555555","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
         `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${oc.map(x=>row(`${x.n}.`,GOLD,esc(x.text),false)).join("")}</table>`+sp(14):"")+
       (includeAll?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Your loan progress</b>")}</td></tr></table>`+sp(6)+
-        `<p style="margin:0">${fc("#555555","2","10",`${n} of ${T7} steps complete`)}</p>`+sp(10)+tracker+sp(10)+
-        `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`+sp(8):"")+
+        `<p style="margin:0">${fc("#555555","2","10",`${n} of ${T7} steps complete`)}</p>`+sp(10)+tracker+sp(includeList?10:14)+
+        (includeList?`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`+sp(8):""):"")+
       `<p style="margin:0">If you have any questions, just reply to this email or give me a call.</p>`+sp(10)+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     const T=[`Hi ${c.first||"there"},`,"",`MILESTONE REACHED${date?" ("+date+")":""}: ${ann.name}`,"",msg,""];
     if(condsOn){T.push("ITEMS STILL NEEDED","The underwriter is asking for the following. Please send them as soon as you can.");oc.forEach(x=>T.push(`${x.n}. ${x.text}`));T.push("");}
@@ -666,12 +668,6 @@ dialog form{padding:18px;display:grid;gap:12px}
         c.notes=c.notes||[];if(added)c.notes.push({t:stamp(),text:`${added} underwriting condition${added===1?"":"s"} added`,auto:true});
         touch(c);save();condOpen[c.id]=true;renderClient(c);say(added?`Added ${added} condition${added===1?"":"s"}.`:"Those conditions are already on the list.");break;}
       case "clearConds":if(confirm("Remove all conditions for this client?")){c.conds=[];touch(c);save();renderClient(c);}break;
-      case "copyBar":{
-        const e=buildMail(c);
-        const html=`<div style="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt">${e.tracker}</div>`;
-        const text=`Loan progress: ${e.n} of ${e.T7} steps complete${e.nx?". Next: "+e.nx.name:""}`;
-        if(await copyRich(html,text))say("Progress bar copied. Paste it into your email.");
-        break;}
       case "print":printSheet(c);break;
       case "copySubj":{const e=buildMail(c);if(await copyText(e.subject))say("Subject copied.");break;}
     }
