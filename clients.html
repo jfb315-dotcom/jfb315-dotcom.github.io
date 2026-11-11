@@ -74,7 +74,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 .rows{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--rule)}
 .rows li{border-top:1px solid var(--rule)}
 .rows li:first-child{border-top:0}
-.row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.4fr);gap:6px 20px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:14px 16px;cursor:pointer;color:var(--ink)}
+.row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) auto;gap:6px 20px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:14px 16px;cursor:pointer;color:var(--ink)}
 .row:hover{background:var(--paper)}
 .row .nm{font-weight:700;font-size:1.02rem}
 .row .sub{font-size:.85rem;color:var(--muted)}
@@ -83,6 +83,18 @@ button,select,input,textarea{font:inherit;color:inherit}
 .row .stat{font-size:.85rem;margin-top:5px;display:flex;justify-content:space-between;gap:8px}
 .row .stat b{font-weight:600}
 .empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.row .co{font-weight:500;color:var(--muted);font-size:.9rem}
+.mini{display:flex;align-items:center;padding:3px 0}
+.mini b{width:12px;height:12px;border-radius:50%;border:2px solid var(--rule);background:var(--panel);flex:none}
+.mini b.done{background:var(--good);border-color:var(--good)}
+.mini b.next{background:var(--brass);border-color:var(--brass);box-shadow:0 0 0 3px color-mix(in srgb,var(--brass) 25%,transparent)}
+.mini i{flex:1;height:2px;background:var(--rule)}
+.mini i.on{background:var(--good)}
+.dates{display:grid;grid-template-columns:auto auto;gap:1px 10px;margin:0;font-size:.8rem;white-space:nowrap}
+.dates div{display:contents}
+.dates dt{color:var(--muted)}
+.dates dd{margin:0;font-weight:600;text-align:right}
+@media (max-width:860px){.row{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}.dates{grid-column:1/-1;grid-template-columns:repeat(3,auto);justify-content:start;gap:0 18px}.dates div{display:flex;gap:6px}}
 @media (max-width:640px){.row{grid-template-columns:1fr}.row .stat{flex-direction:column;gap:0}.search{max-width:none;flex-basis:100%}}
 
 /* Detail */
@@ -154,6 +166,15 @@ button,select,input,textarea{font:inherit;color:inherit}
 .clist li.csep{display:block;padding:10px 0 2px;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .clist .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;line-height:1;padding:2px 6px}
 .clist .x:hover{color:var(--bad)}
+.clist .cact{display:flex;gap:2px;align-items:center}
+.clist .cmove{background:none;border:1px solid var(--rule);color:var(--muted);cursor:pointer;font-size:.72rem;font-weight:600;padding:1px 6px;white-space:nowrap}
+.clist .cmove:hover{border-color:var(--ink);color:var(--ink)}
+.cgroup{margin-top:12px}
+.cgroup h4{font-size:.9rem;margin:0;padding:6px 0 2px;border-bottom:2px solid var(--brass);color:var(--brass)}
+.cgroup+.cgroup h4{border-bottom-color:var(--muted);color:var(--muted)}
+.cbanner .csplit{display:inline-block;font-size:.8rem;color:var(--muted);margin-left:4px}
+.cwho{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:8px;font-size:.9rem}
+.cwho label{display:flex;gap:6px;align-items:center;cursor:pointer}
 .msl .nexttag{font-size:.72rem;font-weight:700;color:var(--brass);border:1px solid var(--brass);padding:0 6px;margin-left:6px}
 
 /* Forms */
@@ -187,6 +208,7 @@ button,select,input,textarea{font:inherit;color:inherit}
   #printSheet .pr{text-align:right;font-size:9pt;color:#444;white-space:nowrap}
   #printSheet .close{margin-top:8px;padding:6px 10px;border:1.5px solid #000;font-size:11pt}
   #printSheet h2{font-size:12pt;margin:14px 0 4px;border-bottom:1px solid #888;padding-bottom:2px}
+  #printSheet h3{font-size:10.5pt;margin:6px 0 2px}
   #printSheet h2 span{font-weight:400;font-size:9.5pt;color:#444}
   #printSheet table{width:100%;border-collapse:collapse}
   #printSheet td{padding:2px 4px;vertical-align:top}
@@ -205,6 +227,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 dialog{border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 40px)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
 dialog form{padding:18px;display:grid;gap:12px}
+.fsub{font-size:.95rem;margin:4px 0 -4px;border-top:1px solid var(--rule);padding-top:10px}
 .dlgbtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 </style>
 </head>
@@ -224,12 +247,20 @@ dialog form{padding:18px;display:grid;gap:12px}
       <label class="field">Email<input name="email" type="email" autocomplete="off"></label>
       <label class="field">Phone<input name="phone" type="tel" autocomplete="off"></label>
     </div>
+    <h3 class="fsub">Co-borrower <span class="muted small">(optional)</span></h3>
+    <div class="fgrid">
+      <label class="field">First name<input name="coFirst" autocomplete="off"></label>
+      <label class="field">Last name<input name="coLast" autocomplete="off"></label>
+      <label class="field">Email<input name="coEmail" type="email" autocomplete="off"></label>
+      <label class="field">Phone<input name="coPhone" type="tel" autocomplete="off"></label>
+    </div>
     <label class="field">Property address<input name="address" autocomplete="off"></label>
     <div class="fgrid">
       <label class="field">Loan type<select name="loan">
         <option value="conv">Conventional</option><option value="fha">FHA</option><option value="va">VA</option><option value="usda">USDA</option><option value="jumbo">Jumbo</option></select></label>
       <label class="field">Purchase or refinance<select name="purpose"><option value="buy">Purchase</option><option value="refi">Refinance</option></select></label>
       <label class="field">Borrower's income<select name="who"><option value="w2">W-2 employee</option><option value="self">Self-employed</option><option value="retired">Retired</option></select></label>
+      <label class="field">Submitted to processing<input name="procDate" type="date"></label>
       <label class="field">Target closing date<input name="closing" type="date"></label>
     </div>
     <div class="dlgbtns">
@@ -255,11 +286,13 @@ dialog form{padding:18px;display:grid;gap:12px}
     {k:"contract",   name:"Contract received",              msg:"We have your signed purchase contract, and your loan is officially underway."},
     {k:"discSent",   name:"Disclosures sent",               msg:"Your initial loan disclosures have been sent. Please review and e-sign them as soon as you can so we can keep things moving."},
     {k:"discSigned", name:"Disclosures signed",             msg:"Thank you for signing your disclosures. Next, your file goes to underwriting."},
-    {k:"submitted",  name:"Loan submitted to underwriting", msg:"Your loan has been submitted to underwriting for review. I'll let you know as soon as we hear back."},
+    {k:"submitted",  name:"Loan submitted to underwriting", msg:"Your loan has been submitted to underwriting for review. Normal turn times are 2 to 3 business days, and I'll let you know as soon as we hear back."},
     {k:"condAppr",   name:"Conditionally approved",         msg:"Great news: your loan is conditionally approved! The underwriter has a short list of items to finalize, and I'll help you with each one."},
     {k:"addlDocs",   name:"Additional documents requested", short:"Docs requested", msg:"The underwriter has asked for a few more items. I'll send you the list, and please send them as soon as you can."},
     {k:"addlDocsRecv",name:"Additional documents received", short:"Docs received", msg:"Thank you! We received your additional documents and passed them to the underwriter for review."},
-    {k:"apprOrdered",name:"Appraisal ordered",   short:"Ordered",  msg:"The appraisal has been ordered. The appraiser may reach out to you or your agent to schedule a visit."},
+    {k:"apprOrdered",name:"Appraisal ordered",   short:"Ordered",  msg:"The appraisal has been ordered. The appraiser may reach out to you or your agent to schedule a visit.",
+      alts:[{label:"Standard",msg:"The appraisal has been ordered. The appraiser may reach out to you or your agent to schedule a visit."},
+            {label:"With payment link",msg:"The appraisal has been ordered. The appraiser may reach out to you or your agent to schedule a visit. You'll also receive a separate email with a secure link to pay for the appraisal. Please keep an eye out for it (and check your spam folder) and complete the payment as soon as you can so the appraiser can schedule the visit."}]},
     {k:"apprRecv",   name:"Appraisal received",  short:"Received", msg:"The appraisal is back, and we're one step closer to the finish line."},
     {k:"ctcSubmitted",name:"Submitted for clear to close", msg:"Your file has been submitted to the underwriter for final clear to close. We're almost there!"},
     {k:"closingSched",name:"Closing scheduled with title company", short:"Closing scheduled", msg:""},
@@ -283,33 +316,49 @@ dialog form{padding:18px;display:grid;gap:12px}
   const purposeFix=(c,m)=>{
     if(c.purpose==="refi"&&m.k==="contract")return "We have everything we need to start your refinance, and your loan is officially underway.";
     if(m.k==="closingSched")return `Your closing has been scheduled with the title company${c.closingAt?" for "+fmtWhen(c.closingAt):""}. Please bring a valid photo ID, and I'll confirm the final details with you beforehand.`;
+    if(m.alts)return m.alts[annVar[c.id+m.k]||0].msg;
     return m.msg;
   };
+  let annVar={};
   // ---------- Underwriting conditions (stips) ----------
   // Pasted text is split into one condition per number ("1.", "2)", "#3", "Condition 4:"); lines without a number join the one above.
-  function parseConds(txt){
+  // Returns [{text, who}] where who is "b" (borrower) or "lo" (loan officer).
+  // Headings in the pasted text such as "Borrower Conditions:" or "LO Conditions:" switch the group;
+  // everything else uses the group picked on the page.
+  function parseConds(txt,defWho){
     const NUM=[
-      /^(?:condition|cond|item|stip|prior to doc|ptd|ptf)\.?\s*#?\s*(\d{1,3})\s*[\.\):\-–]*\s+(.*)$/i, // "Condition 4: ..." / "Item 4 ..."
-      /^#\s*(\d{1,3})\s*[\.\):\-–]*\s+(.*)$/,                                                        // "#3 ..." / "#3. ..."
-      /^\(?(\d{1,3})\s*[\.\):\-–]+\s*(.*)$/,                                                         // "1. ..." / "2) ..." / "(3) ..."
+      /^(?:condition|cond|item|stip|prior to doc|ptd|ptf)\.?\s*#?\s*(\d{1,3})\s*[\.\):\-–]*\s+(.*)$/i,
+      /^#\s*(\d{1,3})\s*[\.\):\-–]*\s+(.*)$/,
+      /^\(?(\d{1,3})\s*[\.\):\-–]+\s*(.*)$/,
     ];
-    const out=[];let sawNum=false,firstNum=-1;
+    const headingWho=t=>{
+      const short=t.length<=60&&(/:\s*$/.test(t)||t.split(/\s+/).length<=5);
+      if(!short)return null;
+      if(/\b(borrower|buyer|client)s?'?s?\b/i.test(t))return "b";
+      if(/\b(loan officer|lo|lender|internal|processor)s?'?s?\b/i.test(t))return "lo";
+      return null;
+    };
+    const out=[];let who=defWho||"b",sawNum=false,firstNum=-1;
     String(txt).replace(/\r/g,"").split("\n").forEach(line=>{
       const t=line.trim();if(!t)return;
       let m=null;for(const re of NUM){m=t.match(re);if(m)break;}
-      if(m){if(!sawNum){sawNum=true;firstNum=out.length;}out.push(m[2].trim());}
-      else if(/^[\-•*·]\s+/.test(t))out.push(t.replace(/^[\-•*·]\s+/,""));
-      else if(out.length)out[out.length-1]=(out[out.length-1]+" "+t).trim();
-      else out.push(t);
+      if(m){if(!sawNum){sawNum=true;firstNum=out.length;}out.push({text:m[2].trim(),who});return;}
+      const h=headingWho(t);
+      if(h){who=h;if(!sawNum){sawNum=true;firstNum=out.length;}return;}
+      if(/^[\-•*·]\s+/.test(t))out.push({text:t.replace(/^[\-•*·]\s+/,""),who});
+      else if(out.length)out[out.length-1].text=(out[out.length-1].text+" "+t).trim();
+      else out.push({text:t,who});
     });
-    // Lines above the first numbered item (like "Conditions for approval:") are a heading, not a condition.
-    return (sawNum?out.slice(firstNum):out).filter(Boolean);
+    // Lines above the first numbered item or heading (like "Conditions for approval:") are not conditions.
+    return (sawNum?out.slice(firstNum):out).filter(x=>x.text);
   }
   // Each condition keeps the number it was given when added, so #3 stays #3 when the list re-sorts.
   function numberConds(c){let max=0;(c.conds||[]).forEach(x=>{if(x.n>max)max=x.n;});(c.conds||[]).forEach(x=>{if(!x.n)x.n=++max;});}
-  const openConds=c=>(numberConds(c),(c.conds||[]).filter(x=>!x.done).sort((a,b)=>a.n-b.n));
+  const whoOf=x=>x.who==="lo"?"lo":"b";
+  const openConds=(c,who)=>(numberConds(c),(c.conds||[]).filter(x=>!x.done&&(!who||whoOf(x)===who)).sort((a,b)=>a.n-b.n));
   // Open conditions first, then cleared ones; each group in number order.
-  const sortedConds=c=>(numberConds(c),(c.conds||[]).slice().sort((a,b)=>(a.done-b.done)||(a.n-b.n)));
+  const sortedConds=(c,who)=>(numberConds(c),(c.conds||[]).filter(x=>!who||whoOf(x)===who).sort((a,b)=>(a.done-b.done)||(a.n-b.n)));
+  let condWho="b";
   let condOpen={};
 
   // ---------- Storage (this browser only) ----------
@@ -328,6 +377,10 @@ dialog form{padding:18px;display:grid;gap:12px}
   const fmtStamp=s=>new Date(s).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
   const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
   const fullName=c=>[c.first,c.last].filter(Boolean).join(" ");
+  const coName=c=>[c.coFirst,c.coLast].filter(Boolean).join(" ");
+  // Greeting uses both first names when there is a co-borrower: "Hi Kevin and Maria,"
+  const greet=c=>[c.first,c.coFirst].filter(Boolean).join(" and ")||"there";
+  const closingOf=c=>c.closingAt?fmt(c.closingAt.slice(0,10)):c.closing?fmt(c.closing):"";
   const nodeKey=n=>n.group?n.doneKey:n.k;
   const nodeDone=(c,n)=>!!(c.ms&&c.ms[nodeKey(n)]);
   const doneCount=c=>MAIN.filter(n=>nodeDone(c,n)).length;
@@ -381,7 +434,7 @@ dialog form{padding:18px;display:grid;gap:12px}
   // ---------- Client list ----------
   function renderList(){
     const act=clients.filter(c=>c.status!=="inactive"), ina=clients.filter(c=>c.status==="inactive");
-    const shown=(tab==="active"?act:ina).filter(c=>!q||(fullName(c)+" "+(c.address||"")+" "+(c.email||"")).toLowerCase().includes(q.toLowerCase()))
+    const shown=(tab==="active"?act:ina).filter(c=>!q||(fullName(c)+" "+coName(c)+" "+(c.address||"")+" "+(c.email||"")+" "+(c.coEmail||"")).toLowerCase().includes(q.toLowerCase()))
       .sort((a,b)=>(b.updated||"").localeCompare(a.updated||""));
     $("app").innerHTML=`
       <div class="top">
@@ -401,13 +454,15 @@ dialog form{padding:18px;display:grid;gap:12px}
         <input class="search" id="search" type="search" placeholder="Search name, address or email" value="${esc(q)}" aria-label="Search clients">
       </div>
       ${shown.length?`<ul class="rows">${shown.map(c=>{
-        const n=doneCount(c), cur=current(c), nx=nextStep(c);
+        const n=doneCount(c), cur=current(c), nx=nextStep(c), stg=stageOf(c), oc=openConds(c).length;
+        const mini=MAIN.map((nd,i)=>(i?`<i class="${i<=stg&&nodeDone(c,MAIN[i-1])?"on":""}"></i>`:"")+`<b class="${nodeDone(c,nd)?"done":i===stg?"next":""}" title="${esc(nd.name)}"></b>`).join("");
         return `<li><button class="row" data-open="${c.id}">
-          <div><div class="nm">${esc(fullName(c))}</div>
-            <div class="sub">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.address?" · "+esc(c.address):""}${openConds(c).length?` · <b style="color:var(--brass)">${openConds(c).length} condition${openConds(c).length===1?"":"s"} open</b>`:""}</div></div>
-          <div><div class="bar" aria-hidden="true"><i style="width:${n/MAIN.length*100}%"></i></div>
+          <div><div class="nm">${esc(fullName(c))}${coName(c)?` <span class="co">&amp; ${esc(coName(c))}</span>`:""}</div>
+            <div class="sub">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.address?" · "+esc(c.address):""}${oc?` · <b style="color:var(--brass)">${oc} condition${oc===1?"":"s"} open</b>`:""}</div></div>
+          <div><div class="mini" aria-label="${n} of ${MAIN.length} steps complete">${mini}</div>
             <div class="stat"><span><b>${cur?esc(cur.name):"Not started"}</b>${cur?" · "+fmt(c.ms[cur.k]):""}</span>
             <span class="muted">${nx?"Next: "+esc(nx.name):"Done"}</span></div></div>
+          <dl class="dates"><div><dt>Processing</dt><dd>${c.procDate?fmt(c.procDate):"—"}</dd></div><div><dt>Closing</dt><dd>${closingOf(c)||"—"}</dd></div><div><dt>Last activity</dt><dd>${c.updated?fmt(c.updated.slice(0,10)):"—"}</dd></div></dl>
         </button></li>`;}).join("")}</ul>`
       :`<div class="panel empty">${clients.length?(q?"No clients match that search.":`No ${tab} clients.`):`No clients yet. Press <b>+ New client</b> to add your first one.`}</div>`}`;
     const s=$("search");
@@ -420,14 +475,14 @@ dialog form{padding:18px;display:grid;gap:12px}
     editing=c||null;
     const f=$("cform");f.reset();
     $("dlgTitle").textContent=c?"Edit client":"New client";
-    if(c)["first","last","email","phone","address","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
+    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","loan","purpose","who","procDate","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
     $("dlg").showModal();f.elements.first.focus();
   }
   $("dlg").addEventListener("close",()=>{
     if($("dlg").returnValue!=="save")return;
     const f=$("cform"), v=k=>f.elements[k].value.trim();
     if(!v("first"))return;
-    const data={first:v("first"),last:v("last"),email:v("email"),phone:v("phone"),address:v("address"),loan:v("loan"),purpose:v("purpose"),who:v("who"),closing:v("closing")};
+    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","loan","purpose","who","procDate","closing"].map(k=>[k,v(k)]));
     if(editing){Object.assign(editing,data);touch(editing);save();render();say("Client updated.");}
     else{
       const c={id:uid(),...data,status:"active",ms:{},notes:[],created:stamp()};touch(c);
@@ -442,14 +497,16 @@ dialog form{padding:18px;display:grid;gap:12px}
     const n=doneCount(c), nx=nextStep(c), cur=current(c), stg=stageOf(c);
     if(!annKey||!MS.some(m=>m.k===annKey))annKey=cur?cur.k:"contract";
     const ann=MS.find(m=>m.k===annKey);
-    const docLink=`checklist.html?${new URLSearchParams({who:c.who||"w2",loan:c.loan||"conv",purpose:c.purpose||"buy",name:c.first||"",client:c.id})}`;
+    const docLink=`checklist.html?${new URLSearchParams({who:c.who||"w2",loan:c.loan||"conv",purpose:c.purpose||"buy",name:greet(c)==="there"?"":greet(c),client:c.id})}`;
     let me="";try{me=localStorage.getItem("req-me")||"";}catch(e){}
     $("app").innerHTML=`
       <button class="back" data-act="list">← All clients</button>
       <div class="dhead">
         <div>
           <h1>${esc(fullName(c))}</h1>
-          <div class="info">${[LOANS[c.loan]+" "+PURP[c.purpose],WHO[c.who],c.address,c.closing?"Closing "+fmt(c.closing):"",c.phone,c.email].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>
+          <div class="info">${[LOANS[c.loan]+" "+PURP[c.purpose],WHO[c.who],c.address,c.phone,c.email].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>
+          ${coName(c)?`<div class="info">${["Co-borrower: "+coName(c),c.coPhone,c.coEmail].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>`:""}
+          <div class="info">${[c.procDate?"Submitted to processing "+fmt(c.procDate):"",closingOf(c)?"Closing "+closingOf(c):"","Last activity "+fmt((c.updated||stamp()).slice(0,10))].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>
         </div>
         <div class="acts">
           <div class="seg" role="group" aria-label="Status">
@@ -490,10 +547,11 @@ dialog form{padding:18px;display:grid;gap:12px}
               <label class="field">Milestone to announce<select id="annSel">${MS.map(m=>`<option value="${m.k}"${m.k===annKey?" selected":""}>${esc(m.name)}${c.ms[m.k]?"":" (not checked yet)"}</option>`).join("")}</select></label>
               <label class="field">Sign off as<input id="me" value="${esc(me)}" placeholder="Your name and phone" autocomplete="off"></label>
             </div>
+            ${ann.alts?`<label class="field" style="margin-top:10px">Message version<select id="annVar">${ann.alts.map((a,i)=>`<option value="${i}"${(annVar[c.id+ann.k]||0)===i?" selected":""}>${esc(a.label)}</option>`).join("")}</select></label>`:""}
             <label class="field" style="margin-top:10px">Message<textarea id="annMsg">${esc(annMsg[c.id+annKey]??purposeFix(c,ann))}</textarea></label>
             <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incAll"${includeAll?" checked":""} style="width:18px;height:18px;accent-color:var(--ink)"> Show the progress bar in the email</label>
             <label style="display:flex;gap:8px;align-items:center;margin:6px 0 0 26px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incList"${includeList?" checked":""}${includeAll?"":" disabled"} style="width:18px;height:18px;accent-color:var(--ink)"> Also list each step with dates under the bar</label>
-            <label style="display:flex;gap:8px;align-items:center;margin-top:6px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incConds"${includeConds?" checked":""}${openConds(c).length?"":" disabled"} style="width:18px;height:18px;accent-color:var(--ink)"> Include open conditions${openConds(c).length?` (${openConds(c).length})`:" (none open)"}</label>
+            <label style="display:flex;gap:8px;align-items:center;margin-top:6px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incConds"${includeConds?" checked":""}${openConds(c,"b").length?"":" disabled"} style="width:18px;height:18px;accent-color:var(--ink)"> Include the borrower's open conditions${openConds(c,"b").length?` (${openConds(c,"b").length})`:" (none open)"}</label>
             <div class="acts" style="margin-top:12px">
               <button class="tbtn primary" data-act="copyMail">Copy email</button>
               <button class="tbtn" data-act="copySubj">Copy subject</button>
@@ -517,7 +575,8 @@ dialog form{padding:18px;display:grid;gap:12px}
         </div>
       </div>`;
     renderMail(c);
-    $("annSel").addEventListener("change",e=>{annKey=e.target.value;if(annKey==="condAppr"&&openConds(c).length)includeConds=true;renderClient(c);});
+    $("annSel").addEventListener("change",e=>{annKey=e.target.value;if(annKey==="condAppr"&&openConds(c,"b").length)includeConds=true;renderClient(c);});
+    if($("annVar"))$("annVar").addEventListener("change",e=>{annVar[c.id+annKey]=+e.target.value;delete annMsg[c.id+annKey];renderClient(c);});
     $("annMsg").addEventListener("input",e=>{annMsg[c.id+annKey]=e.target.value;renderMail(c);});
     $("incAll").addEventListener("change",e=>{includeAll=e.target.checked;$("incList").disabled=!includeAll;renderMail(c);});
     $("incConds").addEventListener("change",e=>{includeConds=e.target.checked;renderMail(c);});
@@ -526,32 +585,46 @@ dialog form{padding:18px;display:grid;gap:12px}
   }
 
   function condsBlock(c){
-    const all=c.conds||[], open=openConds(c), show=condOpen[c.id]??false;
+    const all=c.conds||[], open=openConds(c), ob=openConds(c,"b").length, ol=openConds(c,"lo").length, show=condOpen[c.id]??false;
+    const split=`<span class="csplit">${ob} borrower · ${ol} loan officer</span>`;
     const banner=all.length
       ?`<div class="cbanner${open.length?"":" clear"}"><span class="arrow" aria-hidden="true">→</span><span class="cnum">${open.length||"✓"}</span>
-          <span class="grow">${open.length?`<b>Conditional approval.</b> Underwriting conditions are open for review.`:`<b>All conditions cleared.</b> ${all.length} of ${all.length} checked off.`}</span>
+          <span class="grow">${open.length?`<b>Conditional approval.</b> Underwriting conditions are open for review. ${split}`:`<b>All conditions cleared.</b> ${all.length} of ${all.length} checked off.`}</span>
           <button class="tbtn gold" data-act="toggleConds" aria-expanded="${show}">${show?"Hide conditions":"View conditions"}</button></div>`
       :`<div class="cbanner empty"><span class="arrow" aria-hidden="true">+</span><span class="grow muted">No underwriting conditions yet. Paste them here when your processor sends them.</span>
           <button class="tbtn" data-act="toggleConds" aria-expanded="${show}">${show?"Close":"Add conditions"}</button></div>`;
     if(!show)return banner;
+    const group=(who,title)=>{const list=sortedConds(c,who), op=list.filter(x=>!x.done).length;
+      if(!list.length)return "";
+      return `<div class="cgroup"><h4>${title} <span class="muted small">${op} open · ${list.length-op} cleared</span></h4>
+        <ol class="clist">${list.map((x,i,arr)=>`${x.done&&(i===0||!arr[i-1].done)?`<li class="csep">Cleared</li>`:""}<li class="${x.done?"done":""}"><span class="cn">${x.n}</span>
+          <label><input type="checkbox" data-cond="${x.id}"${x.done?" checked":""} aria-label="Cleared"><span class="ct">${esc(x.text)}</span></label>
+          <span class="cact"><button class="cmove" data-condwho="${x.id}" title="Move to ${who==="b"?"loan officer":"borrower"} conditions">${who==="b"?"→ LO":"→ Borrower"}</button><button class="x" data-delcond="${x.id}" aria-label="Remove condition ${x.n}">×</button></span></li>`).join("")}</ol></div>`;};
     return banner+`<div class="panel conds">
         ${all.length?`<div class="chead"><h3>Conditions <span class="muted small">${open.length} open · ${all.length-open.length} cleared</span></h3><button class="tbtn danger" data-act="clearConds">Remove all</button></div>
-        <ol class="clist">${sortedConds(c).map((x,i,arr)=>`${x.done&&(i===0||!arr[i-1].done)?`<li class="csep">Cleared</li>`:""}<li class="${x.done?"done":""}"><span class="cn">${x.n}</span>
-          <label><input type="checkbox" data-cond="${x.id}"${x.done?" checked":""} aria-label="Cleared"><span class="ct">${esc(x.text)}</span></label>
-          <button class="x" data-delcond="${x.id}" aria-label="Remove condition ${x.n}">×</button></li>`).join("")}</ol>`:""}
-        <label class="field" style="margin-top:12px">Paste conditions from your processor's email<textarea id="condTxt" placeholder="1. Updated pay stub covering 30 days&#10;2. Letter of explanation for large deposit on 10/14&#10;3. Signed gift letter"></textarea></label>
-        <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addConds">Add conditions</button><span class="muted small" style="align-self:center">Numbered lines become separate conditions. Check each one off as it clears.</span></div>
+          ${group("b","Borrower conditions")}${group("lo","Loan officer conditions")}`:""}
+        <label class="field" style="margin-top:12px">Paste conditions from your processor's email<textarea id="condTxt" placeholder="Borrower conditions:&#10;1. Updated pay stub covering 30 days&#10;2. Letter of explanation for large deposit on 10/14&#10;LO conditions:&#10;3. Updated title commitment"></textarea></label>
+        <div class="cwho" role="radiogroup" aria-label="Who these conditions are for">
+          <span class="muted small">These are:</span>
+          <label><input type="radio" name="condWho" value="b"${condWho==="b"?" checked":""}> Borrower conditions</label>
+          <label><input type="radio" name="condWho" value="lo"${condWho==="lo"?" checked":""}> Loan officer conditions</label>
+        </div>
+        <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addConds">Add conditions</button><span class="muted small" style="align-self:center">Numbered lines become separate conditions. Headings like "Borrower conditions" or "LO conditions" in the pasted text sort them automatically.</span></div>
       </div>`;
   }
 
   // ---------- Printable desk sheet ----------
   function printSheet(c){
     const box=d=>d?"&#9745;":"&#9744;";
-    const info=[LOANS[c.loan]+" "+PURP[c.purpose],WHO[c.who]+" borrower",c.address,c.phone,c.email].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; ");
+    const info=[LOANS[c.loan]+" "+PURP[c.purpose],WHO[c.who]+" borrower",c.address,c.phone,c.email].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; ")+
+      (coName(c)?"<br>Co-borrower: "+[coName(c),c.coPhone,c.coEmail].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; "):"")+
+      (c.procDate?"<br>Submitted to processing "+esc(fmt(c.procDate)):"");
     const ms=MAIN.map((nd,i)=>{const d=c.ms[nodeKey(nd)];
       return `<tr><td class="b">${box(d)}</td><td><b>${i+1}. ${esc(nd.name)}</b></td><td class="d">${d?fmt(d):""}</td></tr>`+
         (nd.subs||[]).map(k=>{const sd=c.ms[k];return `<tr class="sub"><td></td><td>${box(sd)} ${esc(msBy(k).name)}${k==="closingSched"&&c.closingAt?" — <b>"+esc(fmtWhen(c.closingAt))+"</b>":""}</td><td class="d">${sd?fmt(sd):""}</td></tr>`;}).join("");}).join("");
     const conds=sortedConds(c), open=conds.filter(x=>!x.done), done=conds.filter(x=>x.done);
+    const ctable=who=>{const l=sortedConds(c,who);if(!l.length)return "";
+      return `<h3>${who==="b"?"Borrower conditions":"Loan officer conditions"}</h3><table class="cd">${l.map(x=>`<tr class="${x.done?"done":""}"><td class="b">${x.done?"&#9745;":"&#9744;"}</td><td class="n">${x.n}.</td><td>${esc(x.text)}</td></tr>`).join("")}</table>`;};
     const notes=(c.notes||[]).filter(x=>!x.auto).slice(-8).reverse();
     $("printSheet").innerHTML=`
       <div class="ph"><div><h1>${esc(fullName(c))}</h1><div>${info}</div></div>
@@ -559,8 +632,7 @@ dialog form{padding:18px;display:grid;gap:12px}
       ${c.closingAt||c.closing?`<div class="close">Closing: <b>${c.closingAt?esc(fmtWhen(c.closingAt)):"target "+esc(fmt(c.closing))}</b></div>`:""}
       <h2>Milestones</h2><table class="ms">${ms}</table>
       <h2>Conditions ${conds.length?`<span>${open.length} open · ${done.length} cleared</span>`:""}</h2>
-      ${conds.length?`<table class="cd">${open.map(x=>`<tr><td class="b">&#9744;</td><td class="n">${x.n}.</td><td>${esc(x.text)}</td></tr>`).join("")}
-        ${done.map(x=>`<tr class="done"><td class="b">&#9745;</td><td class="n">${x.n}.</td><td>${esc(x.text)}</td></tr>`).join("")}</table>`:`<p class="none">No conditions yet.</p>`}
+      ${conds.length?ctable("b")+ctable("lo"):`<p class="none">No conditions yet.</p>`}
       ${notes.length?`<h2>Recent notes</h2><ul class="nt">${notes.map(x=>`<li><span>${fmtStamp(x.t)}</span> ${esc(x.text)}</li>`).join("")}</ul>`:""}
       <h2>Notes</h2><div class="lines"></div>`;
     window.print();
@@ -570,7 +642,7 @@ dialog form{padding:18px;display:grid;gap:12px}
   function buildMail(c){
     const ann=MS.find(m=>m.k===annKey), msg=($("annMsg")?.value??purposeFix(c,ann)).trim(), me=($("me")?.value||"").trim();
     const n=doneCount(c), nx=nextStep(c), stage=stageOf(c), T7=MAIN.length;
-    const oc=openConds(c), condsOn=includeConds&&oc.length>0;
+    const oc=openConds(c,"b"), condsOn=includeConds&&oc.length>0;
     const subject=`Loan update: ${ann.name}`;
     const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
     const BLUE="#1F4E79", GREEN="#2C5234", GOLD="#A97A1E", GRAY="#9AA3AE";
@@ -597,20 +669,20 @@ dialog form{padding:18px;display:grid;gap:12px}
         const when=k==="closingSched"&&sd&&c.closingAt?" "+fc(BLUE,"2","10",`<b>${esc(fmtWhen(c.closingAt))}</b>`):"";
         return row(sd?"&#10003;":"&#9675;",sd?GREEN:GRAY,fc(sd?"#333333":GRAY,"2","10",esc(m.name)+(sd&&!when?" "+fc("#777777","2","10",fmt(sd)):"")+when),true);}).join("");
     }).join("");
-    const html=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(c.first||"there")},</p>`+sp(6)+
+    const html=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(greet(c))},</p>`+sp(6)+
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#EAF2EC" style="background:#EAF2EC;border-left:5px solid ${GREEN};padding:10px 14px;${F}">`+
       fc(GREEN,"2","9.5",`<b>MILESTONE REACHED${date?" · "+esc(date.toUpperCase()):""}</b>`)+`<br>`+
       fc(BLUE,"4","15",`<b>${esc(ann.name)}</b>`)+`</td></tr></table>`+sp(12)+
       `<p style="margin:0">${esc(msg).replace(/\n/g,"<br>")}</p>`+sp(14)+
       (condsOn?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Items still needed</b>")}</td></tr></table>`+sp(6)+
         `<p style="margin:0">${fc("#555555","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
-        `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${oc.map(x=>row(`${x.n}.`,GOLD,esc(x.text),false)).join("")}</table>`+sp(14):"")+
+        `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${oc.map((x,i)=>row(`${i+1}.`,GOLD,esc(x.text),false)).join("")}</table>`+sp(14):"")+
       (includeAll?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Your loan progress</b>")}</td></tr></table>`+sp(6)+
         `<p style="margin:0">${fc("#555555","2","10",`${n} of ${T7} steps complete`)}</p>`+sp(10)+tracker+sp(includeList?10:14)+
         (includeList?`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`+sp(8):""):"")+
       `<p style="margin:0">If you have any questions, just reply to this email or give me a call.</p>`+sp(10)+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
-    const T=[`Hi ${c.first||"there"},`,"",`MILESTONE REACHED${date?" ("+date+")":""}: ${ann.name}`,"",msg,""];
-    if(condsOn){T.push("ITEMS STILL NEEDED","The underwriter is asking for the following. Please send them as soon as you can.");oc.forEach(x=>T.push(`${x.n}. ${x.text}`));T.push("");}
+    const T=[`Hi ${greet(c)},`,"",`MILESTONE REACHED${date?" ("+date+")":""}: ${ann.name}`,"",msg,""];
+    if(condsOn){T.push("ITEMS STILL NEEDED","The underwriter is asking for the following. Please send them as soon as you can.");oc.forEach((x,i)=>T.push(`${i+1}. ${x.text}`));T.push("");}
     if(includeAll){T.push(`YOUR LOAN PROGRESS (${n} of ${T7} steps complete)`);
       MAIN.forEach((nd,i)=>{const d=c.ms[nodeKey(nd)];T.push(d?`✓ ${nd.name} (${fmt(d)})`:i===stage?`➜ Next: ${nd.name}`:`○ ${nd.name}`);
         (nd.subs||[]).forEach(k=>{const sd=c.ms[k];T.push(`     ${sd?"✓":"○"} ${msBy(k).name}${sd?" ("+(k==="closingSched"&&c.closingAt?fmtWhen(c.closingAt):fmt(sd))+")":""}`);});});T.push("");}
@@ -632,11 +704,12 @@ dialog form{padding:18px;display:grid;gap:12px}
   // ---------- Clicks ----------
   const curClient=()=>{const m=location.hash.match(/client=([\w]+)/);return m&&clients.find(x=>x.id===m[1]);};
   document.addEventListener("click",async ev=>{
-    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote],[data-delcond]");if(!t)return;
+    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote],[data-delcond],[data-condwho]");if(!t)return;
     const c=curClient();
     if(t.dataset.tab){tab=t.dataset.tab;renderList();return;}
     if(t.dataset.open){annKey=null;go(t.dataset.open);return;}
     if(t.dataset.status&&c){c.status=t.dataset.status;touch(c);save();renderClient(c);say(c.status==="inactive"?"Moved to inactive.":"Marked active.");return;}
+    if(t.dataset.condwho&&c){const x=(c.conds||[]).find(y=>y.id===t.dataset.condwho);if(x){x.who=whoOf(x)==="b"?"lo":"b";touch(c);save();renderClient(c);}return;}
     if(t.dataset.delcond&&c){c.conds=(c.conds||[]).filter(x=>x.id!==t.dataset.delcond);touch(c);save();renderClient(c);return;}
     if(t.dataset.delnote&&c){c.notes=c.notes.filter(n=>n.t!==t.dataset.delnote);save();renderClient(c);return;}
     switch(t.dataset.act){
@@ -660,11 +733,11 @@ dialog form{padding:18px;display:grid;gap:12px}
         break;}
       case "toggleConds":condOpen[c.id]=!(condOpen[c.id]??false);renderClient(c);break;
       case "addConds":{
-        const items=parseConds($("condTxt").value);if(!items.length){$("condTxt").focus();return;}
+        const items=parseConds($("condTxt").value,condWho);if(!items.length){$("condTxt").focus();return;}
         c.conds=c.conds||[];const have=new Set(c.conds.filter(x=>!x.done).map(x=>x.text.toLowerCase()));
         numberConds(c);let max=c.conds.reduce((m,x)=>Math.max(m,x.n||0),0);
-        let added=0;items.forEach(t=>{if(!have.has(t.toLowerCase())){c.conds.push({id:uid(),n:++max,text:t,done:false,added:stamp()});added++;}});
-        if(added&&annKey==="condAppr")includeConds=true;
+        let added=0;items.forEach(it=>{if(!have.has(it.text.toLowerCase())){c.conds.push({id:uid(),n:++max,text:it.text,who:it.who,done:false,added:stamp()});added++;}});
+        if(added&&annKey==="condAppr"&&openConds(c,"b").length)includeConds=true;
         c.notes=c.notes||[];if(added)c.notes.push({t:stamp(),text:`${added} underwriting condition${added===1?"":"s"} added`,auto:true});
         touch(c);save();condOpen[c.id]=true;renderClient(c);say(added?`Added ${added} condition${added===1?"":"s"}.`:"Those conditions are already on the list.");break;}
       case "clearConds":if(confirm("Remove all conditions for this client?")){c.conds=[];touch(c);save();renderClient(c);}break;
@@ -676,10 +749,11 @@ dialog form{padding:18px;display:grid;gap:12px}
     const c=curClient();if(!c)return;
     if(ev.target.dataset.cond){const x=(c.conds||[]).find(y=>y.id===ev.target.dataset.cond);
       if(x){x.done=ev.target.checked;x.doneAt=x.done?stamp():undefined;touch(c);save();renderClient(c);if(!openConds(c).length&&x.done)say("All conditions cleared!");}return;}
+    if(ev.target.name==="condWho"){condWho=ev.target.value;return;}
     if(ev.target.hasAttribute("data-closeat")){c.closingAt=ev.target.value;delete annMsg[c.id+"closingSched"];touch(c);save();renderClient(c);return;}
     const k=ev.target.dataset.ms, kd=ev.target.dataset.msdate;
     if(k){
-      if(ev.target.checked){c.ms[k]=today();annKey=k;if(k==="condAppr"&&openConds(c).length)includeConds=true;}else delete c.ms[k];
+      if(ev.target.checked){c.ms[k]=today();annKey=k;if(k==="condAppr"&&openConds(c,"b").length)includeConds=true;}else delete c.ms[k];
       touch(c);save();renderClient(c);
       if(ev.target.checked)say(`${MS.find(m=>m.k===k).name} checked. The update email below is ready to copy.`);
     }else if(kd&&ev.target.value){c.ms[kd]=ev.target.value;touch(c);save();renderClient(c);}
