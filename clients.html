@@ -194,6 +194,11 @@ button,select,input,textarea{font:inherit;color:inherit}
 .notes .auto .txt{color:var(--muted);font-style:italic}
 .notes .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;line-height:1;padding:2px 6px;grid-row:1/3;grid-column:2;align-self:start}
 .notes .x:hover{color:var(--bad)}
+.alog{margin-top:12px;border-top:1px solid var(--rule);padding-top:8px}
+.alog summary{cursor:pointer;font-size:.85rem;font-weight:600;color:var(--muted)}
+.alog summary:hover{color:var(--ink)}
+.alog .notes{margin-top:6px}
+.alog .notes li{padding:6px 0;font-size:.88rem}
 
 /* Email preview */
 .mail{margin-top:12px;padding:16px;background:#FFFFFF;color:#222222;border:1px solid var(--rule)}
@@ -495,6 +500,7 @@ dialog form{padding:18px;display:grid;gap:12px}
   });
 
   // ---------- One client ----------
+  let logOpen={};
   let annKey=null, annMsg={}, includeAll=true, includeConds=false, includeList=false, includeUp=null;
   // Upload link: the one saved on the document request page (same browser), unless the client has their own.
   const isLink=v=>/^(https?:\/\/)?[^\s\/]+\.[^\s]+$/i.test(v||"")&&v.length<500;
@@ -583,7 +589,11 @@ dialog form{padding:18px;display:grid;gap:12px}
             <h2>Notes</h2>
             <label class="field" style="margin-top:10px"><span class="muted" style="font-weight:600">Add a note</span><textarea id="noteTxt" placeholder="Called about appraisal, waiting on HOA cert…"></textarea></label>
             <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addNote">Add note</button></div>
-            <ul class="notes">${(c.notes||[]).slice().reverse().map(nt=>`<li class="${nt.auto?"auto":""}"><span class="when">${fmtStamp(nt.t)}</span><span class="txt">${esc(nt.text)}</span><button class="x" data-delnote="${nt.t}" aria-label="Delete note">×</button></li>`).join("")||`<li><span class="txt muted">No notes yet.</span></li>`}</ul>
+            ${(()=>{const all=(c.notes||[]).slice().reverse(), mine=all.filter(nt=>!nt.auto), auto=all.filter(nt=>nt.auto);
+              const li=nt=>`<li class="${nt.auto?"auto":""}"><span class="when">${fmtStamp(nt.t)}</span><span class="txt">${esc(nt.text)}</span><button class="x" data-delnote="${nt.t}" aria-label="Delete">×</button></li>`;
+              // Your own notes stay front and center; automatic entries (emails copied, conditions added) are tucked into a collapsed log.
+              return `<ul class="notes">${mine.map(li).join("")||`<li><span class="txt muted">No notes yet.</span></li>`}</ul>`+
+                (auto.length?`<details class="alog"${logOpen[c.id]?" open":""} data-alog="${c.id}"><summary>Activity log (${auto.length})</summary><ul class="notes">${auto.map(li).join("")}</ul></details>`:"");})()}
           </div>
         </div>
       </div>`;
@@ -782,6 +792,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     }else if(kd&&ev.target.value){c.ms[kd]=ev.target.value;touch(c);save();renderClient(c);}
   });
 
+  document.addEventListener("toggle",ev=>{const d=ev.target;if(d.matches&&d.matches("details[data-alog]"))logOpen[d.dataset.alog]=d.open;},true);
   render();
 })();
 </script>
