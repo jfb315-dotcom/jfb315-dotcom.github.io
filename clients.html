@@ -194,6 +194,8 @@ button,select,input,textarea{font:inherit;color:inherit}
 .notes .auto .txt{color:var(--muted);font-style:italic}
 .notes .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;line-height:1;padding:2px 6px;grid-row:1/3;grid-column:2;align-self:start}
 .notes .x:hover{color:var(--bad)}
+.tbtn.mic[aria-pressed="true"]{background:var(--bad);border-color:var(--bad);color:#fff}
+.micmsg{align-self:center}
 .alog{margin-top:12px;border-top:1px solid var(--rule);padding-top:8px}
 .alog summary{cursor:pointer;font-size:.85rem;font-weight:600;color:var(--muted)}
 .alog summary:hover{color:var(--ink)}
@@ -516,6 +518,30 @@ dialog form{padding:18px;display:grid;gap:12px}
 
   // ---------- One client ----------
   let logOpen={};
+  // ---------- Talk instead of type (browser speech-to-text) ----------
+  // Chrome and Edge send the audio to their speech service to turn it into text; Safari can do it on the device.
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  let rec=null;
+  function stopTalk(){if(rec){try{rec.stop();}catch(e){}}}
+  function startTalk(btn){
+    if(rec){stopTalk();return;}
+    const box=$("noteTxt"), msg=$("micMsg");
+    rec=new SR();rec.lang="en-US";rec.continuous=true;rec.interimResults=true;
+    const base=box.value&&!/\s$/.test(box.value)?box.value+" ":box.value;let finalText="";
+    rec.onstart=()=>{btn.setAttribute("aria-pressed","true");btn.textContent="■ Stop";msg.textContent="Listening… talk now. Press Stop when you're done.";};
+    rec.onresult=e=>{let interim="";
+      for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalText+=t;else interim+=t;}
+      let txt=(finalText+interim).replace(/^\s+/,"");txt=txt.charAt(0).toUpperCase()+txt.slice(1);
+      box.value=base+txt;};
+    rec.onerror=e=>{msg.textContent={"not-allowed":"The browser blocked the microphone. Allow microphone access for this site (the icon in the address bar) and try again.",
+      "service-not-allowed":"The browser blocked the microphone. Allow microphone access for this site and try again.",
+      "audio-capture":"No microphone found. On a cloud or remote computer, the microphone may need to be shared with the session.",
+      "no-speech":"Didn't hear anything. Press Talk and try again.",
+      "network":"Speech-to-text needs an internet connection to the browser's speech service, and it couldn't connect."}[e.error]||("Speech-to-text stopped ("+e.error+").");};
+    rec.onend=()=>{rec=null;btn.setAttribute("aria-pressed","false");btn.textContent="🎤 Talk";
+      if(msg.textContent.startsWith("Listening"))msg.textContent=box.value.trim()?"Done. Check the text, then press Add note.":"";};
+    try{rec.start();}catch(e){rec=null;msg.textContent="Couldn't start the microphone.";}
+  }
   let annKey=null, annMsg={}, includeAll=true, includeConds=false, includeList=false, includeUp=null;
   // Upload link: the one saved on the document request page (same browser), unless the client has their own.
   const isLink=v=>/^(https?:\/\/)?[^\s\/]+\.[^\s]+$/i.test(v||"")&&v.length<500;
@@ -603,7 +629,7 @@ dialog form{padding:18px;display:grid;gap:12px}
           <div class="panel">
             <h2>Notes</h2>
             <label class="field" style="margin-top:10px"><span class="muted" style="font-weight:600">Add a note</span><textarea id="noteTxt" placeholder="Called about appraisal, waiting on HOA cert…"></textarea></label>
-            <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addNote">Add note</button></div>
+            <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addNote">Add note</button>${SR?`<button class="tbtn mic" type="button" data-act="talk" aria-pressed="false">🎤 Talk</button>`:""}<span class="micmsg small muted" id="micMsg" role="status"></span></div>
             ${(()=>{const all=(c.notes||[]).slice().reverse(), mine=all.filter(nt=>!nt.auto), auto=all.filter(nt=>nt.auto);
               const li=nt=>`<li class="${nt.auto?"auto":""}"><span class="when">${fmtStamp(nt.t)}</span><span class="txt">${esc(nt.text)}</span><button class="x" data-delnote="${nt.t}" aria-label="Delete">×</button></li>`;
               // Your own notes stay front and center; automatic entries (emails copied, conditions added) are tucked into a collapsed log.
@@ -770,7 +796,8 @@ dialog form{padding:18px;display:grid;gap:12px}
         if(c&&confirm(`Delete ${fullName(c)} and all their notes? This can't be undone.\n\nTip: use "Inactive" instead to keep their history.`)){
           clients=clients.filter(x=>x.id!==c.id);save();go("");say("Client deleted.");}
         break;
-      case "addNote":{
+      case "talk":startTalk(t);break;
+      case "addNote":{stopTalk();
         const v=$("noteTxt").value.trim();if(!v){$("noteTxt").focus();return;}
         c.notes=c.notes||[];c.notes.push({t:stamp(),text:v});touch(c);save();renderClient(c);say("Note added.");break;}
       case "copyMail":{
