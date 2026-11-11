@@ -8,7 +8,22 @@
   var NAME = "John Bischof";
   var COMPANY = "Home Mortgage Solutions, LLC";
   var LOGOS = [
-    // filled in when the logo files are added
+    {f:"img/logos/everyday-slate.webp", bg:"dark"},
+    {f:"img/logos/everyday-black.webp", bg:"light"},
+    {f:"img/logos/everyday-green.webp", bg:"dark"},
+    {f:"img/logos/everyday-navy-gold.webp", bg:"dark"},
+    {f:"img/logos/everyday-white-gold.webp", bg:"light"},
+    {f:"img/logos/everyday-orange.webp", bg:"light"},
+    {f:"img/logos/everyday-navy-orange.webp", bg:"dark"},
+    {f:"img/logos/everyday-white-orange.webp", bg:"light"},
+    {f:"img/logos/everyday-gray-orange.webp", bg:"dark"},
+    {f:"img/logos/thanksgiving-brown.webp", bg:"dark", holiday:"thanksgiving"},
+    {f:"img/logos/thanksgiving-white.webp", bg:"light", holiday:"thanksgiving"},
+    {f:"img/logos/thanksgiving-navy-grateful.webp", bg:"dark", holiday:"thanksgiving"},
+    {f:"img/logos/christmas-navy-lights.webp", bg:"dark", holiday:"christmas"},
+    {f:"img/logos/christmas-red.webp", bg:"dark", holiday:"christmas"},
+    {f:"img/logos/christmas-white-green.webp", bg:"light", holiday:"christmas"},
+    {f:"img/logos/christmas-happy-holidays-green.webp", bg:"dark", holiday:"christmas"}
   ];
 
   var DAY = 864e5;
