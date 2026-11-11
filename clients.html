@@ -99,6 +99,8 @@ button,select,input,textarea{font:inherit;color:inherit}
 
 /* Detail */
 .dhead{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-start;justify-content:space-between;margin-top:6px}
+.nmrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.nmrow h1{margin:6px 0 2px}
 .dhead .info{font-size:.9rem;color:var(--muted)}
 .dhead .info span+span::before{content:" · "}
 .seg{display:inline-flex;border:1px solid var(--rule)}
@@ -261,7 +263,6 @@ dialog form{padding:18px;display:grid;gap:12px}
         <option value="conv">Conventional</option><option value="fha">FHA</option><option value="va">VA</option><option value="usda">USDA</option><option value="jumbo">Jumbo</option></select></label>
       <label class="field">Purchase or refinance<select name="purpose"><option value="buy">Purchase</option><option value="refi">Refinance</option></select></label>
       <label class="field">Borrower's income<select name="who"><option value="w2">W-2 employee</option><option value="self">Self-employed</option><option value="retired">Retired</option></select></label>
-      <label class="field">Submitted to processing<input name="procDate" type="date"></label>
       <label class="field">Target closing date<input name="closing" type="date"></label>
     </div>
     <div class="dlgbtns">
@@ -381,6 +382,8 @@ dialog form{padding:18px;display:grid;gap:12px}
   const coName=c=>[c.coFirst,c.coLast].filter(Boolean).join(" ");
   // Greeting uses both first names when there is a co-borrower: "Hi Kevin and Maria,"
   const greet=c=>[c.first,c.coFirst].filter(Boolean).join(" and ")||"there";
+  // "Submitted to processing" is the Disclosures sent date (when the file goes to the processor).
+  const procOf=c=>(c.ms&&c.ms.discSent)||c.procDate||"";
   const closingOf=c=>c.closingAt?fmt(c.closingAt.slice(0,10)):c.closing?fmt(c.closing):"";
   const nodeKey=n=>n.group?n.doneKey:n.k;
   const nodeDone=(c,n)=>!!(c.ms&&c.ms[nodeKey(n)]);
@@ -463,7 +466,7 @@ dialog form{padding:18px;display:grid;gap:12px}
           <div><div class="mini" aria-label="${n} of ${MAIN.length} steps complete">${mini}</div>
             <div class="stat"><span><b>${cur?esc(cur.name):"Not started"}</b>${cur?" · "+fmt(c.ms[cur.k]):""}</span>
             <span class="muted">${nx?"Next: "+esc(nx.name):"Done"}</span></div></div>
-          <dl class="dates"><div><dt>Processing</dt><dd>${c.procDate?fmt(c.procDate):"—"}</dd></div><div><dt>Closing</dt><dd>${closingOf(c)||"—"}</dd></div><div><dt>Last activity</dt><dd>${c.updated?fmt(c.updated.slice(0,10)):"—"}</dd></div></dl>
+          <dl class="dates"><div><dt>Processing</dt><dd>${procOf(c)?fmt(procOf(c)):"—"}</dd></div><div><dt>Closing</dt><dd>${closingOf(c)||"—"}</dd></div><div><dt>Last activity</dt><dd>${c.updated?fmt(c.updated.slice(0,10)):"—"}</dd></div></dl>
         </button></li>`;}).join("")}</ul>`
       :`<div class="panel empty">${clients.length?(q?"No clients match that search.":`No ${tab} clients.`):`No clients yet. Press <b>+ New client</b> to add your first one.`}</div>`}`;
     const s=$("search");
@@ -476,14 +479,14 @@ dialog form{padding:18px;display:grid;gap:12px}
     editing=c||null;
     const f=$("cform");f.reset();
     $("dlgTitle").textContent=c?"Edit client":"New client";
-    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","loan","purpose","who","procDate","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
+    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
     $("dlg").showModal();f.elements.first.focus();
   }
   $("dlg").addEventListener("close",()=>{
     if($("dlg").returnValue!=="save")return;
     const f=$("cform"), v=k=>f.elements[k].value.trim();
     if(!v("first"))return;
-    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","loan","purpose","who","procDate","closing"].map(k=>[k,v(k)]));
+    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","loan","purpose","who","closing"].map(k=>[k,v(k)]));
     if(editing){Object.assign(editing,data);touch(editing);save();render();say("Client updated.");}
     else{
       const c={id:uid(),...data,status:"active",ms:{},notes:[],created:stamp()};touch(c);
@@ -511,10 +514,10 @@ dialog form{padding:18px;display:grid;gap:12px}
       <button class="back" data-act="list">← All clients</button>
       <div class="dhead">
         <div>
-          <h1>${esc(fullName(c))}</h1>
+          <div class="nmrow"><h1>${esc(fullName(c))}</h1><button class="tbtn" data-act="edit">Edit</button></div>
           <div class="info">${[LOANS[c.loan]+" "+PURP[c.purpose],WHO[c.who],c.address,c.phone,c.email].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>
           ${coName(c)?`<div class="info">${["Co-borrower: "+coName(c),c.coPhone,c.coEmail].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>`:""}
-          <div class="info">${[c.procDate?"Submitted to processing "+fmt(c.procDate):"",closingOf(c)?"Closing "+closingOf(c):"","Last activity "+fmt((c.updated||stamp()).slice(0,10))].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>
+          <div class="info">${[procOf(c)?"Submitted to processing "+fmt(procOf(c)):"",closingOf(c)?"Closing "+closingOf(c):"","Last activity "+fmt((c.updated||stamp()).slice(0,10))].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>
         </div>
         <div class="acts">
           <div class="seg" role="group" aria-label="Status">
@@ -522,7 +525,6 @@ dialog form{padding:18px;display:grid;gap:12px}
             <button data-status="inactive" aria-pressed="${c.status==="inactive"}">Inactive</button>
           </div>
           <button class="tbtn" data-act="print">Print sheet</button>
-          <button class="tbtn" data-act="edit">Edit</button>
           <button class="tbtn danger" data-act="delete">Delete</button>
         </div>
       </div>
@@ -633,7 +635,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     const box=d=>d?"&#9745;":"&#9744;";
     const info=[LOANS[c.loan]+" "+PURP[c.purpose],WHO[c.who]+" borrower",c.address,c.phone,c.email].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; ")+
       (coName(c)?"<br>Co-borrower: "+[coName(c),c.coPhone,c.coEmail].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; "):"")+
-      (c.procDate?"<br>Submitted to processing "+esc(fmt(c.procDate)):"");
+      (procOf(c)?"<br>Submitted to processing "+esc(fmt(procOf(c))):"");
     const ms=MAIN.map((nd,i)=>{const d=c.ms[nodeKey(nd)];
       return `<tr><td class="b">${box(d)}</td><td><b>${i+1}. ${esc(nd.name)}</b></td><td class="d">${d?fmt(d):""}</td></tr>`+
         (nd.subs||[]).map(k=>{const sd=c.ms[k];return `<tr class="sub"><td></td><td>${box(sd)} ${esc(msBy(k).name)}${k==="closingSched"&&c.closingAt?" — <b>"+esc(fmtWhen(c.closingAt))+"</b>":""}</td><td class="d">${sd?fmt(sd):""}</td></tr>`;}).join("");}).join("");
