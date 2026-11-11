@@ -55,29 +55,64 @@
     return list[Math.floor(Math.random() * list.length)];
   }
 
-  var css = ".brandbar{display:flex;align-items:center;gap:14px 18px;flex-wrap:wrap;max-width:1400px;margin:0 auto;"+
-    "padding:calc(env(safe-area-inset-top,0px) + 12px) 20px 0}"+
-    ".brandbar img{display:block;height:44px;width:auto;max-width:min(200px,55vw);border-radius:6px}"+
+  // Main navigation, the same on every page; the current page is highlighted.
+  var NAV = [
+    {href:"./", match:/(\/|index\.html)$/, label:"Dashboard",
+     icon:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>'},
+    {href:"clients.html", match:/clients\.html$/, label:"Clients",
+     icon:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-6 6.5-6s5.9 2.4 6.5 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2c2.9.2 4.9 2.4 5.4 5.8"/>'},
+    {href:"checklist.html", match:/checklist\.html$/, label:"Document request", short:"Documents",
+     icon:'<path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>'}
+  ];
+
+  var css = ".brandbar{display:flex;align-items:center;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;margin:0 auto;box-sizing:border-box;"+
+    "padding-top:calc(env(safe-area-inset-top,0px) + 14px)}"+
+    ".brandbar .bl{display:flex;align-items:center;gap:16px;min-width:0}"+
+    ".brandbar img{display:block;height:72px;width:auto;max-width:min(300px,60vw);border-radius:8px}"+
     ".brandbar .bn{display:flex;flex-direction:column;line-height:1.2}"+
-    ".brandbar .bn b{font-size:1.05rem;font-weight:800;letter-spacing:-.01em;color:var(--ink)}"+
-    ".brandbar .bn span{font-size:.85rem;color:var(--muted)}"+
-    "@media (max-width:640px){.brandbar{padding-left:16px;padding-right:16px}.brandbar img{height:36px}}"+
+    ".brandbar .bn b{font-size:1.25rem;font-weight:800;letter-spacing:-.01em;color:var(--ink)}"+
+    ".brandbar .bn span{font-size:.92rem;color:var(--muted)}"+
+    ".brandnav{display:flex;flex-wrap:wrap;gap:8px}"+
+    ".brandnav a{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:8px 16px;border-radius:10px;border:1px solid var(--rule);"+
+      "background:var(--panel);color:var(--ink);font-weight:700;font-size:1rem;text-decoration:none;font-family:inherit}"+
+    ".brandnav a:hover{border-color:var(--ink)}"+
+    ".brandnav a[aria-current=page]{background:var(--ink);color:var(--panel);border-color:var(--ink)}"+
+    ".brandnav svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}"+
+    ".brandnav .short{display:none}"+
+    // Phones: three equal buttons on one row, icon above a short label
+    "@media (max-width:640px){.brandbar img{height:52px}.brandbar .bn b{font-size:1.05rem}.brandnav{width:100%;flex-wrap:nowrap}"+
+      ".brandnav a{flex:1 1 0;flex-direction:column;justify-content:center;gap:3px;padding:8px 4px;min-height:58px;font-size:.85rem}"+
+      ".brandnav svg{width:22px;height:22px}.brandnav .full{display:none}.brandnav .short{display:inline}}"+
     "@media print{.brandbar{display:none!important}}";
 
   function render(){
     if (document.getElementById("brandbar")) return;
     var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
     var bar = document.createElement("div"); bar.id = "brandbar"; bar.className = "brandbar";
+    // Line the bar up with the page's own content column.
+    var host = document.querySelector(".shell, .wrap");
+    if (host){ var cs = getComputedStyle(host); bar.style.maxWidth = cs.maxWidth; bar.style.paddingLeft = cs.paddingLeft; bar.style.paddingRight = cs.paddingRight; }
+    else { bar.style.maxWidth = "1100px"; bar.style.padding = "14px 16px 0"; }
+    var left = document.createElement("div"); left.className = "bl";
     var logo = pick(new Date());
     if (logo){
       var img = document.createElement("img");
       img.src = logo.f; img.alt = COMPANY; img.onerror = function(){ img.remove(); };
-      bar.appendChild(img);
+      left.appendChild(img);
     }
     var bn = document.createElement("div"); bn.className = "bn";
     var b = document.createElement("b"); b.textContent = NAME;
     var sp = document.createElement("span"); sp.textContent = COMPANY;
-    bn.appendChild(b); bn.appendChild(sp); bar.appendChild(bn);
+    bn.appendChild(b); bn.appendChild(sp); left.appendChild(bn); bar.appendChild(left);
+    var nav = document.createElement("nav"); nav.className = "brandnav"; nav.setAttribute("aria-label","Main");
+    var path = location.pathname;
+    NAV.forEach(function(n){
+      var a = document.createElement("a"); a.href = n.href;
+      if (n.match.test(path) || (n.label==="Dashboard" && /\/$/.test(path))) a.setAttribute("aria-current","page");
+      a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">'+n.icon+'</svg><span class="full">'+n.label+'</span><span class="short">'+(n.short||n.label)+'</span>';
+      nav.appendChild(a);
+    });
+    bar.appendChild(nav);
     document.body.insertBefore(bar, document.body.firstChild);
   }
   window.Brand = { season: season, thanksgiving: thanksgiving, pick: pick, LOGOS: LOGOS };

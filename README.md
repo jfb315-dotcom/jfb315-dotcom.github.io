@@ -13,3 +13,7 @@ The FRED API key lives only in the repository secret `FRED_API_KEY`. Quick links
 Data: FRED, Federal Reserve Bank of St. Louis. Average 30- and 15-year rates from the Freddie Mac Primary Mortgage Market Survey; FHA and jumbo rates from the Optimal Blue Mortgage Market Indices; existing home sales and median price from the National Association of Realtors. MBS prices are not available for free, so the page links to Mortgage News Daily instead.
 
 Fed meeting dates come from a list in `scripts/fetch_fred.py` (through 2027). Add the next year's dates there when the Fed posts them.
+
+## Plans
+
+- [Shared client tracker with Firebase, including other loan officers](docs/PLAN-shared-clients.md) (not started).
