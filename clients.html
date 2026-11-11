@@ -245,31 +245,35 @@ button,select,input,textarea{font:inherit;color:inherit}
 
 /* Printable desk sheet: only the sheet prints */
 #printSheet{display:none}
+#printSheet{font-family:Calibri,Arial,Helvetica,sans-serif;font-size:10.5pt;color:#000;line-height:1.35}
+#printSheet .ph{display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #000;padding-bottom:6px}
+#printSheet h1{font-size:18pt;margin:0}
+#printSheet .pr{text-align:right;font-size:9pt;color:#444;white-space:nowrap}
+#printSheet .close{margin-top:8px;padding:6px 10px;border:1.5px solid #000;font-size:11pt}
+#printSheet h2{font-size:12pt;margin:14px 0 4px;border-bottom:1px solid #888;padding-bottom:2px}
+#printSheet h3{font-size:10.5pt;margin:6px 0 2px}
+#printSheet h2 span{font-weight:400;font-size:9.5pt;color:#444}
+#printSheet table{width:100%;border-collapse:collapse}
+#printSheet td{padding:2px 4px;vertical-align:top}
+#printSheet td.b{width:22px;font-size:13pt;line-height:1}
+#printSheet td.n{width:24px;font-weight:700}
+#printSheet td.d{width:70px;text-align:right;color:#444}
+#printSheet tr.sub td{font-size:9.5pt;padding-left:22px}
+#printSheet tr.done td{color:#666;text-decoration:line-through}
+#printSheet tr.done td.b{text-decoration:none}
+#printSheet .nt{margin:0;padding-left:16px;font-size:9.5pt}
+#printSheet .nt span{color:#555}
+#printSheet .none{color:#555;margin:2px 0}
+#printSheet .lines{height:1.2in;background:repeating-linear-gradient(#fff 0 26px,#999 26px 27px);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#printSheet tr,#printSheet li{break-inside:avoid}
+#printSheet .team{margin-top:8px;font-size:9.5pt}
+#printSheet .team td{width:50%;padding:4px 8px 4px 0}
+#printSheet.measure{display:block;position:absolute;left:-10000px;top:0;width:7.5in;background:#fff}
 @media print{
   @page{margin:.5in}
   body{background:#fff!important;color:#000!important}
   body>*:not(#printSheet){display:none!important}
-  #printSheet{display:block;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:10.5pt;color:#000;line-height:1.35}
-  #printSheet .ph{display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #000;padding-bottom:6px}
-  #printSheet h1{font-size:18pt;margin:0}
-  #printSheet .pr{text-align:right;font-size:9pt;color:#444;white-space:nowrap}
-  #printSheet .close{margin-top:8px;padding:6px 10px;border:1.5px solid #000;font-size:11pt}
-  #printSheet h2{font-size:12pt;margin:14px 0 4px;border-bottom:1px solid #888;padding-bottom:2px}
-  #printSheet h3{font-size:10.5pt;margin:6px 0 2px}
-  #printSheet h2 span{font-weight:400;font-size:9.5pt;color:#444}
-  #printSheet table{width:100%;border-collapse:collapse}
-  #printSheet td{padding:2px 4px;vertical-align:top}
-  #printSheet td.b{width:22px;font-size:13pt;line-height:1}
-  #printSheet td.n{width:24px;font-weight:700}
-  #printSheet td.d{width:70px;text-align:right;color:#444}
-  #printSheet tr.sub td{font-size:9.5pt;padding-left:22px}
-  #printSheet tr.done td{color:#666;text-decoration:line-through}
-  #printSheet tr.done td.b{text-decoration:none}
-  #printSheet .nt{margin:0;padding-left:16px;font-size:9.5pt}
-  #printSheet .nt span{color:#555}
-  #printSheet .none{color:#555;margin:2px 0}
-  #printSheet .lines{height:1.2in;background:repeating-linear-gradient(#fff 0 26px,#999 26px 27px);-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #printSheet tr,#printSheet li{break-inside:avoid}
+  #printSheet{display:block}
 }
 dialog{border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 40px)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
@@ -311,16 +315,18 @@ dialog form{padding:18px;display:grid;gap:12px}
     <label class="field">Property address<input name="address" autocomplete="off"></label>
     <h3 class="fsub">Closing team <span class="muted small">(optional, used in the closing email)</span></h3>
     <div class="fgrid">
-      <label class="field">Realtor's name<input name="realtor" autocomplete="off"></label>
+      <label class="field">Realtor's name<input name="realtor" list="dlRealtor" autocomplete="off"></label>
       <label class="field">Realtor's phone<input name="realtorPhone" type="tel" autocomplete="off"></label>
       <label class="field">Realtor's email<input name="realtorEmail" type="email" autocomplete="off"></label>
     </div>
     <div class="fgrid">
-      <label class="field">Title company<input name="title" autocomplete="off"></label>
+      <label class="field">Title company<input name="title" list="dlTitle" autocomplete="off"></label>
       <label class="field">Title company phone<input name="titlePhone" type="tel" autocomplete="off"></label>
-      <label class="field">Closing agent (closer)<input name="closer" autocomplete="off"></label>
+      <label class="field">Closing agent (closer)<input name="closer" list="dlCloser" autocomplete="off"></label>
     </div>
     <label class="field">Title company address<input name="titleAddr" autocomplete="off"></label>
+    <p class="muted small" style="margin:-4px 0 0">Realtors and title companies you've used before show up as you type. Pick one to fill in their phone, email or address.</p>
+    <datalist id="dlRealtor"></datalist><datalist id="dlTitle"></datalist><datalist id="dlCloser"></datalist>
     <div class="fgrid">
       <label class="field">Loan type<select name="loan">
         <option value="conv">Conventional</option><option value="fha">FHA</option><option value="va">VA</option><option value="usda">USDA</option><option value="jumbo">Jumbo</option></select></label>
@@ -611,8 +617,50 @@ dialog form{padding:18px;display:grid;gap:12px}
     $("dlgTitle").textContent=c?"Edit client":"New client";
     if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
     showCo(!!(c&&(c.coFirst||c.coLast||c.coEmail||c.coPhone)));
+    fillLists();
     $("dlg").showModal();f.elements.first.focus();
   }
+  // ---------- Phone numbers: 555-201-4400 ----------
+  function fmtPhone(v){
+    v=String(v||"");let d=v.replace(/\D/g,"");
+    if(!d)return v.trim();
+    if(d.length===11&&d[0]==="1")d=d.slice(1);
+    if(d.length>10){const ext=d.slice(10);return `${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6,10)} x${ext}`;}
+    if(d.length<=3)return d;
+    if(d.length<=6)return d.slice(0,3)+"-"+d.slice(3);
+    return d.slice(0,3)+"-"+d.slice(3,6)+"-"+d.slice(6);
+  }
+  // Format as you type (when typing at the end) and when you leave the box.
+  document.addEventListener("input",e=>{const t=e.target;if(!t.matches||!t.matches('input[type=tel]'))return;
+    if(e.inputType&&e.inputType.startsWith("delete"))return;
+    if(t.selectionStart===t.value.length){const f=fmtPhone(t.value);if(f!==t.value)t.value=f;}});
+  document.addEventListener("blur",e=>{const t=e.target;if(t.matches&&t.matches('input[type=tel]'))t.value=fmtPhone(t.value);},true);
+
+  // ---------- Saved realtors and title companies (from your other clients) ----------
+  function contactBook(){
+    const R=new Map(),T=new Map(),C=new Set();
+    [...clients].sort((a,b)=>String(b.updated||"").localeCompare(String(a.updated||""))).forEach(c=>{
+      if(c.realtor){const k=c.realtor.trim().toLowerCase();if(!R.has(k))R.set(k,{name:c.realtor.trim(),realtorPhone:c.realtorPhone||"",realtorEmail:c.realtorEmail||""});}
+      if(c.title){const k=c.title.trim().toLowerCase();if(!T.has(k))T.set(k,{name:c.title.trim(),titlePhone:c.titlePhone||"",titleAddr:c.titleAddr||""});}
+      if(c.closer)C.add(c.closer.trim());
+    });
+    return {R,T,C};
+  }
+  let book=null;
+  function fillLists(){
+    book=contactBook();
+    const opt=(v,l)=>`<option value="${esc(v)}">${l?esc(l):""}</option>`;
+    $("dlRealtor").innerHTML=[...book.R.values()].map(r=>opt(r.name,[r.realtorPhone,r.realtorEmail].filter(Boolean).join(" · "))).join("");
+    $("dlTitle").innerHTML=[...book.T.values()].map(t=>opt(t.name,[t.titlePhone,t.titleAddr].filter(Boolean).join(" · "))).join("");
+    $("dlCloser").innerHTML=[...book.C].map(n=>opt(n)).join("");
+  }
+  // Picking a saved name fills in the rest of that contact's details.
+  $("cform").addEventListener("input",e=>{
+    const n=e.target.name;if(!book||(n!=="realtor"&&n!=="title"))return;
+    const hit=(n==="realtor"?book.R:book.T).get(e.target.value.trim().toLowerCase());if(!hit)return;
+    const f=$("cform");Object.keys(hit).forEach(k=>{if(k!=="name"&&hit[k])f.elements[k].value=hit[k];});
+  });
+
   // Co-borrower fields stay tucked away until needed.
   function showCo(on){
     $("coBox").hidden=!on;
@@ -628,7 +676,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     if($("dlg").returnValue!=="save")return;
     const f=$("cform"), v=k=>f.elements[k].value.trim();
     if(!v("first"))return;
-    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","loan","purpose","who","closing"].map(k=>[k,v(k)]));
+    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","loan","purpose","who","closing"].map(k=>[k,/phone$/i.test(k)?fmtPhone(v(k)):v(k)]));
     if(editing){Object.assign(editing,data);touch(editing);save();render();say("Client updated.");}
     else{
       const c={id:uid(),...data,status:"active",ms:{},notes:[],created:stamp()};touch(c);
@@ -897,15 +945,23 @@ dialog form{padding:18px;display:grid;gap:12px}
     const ctable=who=>{const l=sortedConds(c,who);if(!l.length)return "";
       return `<h3>${who==="b"?"Borrower conditions":"Loan officer conditions"}</h3><table class="cd">${l.map(x=>`<tr class="${x.done?"done":""}"><td class="b">${x.done?"&#9745;":"&#9744;"}</td><td class="n">${x.n}.</td><td>${esc(x.text)}</td></tr>`).join("")}</table>`;};
     const notes=(c.notes||[]).filter(x=>!x.auto).slice(-8).reverse();
+    const tl=(label,parts)=>parts.some(Boolean)?`<td><b>${label}</b><br>${parts.filter(Boolean).map(esc).join("<br>")}</td>`:"";
+    const tcells=tl("Title company",[c.title,c.titlePhone,c.titleAddr,c.closer&&"Closer: "+c.closer])+tl("Realtor",[c.realtor,c.realtorPhone,c.realtorEmail]);
+    const team=tcells?`<table class="team"><tr>${tcells}</tr></table>`:"";
     $("printSheet").innerHTML=`
       <div class="ph"><div><h1>${esc(fullName(c))}</h1><div>${info}</div></div>
         <div class="pr">Printed ${new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}<br>${doneCount(c)} of ${MAIN.length} steps complete</div></div>
       ${c.closingAt||c.closing?`<div class="close">Closing: <b>${c.closingAt?esc(fmtWhen(c.closingAt)):"target "+esc(fmt(c.closing))}</b></div>`:""}
+      ${team}
       <h2>Milestones</h2><table class="ms">${ms}</table>
       <h2>Conditions ${conds.length?`<span>${open.length} open · ${done.length} cleared</span>`:""}</h2>
       ${conds.length?ctable("b")+ctable("lo"):`<p class="none">No conditions yet.</p>`}
       ${notes.length?`<h2>Recent notes</h2><ul class="nt">${notes.map(x=>`<li><span>${fmtStamp(x.t)}</span> ${esc(x.text)}</li>`).join("")}</ul>`:""}
       <h2>Notes</h2><div class="lines"></div>`;
+    // Always one page: measure the sheet at letter size and shrink it to fit if needed.
+    const ps=$("printSheet");ps.style.zoom="";ps.classList.add("measure");
+    const h=ps.scrollHeight, max=9.9*96;ps.classList.remove("measure");
+    if(h>max)ps.style.zoom=String(Math.max(.5,max/h));
     window.print();
   }
 
