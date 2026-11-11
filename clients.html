@@ -420,12 +420,27 @@ dialog form{padding:18px;display:grid;gap:12px}
     if(last&&days<7)return"";
     return `<div class="backupwarn"><span>${last?`Your last backup was ${days} days ago.`:"You haven't downloaded a backup yet."} Client info lives only in this browser, so keep a copy.</span><button class="tbtn" data-act="backup">Download backup</button></div>`;
   }
-  function backup(){
-    const blob=new Blob([JSON.stringify({app:"client-tracker",version:1,saved:stamp(),clients},null,2)],{type:"application/json"});
-    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`clients-backup-${today()}.json`;
+  // Where supported (Chrome, Edge), ask where to save the backup; otherwise download it as usual.
+  // The folder picked last time is remembered by the browser for the next save.
+  async function backup(){
+    const json=JSON.stringify({app:"client-tracker",version:1,saved:stamp(),clients},null,2);
+    const name=`clients-backup-${today()}.json`;
+    const done=msg=>{try{localStorage.setItem("clients-backup",stamp());}catch(e){}say(msg);render();};
+    if(window.showSaveFilePicker){
+      try{
+        const h=await window.showSaveFilePicker({suggestedName:name,id:"client-backups",startIn:"documents",
+          types:[{description:"Client tracker backup",accept:{"application/json":[".json"]}}]});
+        const w=await h.createWritable();await w.write(json);await w.close();
+        return done(`Backup saved as ${h.name}.`);
+      }catch(e){
+        if(e&&e.name==="AbortError")return; // you closed the Save window: nothing saved
+        // anything else (for example a blocked picker): fall back to a normal download
+      }
+    }
+    const blob=new Blob([json],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;
     document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-    try{localStorage.setItem("clients-backup",stamp());}catch(e){}
-    say("Backup downloaded. Keep it somewhere safe, like your work drive.");render();
+    done("Backup downloaded to your Downloads folder. Move it somewhere safe, like your work drive.");
   }
   $("restoreFile").addEventListener("change",async ev=>{
     const f=ev.target.files[0];ev.target.value="";if(!f)return;
