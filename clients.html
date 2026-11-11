@@ -116,7 +116,8 @@ button,select,input,textarea{font:inherit;color:inherit}
 .lay>[data-sec],.lay .stack>[data-sec]{margin-top:0!important}
 .cols3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.08fr);gap:14px;align-items:start}
 .cols3 .stack{gap:14px}
-.cols3 .tracker{display:none}
+.trackbar{padding:6px 16px 10px}
+.trackbar .tracker{margin:10px 0 4px}
 .mode-wide [data-sec="conds"]>.panel{margin-top:8px!important}
 /* At a glance strip */
 .glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0;background:var(--panel);border:1px solid var(--rule)}
@@ -897,7 +898,10 @@ dialog form{padding:18px;display:grid;gap:12px}
     const box=(cls,kids)=>{const d=document.createElement("div");d.className=cls;kids.filter(Boolean).forEach(k=>d.appendChild(k));return d;};
     const lay=box("lay mode-"+mode,[]);
     if(mode==="wide"){
-      lay.append(S.glance,box("cols3",[box("stack",[S.ms,S.cd]),box("stack",[S.conds,S.notes]),box("stack",[S.mail,S.docs])]));
+      // Full progress bar across the page, above the columns.
+      const tr=S.ms&&S.ms.querySelector(".tracker");
+      const tb=tr?box("panel trackbar",[tr]):null;
+      lay.append(S.glance,...(tb?[tb]:[]),box("cols3",[box("stack",[S.ms,S.cd]),box("stack",[S.conds,S.notes]),box("stack",[S.mail,S.docs])]));
     }else if(mode==="phone"){
       const det=document.createElement("details");det.className="phms";if(msOpen[c.id+"ph"])det.open=true;
       det.addEventListener("toggle",()=>{msOpen[c.id+"ph"]=det.open;});
