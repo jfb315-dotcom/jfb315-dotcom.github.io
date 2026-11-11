@@ -524,6 +524,18 @@ dialog form{padding:18px;display:grid;gap:12px}
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   let rec=null;
   function stopTalk(){if(rec){try{rec.stop();}catch(e){}}}
+  // Spoken punctuation, like phone dictation: "period", "comma", "question mark", "new line"...
+  const SPOKEN=[[/\s*\bnew paragraph\b\s*/gi,"\n\n"],[/\s*\bnew line\b\s*/gi,"\n"],
+    [/\s*\b(question mark)\b/gi,"?"],[/\s*\b(exclamation (point|mark))\b/gi,"!"],
+    [/\s*\b(period|full stop)\b/gi,"."],[/\s*\bcomma\b/gi,","],[/\s*\bsemicolon\b/gi,";"],[/\s*\bcolon\b/gi,":"],
+    [/\s*\b(dash|hyphen)\b\s*/gi," - "]];
+  function punctuate(t){
+    SPOKEN.forEach(([re,r])=>{t=t.replace(re,r);});
+    t=t.replace(/([.,;:!?])(?=[^\s\n.,;:!?])/g,"$1 ")       // a space after punctuation
+       .replace(/[ \t]{2,}/g," ").replace(/ +\n/g,"\n").replace(/\n +/g,"\n").replace(/^\s+/,"");
+    // capital letter at the start and after . ! ? or a new line
+    return t.replace(/(^|[.!?]\s+|\n)([a-z])/g,(m,p,c)=>p+c.toUpperCase());
+  }
   function startTalk(btn){
     if(rec){stopTalk();return;}
     const box=$("noteTxt"), msg=$("micMsg");
@@ -532,7 +544,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     rec.onstart=()=>{btn.setAttribute("aria-pressed","true");btn.textContent="■ Stop";msg.textContent="Listening… talk now. Press Stop when you're done.";};
     rec.onresult=e=>{let interim="";
       for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalText+=t;else interim+=t;}
-      let txt=(finalText+interim).replace(/^\s+/,"");txt=txt.charAt(0).toUpperCase()+txt.slice(1);
+      let txt=punctuate(finalText+interim);
       box.value=base+txt;};
     rec.onerror=e=>{msg.textContent={"not-allowed":"The browser blocked the microphone. Allow microphone access for this site (the icon in the address bar) and try again.",
       "service-not-allowed":"The browser blocked the microphone. Allow microphone access for this site and try again.",
