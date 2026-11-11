@@ -44,8 +44,8 @@
 body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
   font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .wrap{max-width:860px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
-.back{font-size:.9rem;font-weight:600;color:var(--muted);text-decoration:none}
-.back:hover{color:var(--brass)}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:1rem;font-weight:700;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:9px 16px;min-height:44px;cursor:pointer;font-family:inherit}
+.back:hover{border-color:var(--ink)}
 h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin:8px 0 4px;line-height:1.15}
 .lede{color:var(--muted);margin:0 0 18px;max-width:62ch}
 h2{font-size:1.15rem;font-weight:700;margin:0}
@@ -127,7 +127,7 @@ button,select,input{font:inherit;color:inherit}
 </head>
 <body>
 <div class="wrap">
-  <a class="back" href="./">← Mortgage Market Dashboard</a> <a class="back" id="backClient" href="clients.html" hidden style="margin-left:14px">← Back to client</a>
+  <a class="back" id="backClient" href="clients.html" hidden style="margin-bottom:8px">← Back to client</a>
   <h1>Borrower document request</h1>
   <p class="lede">Pick the borrower's situation, check the documents you need, then copy a ready-to-send email that lists only those items.</p>
 

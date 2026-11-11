@@ -41,8 +41,8 @@ body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
   font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .wrap{max-width:980px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 20px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
 a{color:inherit}
-.back{font-size:.9rem;font-weight:600;color:var(--muted);text-decoration:none;background:none;border:0;padding:0;cursor:pointer;font-family:inherit}
-.back:hover{color:var(--brass)}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:1rem;font-weight:700;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:9px 16px;min-height:44px;cursor:pointer;font-family:inherit}
+.back:hover{border-color:var(--ink)}
 h1{font-size:clamp(1.6rem,4vw,2.1rem);font-weight:800;letter-spacing:-.02em;margin:6px 0 2px;line-height:1.15}
 h2{font-size:1.15rem;font-weight:700;margin:0}
 h3{font-size:1rem;font-weight:700;margin:0}
@@ -244,7 +244,6 @@ dialog form{padding:18px;display:grid;gap:12px}
 </head>
 <body>
 <div class="wrap">
-  <a class="back" href="./">← Mortgage Market Dashboard</a>
   <div id="app"></div>
   <p class="note-local">Client information is saved only in this browser on this device. It is never put in the website's public code. Use <b>Download backup</b> regularly so nothing is lost.</p>
 </div>
@@ -571,7 +570,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     const docLink=`checklist.html?${new URLSearchParams({who:c.who||"w2",loan:c.loan||"conv",purpose:c.purpose||"buy",name:greet(c)==="there"?"":greet(c),client:c.id,...(isLink(c.uploadLink)?{ulink:c.uploadLink}:{})})}`;
     let me="";try{me=localStorage.getItem("req-me")||"";}catch(e){}
     $("app").innerHTML=`
-      <button class="back" data-act="list">← All clients</button>
+      <button class="back" data-act="list" style="margin-top:4px">← All clients</button>
       <div class="dhead">
         <div>
           <div class="nmrow"><h1>${esc(fullName(c))}</h1><button class="tbtn" data-act="edit">Edit</button></div>
