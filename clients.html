@@ -274,6 +274,10 @@ button,select,input,textarea{font:inherit;color:inherit}
 dialog{border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 40px)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
 dialog form{padding:18px;display:grid;gap:12px}
+.coadd{align-self:flex-start}
+.cleared{margin-top:4px}
+.cleared>summary{cursor:pointer;padding:8px 0 2px;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.cleared>summary:hover{color:var(--ink)}
 .fsub{font-size:.95rem;margin:4px 0 -4px;border-top:1px solid var(--rule);padding-top:10px}
 .dlgbtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 </style>
@@ -294,12 +298,15 @@ dialog form{padding:18px;display:grid;gap:12px}
       <label class="field">Email<input name="email" type="email" autocomplete="off"></label>
       <label class="field">Phone<input name="phone" type="tel" autocomplete="off"></label>
     </div>
-    <h3 class="fsub">Co-borrower <span class="muted small">(optional)</span></h3>
+    <button type="button" class="tbtn coadd" id="coToggle" aria-expanded="false" aria-controls="coBox">+ Add co-borrower</button>
+    <div id="coBox" hidden>
+    <h3 class="fsub">Co-borrower</h3>
     <div class="fgrid">
       <label class="field">First name<input name="coFirst" autocomplete="off"></label>
       <label class="field">Last name<input name="coLast" autocomplete="off"></label>
       <label class="field">Email<input name="coEmail" type="email" autocomplete="off"></label>
       <label class="field">Phone<input name="coPhone" type="tel" autocomplete="off"></label>
+    </div>
     </div>
     <label class="field">Property address<input name="address" autocomplete="off"></label>
     <h3 class="fsub">Closing team <span class="muted small">(optional, used in the closing email)</span></h3>
@@ -397,13 +404,17 @@ dialog form{padding:18px;display:grid;gap:12px}
       return null;
     };
     const out=[];let who=defWho||"b",sawNum=false,firstNum=-1;
-    String(txt).replace(/\r/g,"").split("\n").forEach(line=>{
+    const lines=String(txt).replace(/\r/g,"").split("\n");
+    // Typed by hand with no numbers or bullets: each line is its own condition.
+    const listed=lines.some(l=>{const t=l.trim();return NUM.some(re=>re.test(t))||/^[\-•*·]\s+/.test(t);});
+    lines.forEach(line=>{
       const t=line.trim();if(!t)return;
       let m=null;for(const re of NUM){m=t.match(re);if(m)break;}
       if(m){if(!sawNum){sawNum=true;firstNum=out.length;}out.push({text:m[2].trim(),who});return;}
       const h=headingWho(t);
       if(h){who=h;if(!sawNum){sawNum=true;firstNum=out.length;}return;}
       if(/^[\-•*·]\s+/.test(t))out.push({text:t.replace(/^[\-•*·]\s+/,""),who});
+      else if(!listed&&!/:\s*$/.test(t))out.push({text:t,who});
       else if(out.length)out[out.length-1].text=(out[out.length-1].text+" "+t).trim();
       else out.push({text:t,who});
     });
@@ -417,7 +428,7 @@ dialog form{padding:18px;display:grid;gap:12px}
   // Open conditions first, then cleared ones; each group in number order.
   const sortedConds=(c,who)=>(numberConds(c),(c.conds||[]).filter(x=>!who||whoOf(x)===who).sort((a,b)=>(a.done-b.done)||(a.n-b.n)));
   let condWho="b";
-  let condOpen={};
+  let condOpen={}, clearedOpen={};
 
   // ---------- Storage (this browser only) ----------
   const KEY="clients-v1";
@@ -599,8 +610,20 @@ dialog form{padding:18px;display:grid;gap:12px}
     const f=$("cform");f.reset();
     $("dlgTitle").textContent=c?"Edit client":"New client";
     if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
+    showCo(!!(c&&(c.coFirst||c.coLast||c.coEmail||c.coPhone)));
     $("dlg").showModal();f.elements.first.focus();
   }
+  // Co-borrower fields stay tucked away until needed.
+  function showCo(on){
+    $("coBox").hidden=!on;
+    $("coToggle").textContent=on?"− Remove co-borrower":"+ Add co-borrower";
+    $("coToggle").setAttribute("aria-expanded",on);
+  }
+  $("coToggle").addEventListener("click",()=>{
+    const f=$("cform"), on=$("coBox").hidden;
+    if(!on)["coFirst","coLast","coEmail","coPhone"].forEach(k=>f.elements[k].value="");
+    showCo(on);if(on)f.elements.coFirst.focus();
+  });
   $("dlg").addEventListener("close",()=>{
     if($("dlg").returnValue!=="save")return;
     const f=$("cform"), v=k=>f.elements[k].value.trim();
@@ -836,19 +859,22 @@ dialog form{padding:18px;display:grid;gap:12px}
     const group=(who,title)=>{const list=sortedConds(c,who), op=list.filter(x=>!x.done).length;
       if(!list.length)return "";
       return `<div class="cgroup"><h4>${title} <span class="muted small">${op} open · ${list.length-op} cleared</span></h4>
-        <ol class="clist">${list.map((x,i,arr)=>`${x.done&&(i===0||!arr[i-1].done)?`<li class="csep">Cleared</li>`:""}<li class="${x.done?"done":""}"><span class="cn">${x.n}</span>
+        ${op?`<ol class="clist">${list.filter(x=>!x.done).map(item).join("")}</ol>`:`<p class="muted small" style="margin:6px 0">All cleared.</p>`}
+        ${list.length-op?`<details class="cleared" data-clopen="${c.id}-${who}"${clearedOpen[c.id+"-"+who]?" open":""}><summary>Cleared (${list.length-op})</summary>
+          <ol class="clist">${list.filter(x=>x.done).map(item).join("")}</ol></details>`:""}</div>`;
+      function item(x){return `<li class="${x.done?"done":""}"><span class="cn">${x.n}</span>
           <label><input type="checkbox" data-cond="${x.id}"${x.done?" checked":""} aria-label="Cleared"><span class="ct">${esc(x.text)}</span></label>
-          <span class="cact"><button class="cmove" data-condwho="${x.id}" title="Move to ${who==="b"?"loan officer":"borrower"} conditions">${who==="b"?"→ LO":"→ Borrower"}</button><button class="x" data-delcond="${x.id}" aria-label="Remove condition ${x.n}">×</button></span></li>`).join("")}</ol></div>`;};
+          <span class="cact"><button class="cmove" data-condwho="${x.id}" title="Move to ${who==="b"?"loan officer":"borrower"} conditions">${who==="b"?"→ LO":"→ Borrower"}</button><button class="x" data-delcond="${x.id}" aria-label="Remove condition ${x.n}">×</button></span></li>`;}};
     return banner+`<div class="panel conds">
         ${all.length?`<div class="chead"><h3>Conditions <span class="muted small">${open.length} open · ${all.length-open.length} cleared</span></h3><button class="tbtn danger" data-act="clearConds">Remove all</button></div>
           ${group("b","Borrower conditions")}${group("lo","Loan officer conditions")}`:""}
-        <label class="field" style="margin-top:12px">Paste conditions from your processor's email<textarea id="condTxt" placeholder="Borrower conditions:&#10;1. Updated pay stub covering 30 days&#10;2. Letter of explanation for large deposit on 10/14&#10;LO conditions:&#10;3. Updated title commitment"></textarea></label>
+        <label class="field" style="margin-top:12px">Type conditions (one per line) or paste them from your processor's email<textarea id="condTxt" placeholder="One condition per line, or paste a numbered list:&#10;&#10;Borrower conditions:&#10;1. Updated pay stub covering 30 days&#10;2. Letter of explanation for large deposit on 10/14&#10;LO conditions:&#10;3. Updated title commitment"></textarea></label>
         <div class="cwho" role="radiogroup" aria-label="Who these conditions are for">
           <span class="muted small">These are:</span>
           <label><input type="radio" name="condWho" value="b"${condWho==="b"?" checked":""}> Borrower conditions</label>
           <label><input type="radio" name="condWho" value="lo"${condWho==="lo"?" checked":""}> Loan officer conditions</label>
         </div>
-        <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addConds">Add conditions</button><span class="muted small" style="align-self:center">Numbered lines become separate conditions. Headings like "Borrower conditions" or "LO conditions" in the pasted text sort them automatically.</span></div>
+        <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addConds">Add conditions</button><span class="muted small" style="align-self:center">Typed by hand, each line is its own condition. In a pasted numbered list, each number starts a new condition. Headings like "Borrower conditions" or "LO conditions" in the pasted text sort them automatically.</span></div>
       </div>`;
   }
 
@@ -1050,7 +1076,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     }else if(kd&&ev.target.value){c.ms[kd]=ev.target.value;touch(c);save();renderClient(c);}
   });
 
-  document.addEventListener("toggle",ev=>{const d=ev.target;if(!d.matches)return;if(d.matches("details[data-alog]"))logOpen[d.dataset.alog]=d.open;if(d.matches("details[data-msopen]"))msOpen[d.dataset.msopen]=d.open;},true);
+  document.addEventListener("toggle",ev=>{const d=ev.target;if(!d.matches)return;if(d.matches("details[data-alog]"))logOpen[d.dataset.alog]=d.open;if(d.matches("details[data-msopen]"))msOpen[d.dataset.msopen]=d.open;if(d.matches("details[data-clopen]"))clearedOpen[d.dataset.clopen]=d.open;},true);
   render();
 })();
 </script>
