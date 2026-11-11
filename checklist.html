@@ -530,6 +530,7 @@ button,select,input{font:inherit;color:inherit}
   const qs=new URLSearchParams(location.search), clientId=qs.get("client");
   ["who","loan","purpose"].forEach(k=>{const v=qs.get(k);const el=v&&form.querySelector(`input[name="${k}"][value="${CSS.escape(v)}"]`);if(el)el.checked=true;});
   if(qs.get("name"))$("bname").value=qs.get("name");
+  if(isLink(qs.get("ulink")||""))$("ulink").value=qs.get("ulink");
   if(clientId){
     const b=$("backClient");b.hidden=false;b.href="clients.html#client="+encodeURIComponent(clientId);
     let last="";try{last=sessionStorage.getItem("req-client")||"";sessionStorage.setItem("req-client",clientId);}catch(e){}
