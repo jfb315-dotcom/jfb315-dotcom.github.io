@@ -697,6 +697,10 @@ dialog form{padding:18px;display:grid;gap:12px}
   const asHref=v=>v?(/^https?:\/\//i.test(v)?v:"https://"+v):"";
   const DOC_MS=["condAppr","addlDocs"];
   const upOn=()=>includeUp??DOC_MS.includes(annKey);
+  // The closing email starts with the progress bar, conditions and upload button turned off;
+  // the milestone email gets its own settings back afterward.
+  let mileOpts=null;
+  function leaveClose(){if(closeMode&&mileOpts)({includeAll,includeConds,includeUp}=mileOpts);mileOpts=null;closeMode=false;}
   try{includeList=localStorage.getItem("ms-list")==="1";}catch(e){}
   function renderClient(c){
     const n=doneCount(c), nx=nextStep(c), cur=current(c), stg=stageOf(c);
@@ -783,7 +787,8 @@ dialog form{padding:18px;display:grid;gap:12px}
             ${closeMode?`<div class="closeopts">
               <label class="ck"><input type="checkbox" id="fundsKnown"${c.fundsKnown?" checked":""}> Funds needed at closing are known</label>
               ${c.fundsKnown?`<label class="field" style="margin:4px 0 0 26px;max-width:220px">Amount<input id="closingFunds" value="${esc(c.closingFunds||"")}" placeholder="$45,320.18" inputmode="decimal" autocomplete="off"></label>`:""}
-              <label class="ck"><input type="checkbox" id="closeAttach"${closeAttach?" checked":""}> I'm attaching the closing instructions</label>
+              <label class="ck"><input type="checkbox" id="closeAttach"${closeAttach?" checked":""}> I'm attaching the wiring instructions</label>
+              <label class="ck"><input type="checkbox" id="cashierOK"${c.cashierOK?" checked":""}> The title company will allow a cashier's check for funds to close</label>
               <div class="ck"><span class="muted small" style="font-weight:700">Closing location:</span>
                 <label><input type="radio" name="closeLoc" value="title"${c.closeLoc!=="other"?" checked":""}> Title company office</label>
                 <label><input type="radio" name="closeLoc" value="other"${c.closeLoc==="other"?" checked":""}> Other</label></div>
@@ -825,7 +830,7 @@ dialog form{padding:18px;display:grid;gap:12px}
         </div>
       </div>`;
     renderMail(c);
-    $("annSel").addEventListener("change",e=>{annKey=e.target.value;closeMode=false;includeUp=null;if(annKey==="condAppr"&&openConds(c,"b").length)includeConds=true;renderClient(c);});
+    $("annSel").addEventListener("change",e=>{annKey=e.target.value;leaveClose();includeUp=null;if(annKey==="condAppr"&&openConds(c,"b").length)includeConds=true;renderClient(c);});
     if($("annVar"))$("annVar").addEventListener("change",e=>{annVar[c.id+annKey]=+e.target.value;delete annMsg[c.id+annKey];renderClient(c);});
     $("annMsg").addEventListener("input",e=>{annMsg[c.id+(closeMode?"close":annKey)]=e.target.value;renderMail(c);});
     if($("closingNotes"))$("closingNotes").addEventListener("input",e=>{c.closingNotes=e.target.value;touch(c);save();});
@@ -833,6 +838,7 @@ dialog form{padding:18px;display:grid;gap:12px}
       $("fundsKnown").addEventListener("change",e=>{c.fundsKnown=e.target.checked;touch(c);save();renderClient(c);});
       if($("closingFunds"))$("closingFunds").addEventListener("input",e=>{c.closingFunds=e.target.value;save();renderMail(c);});
       $("closeAttach").addEventListener("change",e=>{closeAttach=e.target.checked;renderMail(c);});
+      $("cashierOK").addEventListener("change",e=>{c.cashierOK=e.target.checked;touch(c);save();renderMail(c);});
       document.querySelectorAll('input[name=closeLoc]').forEach(r=>r.addEventListener("change",e=>{c.closeLoc=e.target.value;touch(c);save();renderClient(c);}));
       if($("closeLocOther"))$("closeLocOther").addEventListener("input",e=>{c.closeLocOther=e.target.value;save();renderMail(c);});
     }
@@ -922,28 +928,35 @@ dialog form{padding:18px;display:grid;gap:12px}
     const rows=[["Date &amp; time",esc(when)],["Where",esc(where)],["Title company",esc(titleName)+" · "+esc(titlePhone)],
       ...(c.closer?[["Closing agent",esc(c.closer)]]:[]),...(c.realtor?[["Your realtor",esc([c.realtor,c.realtorPhone].filter(Boolean).join(" · "))]]:[])];
     const detail=`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows.map(([k,v])=>`<tr><td valign="top" style="padding:0 14px 5px 0;${F};white-space:nowrap"><b>${k}</b></td><td valign="top" style="padding:0 0 5px 0;${F}">${v}</td></tr>`).join("")}</table>`;
-    const fundsHTML=c.fundsKnown?`<p style="margin:0">${fc(GREEN,"4","15","<b>"+esc(funds)+"</b>")}</p>`+sp(4)+`<p style="margin:0">This amount is due by wire transfer before closing. Your title company can tell you if a cashier's check is accepted instead.</p>`
+    const dueTxt=c.cashierOK?"This amount is due by wire transfer or cashier's check (see below) before closing.":"This amount is due by wire transfer before closing.";
+    const fundsHTML=c.fundsKnown?`<p style="margin:0">${fc(GREEN,"4","15","<b>"+esc(funds)+"</b>")}</p>`+sp(4)+`<p style="margin:0">${dueTxt}</p>`
       :`<p style="margin:0">We're working with our closer and the title company's closer to get you the final number you'll need for closing. In the meantime, here's the information you'll need once we have it for you.</p>`;
-    const instr=(closeAttach?"Your closing instructions are attached. ":"")+`Most title companies now ask you to call them for wiring instructions. Please call ${esc(titleName)} at ${esc(titlePhone)} to get them.`;
+    const instrT=closeAttach
+      ?`Your wiring instructions are attached. When we have your final number for closing, you'll take them to your bank to start the wire to the title company. Please call ${titleName} at ${titlePhone} with any questions.`
+      :`Once we have the final figure, you'll need to reach out to ${titleName} at ${titlePhone} to get their wiring instructions.`;
+    const cashT=`The title company will allow you to bring a cashier's check for your funds to close. The cashier's check will need to be made out to ${titleName}. Please reach out to them at ${titlePhone} with any questions.`;
+    const instr=esc(instrT);
     const fraud=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#FFF1E6" style="background:#FFF1E6;border-left:5px solid #C2410C;padding:10px 14px;${F}">`+
       fc("#C2410C","","",`<b>&#9888; Protect yourself from wire fraud.</b>`)+` Wiring instructions will never change by email. Before sending any money, call ${esc(titleName)} at <b>${esc(titlePhone)}</b>, the number in this email, not one from a new email or text, to confirm the instructions. If anything looks different or urgent, stop and call me first.</td></tr></table>`;
-    const bring=["A valid government photo ID for each person signing","Proof of your wire, or your cashier's check if the title company allows it","Anything else the title company asks you for"];
+    const bring=["A valid government photo ID for each person signing","Your cashier's check, if allowed by the title company","Anything else the title company has reached out and asked you for"];
     const bullets=`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${bring.map(b=>`<tr><td width="20" valign="top" style="width:20px;padding:0 0 4px 4px;${F}">&#8226;</td><td valign="top" style="padding:0 0 4px 0;${F}">${esc(b)}</td></tr>`).join("")}</table>`;
     const html=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(greet(c))},</p>`+sp(6)+
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#EAF2EC" style="background:#EAF2EC;border-left:5px solid ${GREEN};padding:10px 14px;${F}">`+
       fc(GREEN,"2","9.5","<b>CLEAR TO CLOSE</b>")+`<br>`+fc(BLUE,"4","15","<b>Congratulations, you're clear to close! &#127881;</b>")+`</td></tr></table>`+sp(12)+
       `<p style="margin:0">${esc(intro).replace(/\n/g,"<br>")}</p>`+sp(14)+
+      base.condsHTML+
       head("Your closing")+detail+sp(12)+head("Funds needed at closing")+fundsHTML+sp(12)+
-      head("Closing and wiring instructions")+`<p style="margin:0">${instr}</p>`+sp(10)+fraud+sp(14)+
-      head("What to bring")+bullets+sp(10)+
+      head("Wiring instructions")+`<p style="margin:0">${instr}</p>`+sp(10)+
+      (c.cashierOK?`<p style="margin:0">${esc(cashT)}</p>`+sp(10):"")+fraud+sp(14)+
+      head("What to bring")+bullets+sp(10)+base.upHTML+
       (includeAll?base.tracker+sp(12):"")+
       `<p style="margin:0">It's been a pleasure working with you, and I can't wait to see you get your keys!</p>`+sp(10)+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
-    const T=[`Hi ${greet(c)},`,"","Congratulations, you're clear to close!","",intro,"","YOUR CLOSING",
+    const T=[`Hi ${greet(c)},`,"","Congratulations, you're clear to close!","",intro,"",...base.condsT,"YOUR CLOSING",
       ...rows.map(([k,v])=>`${k.replace("&amp;","&")}: ${v.replace(/&amp;/g,"&").replace(/&#39;|&quot;/g,"")}`),"","FUNDS NEEDED AT CLOSING",
-      c.fundsKnown?`${funds}. This amount is due by wire transfer before closing. Your title company can tell you if a cashier's check is accepted instead.`:"We're working with our closer and the title company's closer to get you the final number you'll need for closing. In the meantime, here's the information you'll need once we have it for you.",
-      "","CLOSING AND WIRING INSTRUCTIONS",(closeAttach?"Your closing instructions are attached. ":"")+`Most title companies now ask you to call them for wiring instructions. Please call ${titleName} at ${titlePhone} to get them.`,"",
+      c.fundsKnown?`${funds}. ${dueTxt}`:"We're working with our closer and the title company's closer to get you the final number you'll need for closing. In the meantime, here's the information you'll need once we have it for you.",
+      "","WIRING INSTRUCTIONS",instrT,"",...(c.cashierOK?[cashT,""]:[]),
       `PROTECT YOURSELF FROM WIRE FRAUD: Wiring instructions will never change by email. Before sending any money, call ${titleName} at ${titlePhone}, the number in this email, not one from a new email or text, to confirm the instructions. If anything looks different or urgent, stop and call me first.`,"",
-      "WHAT TO BRING",...bring.map(b=>"• "+b),"","It's been a pleasure working with you, and I can't wait to see you get your keys!","","Thank you,",me||"[Your name]"];
+      "WHAT TO BRING",...bring.map(b=>"• "+b),"",...base.upT,"It's been a pleasure working with you, and I can't wait to see you get your keys!","","Thank you,",me||"[Your name]"];
     return {subject:"You're clear to close! Your closing details",html,text:T.join("\n"),ann:{name:"Clear to close (closing email)"},tracker:base.tracker,n:base.n,T7:base.T7,nx:base.nx};
   }
   function buildMailStd(c){
@@ -979,6 +992,13 @@ dialog form{padding:18px;display:grid;gap:12px}
         const when=k==="closingSched"&&sd&&c.closingAt?" "+fc(BLUE,"2","10",`<b>${esc(fmtWhen(c.closingAt))}</b>`):"";
         return row(sd?"&#10003;":"&#9675;",sd?GREEN:GRAY,fc(sd?"#333333":GRAY,"2","10",esc(m.name)+(sd&&!when?" "+fc("#777777","2","10",fmt(sd)):"")+when),true);}).join("");
     }).join("");
+    const condsHTML=condsOn?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Items still needed</b>")}</td></tr></table>`+sp(6)+
+        `<p style="margin:0">${fc("#555555","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
+        `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${oc.map((x,i)=>row(`${i+1}.`,GOLD,esc(x.text),false)).join("")}</table>`+sp(14):"";
+    const upHTML=withUp?`<p style="margin:0">Click the button below to upload your documents securely.</p>`+sp(8)+
+        (upHref?`<a href="${esc(upHref)}" style="display:inline-block">${upImg}</a>`:upImg)+sp(16):"";
+    const condsT=condsOn?["ITEMS STILL NEEDED","The underwriter is asking for the following. Please send them as soon as you can.",...oc.map((x,i)=>`${i+1}. ${x.text}`),""]:[];
+    const upT=withUp?[`Upload your documents securely here: ${upHref||"[upload link]"}`,""]:[];
     const html=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(greet(c))},</p>`+sp(6)+
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#EAF2EC" style="background:#EAF2EC;border-left:5px solid ${GREEN};padding:10px 14px;${F}">`+
       fc(GREEN,"2","9.5",`<b>MILESTONE REACHED${date?" · "+esc(date.toUpperCase()):""}</b>`)+`<br>`+
@@ -1000,7 +1020,7 @@ dialog form{padding:18px;display:grid;gap:12px}
       MAIN.forEach((nd,i)=>{const d=c.ms[nodeKey(nd)];T.push(d?`✓ ${nd.name} (${fmt(d)})`:i===stage?`➜ Next: ${nd.name}`:`○ ${nd.name}`);
         (nd.subs||[]).forEach(k=>{const sd=c.ms[k];T.push(`     ${sd?"✓":"○"} ${msBy(k).name}${sd?" ("+(k==="closingSched"&&c.closingAt?fmtWhen(c.closingAt):fmt(sd))+")":""}`);});});T.push("");}
     T.push("If you have any questions, just reply to this email or give me a call.","","Thank you,",me||"[Your name]");
-    return {subject,html,text:T.join("\n"),ann,tracker,n,T7,nx};
+    return {subject,html,text:T.join("\n"),ann,tracker,n,T7,nx,condsHTML,upHTML,condsT,upT};
   }
   function renderMail(c){const e=buildMail(c);$("subjTxt").textContent=e.subject;$("mailPrev").innerHTML=e.html;}
 
@@ -1020,7 +1040,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote],[data-delcond],[data-condwho]");if(!t)return;
     const c=curClient();
     if(t.dataset.tab){tab=t.dataset.tab;renderList();return;}
-    if(t.dataset.open){annKey=null;go(t.dataset.open);return;}
+    if(t.dataset.open){annKey=null;leaveClose();go(t.dataset.open);return;}
     if(t.dataset.status&&c){c.status=t.dataset.status;touch(c);save();renderClient(c);say(c.status==="inactive"?"Moved to inactive.":"Marked active.");return;}
     if(t.dataset.condwho&&c){const x=(c.conds||[]).find(y=>y.id===t.dataset.condwho);if(x){x.who=whoOf(x)==="b"?"lo":"b";touch(c);save();renderClient(c);}return;}
     if(t.dataset.delcond&&c){c.conds=(c.conds||[]).filter(x=>x.id!==t.dataset.delcond);touch(c);save();renderClient(c);return;}
@@ -1045,8 +1065,8 @@ dialog form{padding:18px;display:grid;gap:12px}
           c.notes=c.notes||[];c.notes.push({t:stamp(),text:`Milestone email copied: ${e.ann.name}`,auto:true});touch(c);save();renderClient(c);
           say("Email copied. Paste it into a new Outlook message.");}
         break;}
-      case "closingMail":closeMode=true;annKey="ctc";renderClient(c);setTimeout(()=>{const m=$("mailPrev");m&&m.scrollIntoView({behavior:"smooth",block:"start"});},50);break;
-      case "closingOff":closeMode=false;renderClient(c);break;
+      case "closingMail":if(!closeMode){mileOpts={includeAll,includeConds,includeUp};includeAll=false;includeConds=false;includeUp=false;}closeMode=true;annKey="ctc";renderClient(c);setTimeout(()=>{const m=$("mailPrev");m&&m.scrollIntoView({behavior:"smooth",block:"start"});},50);break;
+      case "closingOff":leaveClose();renderClient(c);break;
       case "toggleConds":condOpen[c.id]=!(condOpen[c.id]??false);renderClient(c);break;
       case "addConds":{
         const items=parseConds($("condTxt").value,condWho);if(!items.length){$("condTxt").focus();return;}
