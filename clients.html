@@ -173,6 +173,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 .cgroup h4{font-size:.9rem;margin:0;padding:6px 0 2px;border-bottom:2px solid var(--brass);color:var(--brass)}
 .cgroup+.cgroup h4{border-bottom-color:var(--muted);color:var(--muted)}
 .cbanner .csplit{display:inline-block;font-size:.8rem;color:var(--muted);margin-left:4px}
+.upline{margin:4px 0 0 26px;overflow-wrap:anywhere}
 .cwho{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:8px;font-size:.9rem}
 .cwho label{display:flex;gap:6px;align-items:center;cursor:pointer}
 .msl .nexttag{font-size:.72rem;font-weight:700;color:var(--brass);border:1px solid var(--brass);padding:0 6px;margin-left:6px}
@@ -491,13 +492,20 @@ dialog form{padding:18px;display:grid;gap:12px}
   });
 
   // ---------- One client ----------
-  let annKey=null, annMsg={}, includeAll=true, includeConds=false, includeList=false;
+  let annKey=null, annMsg={}, includeAll=true, includeConds=false, includeList=false, includeUp=null;
+  // Upload link: the one saved on the document request page (same browser), unless the client has their own.
+  const isLink=v=>/^(https?:\/\/)?[^\s\/]+\.[^\s]+$/i.test(v||"")&&v.length<500;
+  const savedUpload=()=>{try{const v=localStorage.getItem("req-ulink")||"";return isLink(v)?v:"";}catch(e){return "";}};
+  const uploadLink=c=>isLink(c.uploadLink)?c.uploadLink:savedUpload();
+  const asHref=v=>v?(/^https?:\/\//i.test(v)?v:"https://"+v):"";
+  const DOC_MS=["condAppr","addlDocs"];
+  const upOn=()=>includeUp??DOC_MS.includes(annKey);
   try{includeList=localStorage.getItem("ms-list")==="1";}catch(e){}
   function renderClient(c){
     const n=doneCount(c), nx=nextStep(c), cur=current(c), stg=stageOf(c);
     if(!annKey||!MS.some(m=>m.k===annKey))annKey=cur?cur.k:"contract";
     const ann=MS.find(m=>m.k===annKey);
-    const docLink=`checklist.html?${new URLSearchParams({who:c.who||"w2",loan:c.loan||"conv",purpose:c.purpose||"buy",name:greet(c)==="there"?"":greet(c),client:c.id})}`;
+    const docLink=`checklist.html?${new URLSearchParams({who:c.who||"w2",loan:c.loan||"conv",purpose:c.purpose||"buy",name:greet(c)==="there"?"":greet(c),client:c.id,...(isLink(c.uploadLink)?{ulink:c.uploadLink}:{})})}`;
     let me="";try{me=localStorage.getItem("req-me")||"";}catch(e){}
     $("app").innerHTML=`
       <button class="back" data-act="list">← All clients</button>
@@ -552,6 +560,9 @@ dialog form{padding:18px;display:grid;gap:12px}
             <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incAll"${includeAll?" checked":""} style="width:18px;height:18px;accent-color:var(--ink)"> Show the progress bar in the email</label>
             <label style="display:flex;gap:8px;align-items:center;margin:6px 0 0 26px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incList"${includeList?" checked":""}${includeAll?"":" disabled"} style="width:18px;height:18px;accent-color:var(--ink)"> Also list each step with dates under the bar</label>
             <label style="display:flex;gap:8px;align-items:center;margin-top:6px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incConds"${includeConds?" checked":""}${openConds(c,"b").length?"":" disabled"} style="width:18px;height:18px;accent-color:var(--ink)"> Include the borrower's open conditions${openConds(c,"b").length?` (${openConds(c,"b").length})`:" (none open)"}</label>
+            <label style="display:flex;gap:8px;align-items:center;margin-top:6px;font-size:.9rem;cursor:pointer"><input type="checkbox" id="incUp"${upOn()?" checked":""} style="width:18px;height:18px;accent-color:var(--ink)"> Add the "Upload documents" button</label>
+            <div class="upline small">${upOn()?(uploadLink(c)?`Button links to ${isLink(c.uploadLink)?"this client's link":"your saved link"}: <span class="muted">${esc(uploadLink(c))}</span>`:`<span style="color:var(--bad)">No upload link yet.</span> Save one on the document request page, or add one for this client below. Without a link, the button is a picture you can link in Outlook.`):""}
+              ${upOn()?`<label class="field" style="margin-top:6px">Upload link for this client only <span class="muted" style="font-weight:500">(optional)</span><input id="cUp" value="${esc(c.uploadLink||"")}" placeholder="Leave blank to use your saved link" inputmode="url" autocomplete="off"></label>`:""}</div>
             <div class="acts" style="margin-top:12px">
               <button class="tbtn primary" data-act="copyMail">Copy email</button>
               <button class="tbtn" data-act="copySubj">Copy subject</button>
@@ -575,11 +586,15 @@ dialog form{padding:18px;display:grid;gap:12px}
         </div>
       </div>`;
     renderMail(c);
-    $("annSel").addEventListener("change",e=>{annKey=e.target.value;if(annKey==="condAppr"&&openConds(c,"b").length)includeConds=true;renderClient(c);});
+    $("annSel").addEventListener("change",e=>{annKey=e.target.value;includeUp=null;if(annKey==="condAppr"&&openConds(c,"b").length)includeConds=true;renderClient(c);});
     if($("annVar"))$("annVar").addEventListener("change",e=>{annVar[c.id+annKey]=+e.target.value;delete annMsg[c.id+annKey];renderClient(c);});
     $("annMsg").addEventListener("input",e=>{annMsg[c.id+annKey]=e.target.value;renderMail(c);});
     $("incAll").addEventListener("change",e=>{includeAll=e.target.checked;$("incList").disabled=!includeAll;renderMail(c);});
     $("incConds").addEventListener("change",e=>{includeConds=e.target.checked;renderMail(c);});
+    $("incUp").addEventListener("change",e=>{includeUp=e.target.checked;renderClient(c);});
+    if($("cUp"))$("cUp").addEventListener("change",e=>{const v=e.target.value.trim();
+      if(v&&!isLink(v)){say("That isn't a web link. Paste the Dropbox request link.");e.target.value=c.uploadLink||"";return;}
+      c.uploadLink=v;touch(c);save();renderClient(c);say(v?"Upload link saved for this client.":"This client now uses your saved link.");});
     $("incList").addEventListener("change",e=>{includeList=e.target.checked;try{localStorage.setItem("ms-list",includeList?"1":"0");}catch(x){}renderMail(c);});
     $("me").addEventListener("input",e=>{try{localStorage.setItem("req-me",e.target.value);}catch(x){}renderMail(c);});
   }
@@ -643,6 +658,9 @@ dialog form{padding:18px;display:grid;gap:12px}
     const ann=MS.find(m=>m.k===annKey), msg=($("annMsg")?.value??purposeFix(c,ann)).trim(), me=($("me")?.value||"").trim();
     const n=doneCount(c), nx=nextStep(c), stage=stageOf(c), T7=MAIN.length;
     const oc=openConds(c,"b"), condsOn=includeConds&&oc.length>0;
+    const upHref=asHref(uploadLink(c)), withUp=upOn();
+    const SITE0=location.protocol.startsWith("http")&&location.hostname.endsWith("github.io")?location.href:"https://jfb315-dotcom.github.io/";
+    const upImg=`<img src="${new URL("upload-button-v2.png",SITE0).href}" width="300" height="56" alt="UPLOAD DOCUMENTS" style="display:block;border:0;width:100%;max-width:300px;height:auto;font-family:Calibri,Arial,sans-serif;font-size:16pt;font-weight:bold;color:#1F4E79">`;
     const subject=`Loan update: ${ann.name}`;
     const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
     const BLUE="#1F4E79", GREEN="#2C5234", GOLD="#A97A1E", GRAY="#9AA3AE";
@@ -677,12 +695,15 @@ dialog form{padding:18px;display:grid;gap:12px}
       (condsOn?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Items still needed</b>")}</td></tr></table>`+sp(6)+
         `<p style="margin:0">${fc("#555555","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
         `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${oc.map((x,i)=>row(`${i+1}.`,GOLD,esc(x.text),false)).join("")}</table>`+sp(14):"")+
+      (withUp?`<p style="margin:0">Click the button below to upload your documents securely.</p>`+sp(8)+
+        (upHref?`<a href="${esc(upHref)}" style="display:inline-block">${upImg}</a>`:upImg)+sp(16):"")+
       (includeAll?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Your loan progress</b>")}</td></tr></table>`+sp(6)+
         `<p style="margin:0">${fc("#555555","2","10",`${n} of ${T7} steps complete`)}</p>`+sp(10)+tracker+sp(includeList?10:14)+
         (includeList?`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`+sp(8):""):"")+
       `<p style="margin:0">If you have any questions, just reply to this email or give me a call.</p>`+sp(10)+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     const T=[`Hi ${greet(c)},`,"",`MILESTONE REACHED${date?" ("+date+")":""}: ${ann.name}`,"",msg,""];
     if(condsOn){T.push("ITEMS STILL NEEDED","The underwriter is asking for the following. Please send them as soon as you can.");oc.forEach((x,i)=>T.push(`${i+1}. ${x.text}`));T.push("");}
+    if(withUp){T.push(`Upload your documents securely here: ${upHref||"[upload link]"}`,"");}
     if(includeAll){T.push(`YOUR LOAN PROGRESS (${n} of ${T7} steps complete)`);
       MAIN.forEach((nd,i)=>{const d=c.ms[nodeKey(nd)];T.push(d?`✓ ${nd.name} (${fmt(d)})`:i===stage?`➜ Next: ${nd.name}`:`○ ${nd.name}`);
         (nd.subs||[]).forEach(k=>{const sd=c.ms[k];T.push(`     ${sd?"✓":"○"} ${msBy(k).name}${sd?" ("+(k==="closingSched"&&c.closingAt?fmtWhen(c.closingAt):fmt(sd))+")":""}`);});});T.push("");}
@@ -753,7 +774,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     if(ev.target.hasAttribute("data-closeat")){c.closingAt=ev.target.value;delete annMsg[c.id+"closingSched"];touch(c);save();renderClient(c);return;}
     const k=ev.target.dataset.ms, kd=ev.target.dataset.msdate;
     if(k){
-      if(ev.target.checked){c.ms[k]=today();annKey=k;if(k==="condAppr"&&openConds(c,"b").length)includeConds=true;}else delete c.ms[k];
+      if(ev.target.checked){c.ms[k]=today();annKey=k;includeUp=null;if(k==="condAppr"&&openConds(c,"b").length)includeConds=true;}else delete c.ms[k];
       touch(c);save();renderClient(c);
       if(ev.target.checked)say(`${MS.find(m=>m.k===k).name} checked. The update email below is ready to copy.`);
     }else if(kd&&ev.target.value){c.ms[kd]=ev.target.value;touch(c);save();renderClient(c);}
