@@ -56,6 +56,17 @@ Today the client tracker (`clients.html`) saves everything in one browser
    conditions added, milestone checked, closing scheduled.
 9. Test on computer and phone; keep "Download backup" as an export.
 
+## Also on hold: address autocomplete
+
+John asked about suggesting addresses as he types in the client form's property address box.
+
+- Use Google Places Autocomplete (Maps JavaScript API), loaded only on `clients.html`.
+- John creates a Google Cloud project, turns on billing (the monthly free credit should
+  cover one LO), and makes an API key restricted to `jfb315-dotcom.github.io`.
+- **Compliance first:** the typed borrower address is sent to Google. Clear it together
+  with the Firebase question above.
+- Pick this up at the same time as the Firebase work.
+
 ## Other notes
 
 - The document request page and email builders don't need the database.
