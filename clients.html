@@ -351,7 +351,10 @@ details.phms[open]>summary{border-bottom:0}
 dialog{border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 40px)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
 dialog form{padding:18px;display:grid;gap:12px}
-.coadd{align-self:flex-start}
+.coadd{justify-self:start}
+.prospck{display:flex;gap:8px;align-items:center;cursor:pointer;padding:8px 10px;border:1px dashed var(--rule);background:var(--paper)}
+.prospck input{width:18px;height:18px;accent-color:var(--brass)}
+.prosptag{display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.06em;color:var(--brass);border:1px solid var(--brass);border-radius:999px;padding:1px 9px;vertical-align:4px;margin-left:6px}
 .cleared{margin-top:4px}
 .cleared>summary{cursor:pointer;padding:8px 0 2px;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .cleared>summary:hover{color:var(--ink)}
@@ -369,6 +372,7 @@ dialog form{padding:18px;display:grid;gap:12px}
 <dialog id="dlg">
   <form method="dialog" id="cform">
     <h2 id="dlgTitle">New client</h2>
+    <label class="prospck"><input type="checkbox" name="prospect"> <span><b>Prospect</b> <span class="muted small">(not an active loan yet; listed under Prospects)</span></span></label>
     <div class="fgrid">
       <label class="field">First name *<input name="first" required autocomplete="off"></label>
       <label class="field">Last name<input name="last" autocomplete="off"></label>
@@ -695,14 +699,15 @@ dialog form{padding:18px;display:grid;gap:12px}
 
   // ---------- Client list ----------
   function renderList(){
-    const act=clients.filter(c=>c.status!=="inactive"), ina=clients.filter(c=>c.status==="inactive");
-    const shown=(tab==="active"?act:ina).filter(c=>!q||(fullName(c)+" "+coName(c)+" "+(c.address||"")+" "+(c.email||"")+" "+(c.coEmail||"")).toLowerCase().includes(q.toLowerCase()))
+    const act=clients.filter(c=>c.status!=="inactive"&&c.status!=="prospect"), pro=clients.filter(c=>c.status==="prospect"), ina=clients.filter(c=>c.status==="inactive");
+    const shown=(tab==="active"?act:tab==="prospect"?pro:ina).filter(c=>!q||(fullName(c)+" "+coName(c)+" "+(c.address||"")+" "+(c.email||"")+" "+(c.coEmail||"")).toLowerCase().includes(q.toLowerCase()))
       .sort(sorter());
     $("app").innerHTML=`
       <div class="top">
-        <div><h1>Clients</h1><div class="muted small">${act.length} active · ${ina.length} inactive</div></div>
+        <div><h1>Clients</h1><div class="muted small">${act.length} active · ${pro.length} prospect${pro.length===1?"":"s"} · ${ina.length} inactive</div></div>
         <div class="acts">
           <button class="tbtn primary" data-act="new">+ New client</button>
+          <button class="tbtn" data-act="newProspect">+ New prospect</button>
           <button class="tbtn" data-act="backup"${clients.length?"":" disabled"}>Download backup</button>
           <button class="tbtn" data-act="restore">Restore backup</button>
         </div>
@@ -711,6 +716,7 @@ dialog form{padding:18px;display:grid;gap:12px}
       <div class="listbar">
         <div class="tabs" role="group" aria-label="Show">
           <button data-tab="active" aria-pressed="${tab==="active"}">Active (${act.length})</button>
+          <button data-tab="prospect" aria-pressed="${tab==="prospect"}">Prospects (${pro.length})</button>
           <button data-tab="inactive" aria-pressed="${tab==="inactive"}">Inactive (${ina.length})</button>
         </div>
         <input class="search" id="search" type="search" placeholder="Search name, address or email" value="${esc(q)}" aria-label="Search clients">
@@ -733,7 +739,7 @@ dialog form{padding:18px;display:grid;gap:12px}
   }
 
   // ---------- New / edit client ----------
-  let editing=null;
+  let editing=null, newAsProspect=false;
   function openForm(c){
     editing=c||null;
     const f=$("cform");f.reset();
@@ -741,6 +747,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
     showCo(!!(c&&(c.coFirst||c.coLast||c.coEmail||c.coPhone)));
     fillLists();
+    f.elements.prospect.checked=c?c.status==="prospect":newAsProspect;
     $("dlg").showModal();f.elements.first.focus();
   }
   // ---------- Phone numbers: 555-201-4400 ----------
@@ -803,9 +810,12 @@ dialog form{padding:18px;display:grid;gap:12px}
     const f=$("cform"), v=k=>f.elements[k].value.trim();
     if(!v("first"))return;
     const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","loan","purpose","who","closing"].map(k=>[k,/phone$/i.test(k)?fmtPhone(v(k)):v(k)]));
-    if(editing){Object.assign(editing,data);touch(editing);save();render();say("Client updated.");}
+    const pros=f.elements.prospect.checked;
+    if(editing){Object.assign(editing,data);
+      if(pros)editing.status="prospect";else if(editing.status==="prospect")editing.status="active";
+      touch(editing);save();render();say("Client updated.");}
     else{
-      const c={id:uid(),...data,status:"active",ms:{},notes:[],created:stamp()};touch(c);
+      const c={id:uid(),...data,status:pros?"prospect":"active",ms:{},notes:[],created:stamp()};touch(c);
       clients.push(c);save();go(c.id);say("Client added.");
     }
   });
@@ -987,11 +997,12 @@ dialog form{padding:18px;display:grid;gap:12px}
       <button class="back" data-act="list" style="margin-top:4px">← All clients</button>
       <div class="dhead">
         <div>
-          <div class="nmrow"><h1>${esc(fullName(c))}</h1><button class="tbtn" data-act="edit">Edit</button></div>
+          <div class="nmrow"><h1>${esc(fullName(c))}${c.status==="prospect"?`<span class="prosptag">PROSPECT</span>`:""}</h1><button class="tbtn" data-act="edit">Edit</button></div>
         </div>
         <div class="acts">
           <div class="seg" role="group" aria-label="Status">
-            <button data-status="active" aria-pressed="${c.status!=="inactive"}">Active</button>
+            <button data-status="prospect" aria-pressed="${c.status==="prospect"}">Prospect</button>
+            <button data-status="active" aria-pressed="${c.status!=="inactive"&&c.status!=="prospect"}">Active</button>
             <button data-status="inactive" aria-pressed="${c.status==="inactive"}">Inactive</button>
           </div>
           <button class="tbtn" data-act="print">Print sheet</button>
@@ -1327,12 +1338,13 @@ dialog form{padding:18px;display:grid;gap:12px}
     const c=curClient();
     if(t.dataset.tab){tab=t.dataset.tab;renderList();return;}
     if(t.dataset.open){annKey=null;leaveClose();phoneMail=false;go(t.dataset.open);return;}
-    if(t.dataset.status&&c){c.status=t.dataset.status;touch(c);save();renderClient(c);say(c.status==="inactive"?"Moved to inactive.":"Marked active.");return;}
+    if(t.dataset.status&&c){c.status=t.dataset.status;touch(c);save();renderClient(c);say(c.status==="inactive"?"Moved to inactive.":c.status==="prospect"?"Moved to prospects.":"Marked active.");return;}
     if(t.dataset.condwho&&c){const x=(c.conds||[]).find(y=>y.id===t.dataset.condwho);if(x){x.who=whoOf(x)==="b"?"lo":"b";touch(c);save();renderClient(c);}return;}
     if(t.dataset.delcond&&c){c.conds=(c.conds||[]).filter(x=>x.id!==t.dataset.delcond);touch(c);save();renderClient(c);return;}
     if(t.dataset.delnote&&c){c.notes=c.notes.filter(n=>n.t!==t.dataset.delnote);save();renderClient(c);return;}
     switch(t.dataset.act){
-      case "new":openForm();break;
+      case "new":newAsProspect=tab==="prospect";openForm();break;
+      case "newProspect":newAsProspect=true;openForm();break;
       case "edit":openForm(c);break;
       case "list":go("");break;
       case "backup":backup();break;
@@ -1378,9 +1390,11 @@ dialog form{padding:18px;display:grid;gap:12px}
     if(ev.target.hasAttribute("data-closeat")){c.closingAt=ev.target.value;delete annMsg[c.id+"closingSched"];touch(c);save();renderClient(c);return;}
     const k=ev.target.dataset.ms, kd=ev.target.dataset.msdate;
     if(k){
+      const wasPros=ev.target.checked&&c.status==="prospect";if(wasPros)c.status="active";
       if(ev.target.checked){c.ms[k]=today();annKey=k;includeUp=null;if(k==="condAppr"&&openConds(c,"b").length)includeConds=true;}else delete c.ms[k];
       touch(c);save();renderClient(c);
-      if(ev.target.checked)say(`${MS.find(m=>m.k===k).name} checked. The update email below is ready to copy.`);
+      if(wasPros)say(`${MS.find(m=>m.k===k).name} checked. ${c.first} moved from Prospects to Active.`);
+      else if(ev.target.checked)say(`${MS.find(m=>m.k===k).name} checked. The update email below is ready to copy.`);
     }else if(kd&&ev.target.value){c.ms[kd]=ev.target.value;touch(c);save();renderClient(c);}
   });
 
