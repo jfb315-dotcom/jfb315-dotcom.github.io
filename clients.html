@@ -299,6 +299,8 @@ details.phms[open]>summary{border-bottom:0}
 .notes{list-style:none;margin:12px 0 0;padding:0}
 .notes li{border-top:1px solid var(--rule);padding:12px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
 .notes .when{font-size:var(--t-xs);color:var(--muted)}
+.nsub{font-size:var(--t-xs);font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 4px}
+.notes.mails .txt,.notes.mails li.auto .txt{color:var(--ink);font-style:normal}
 .notes .txt{white-space:pre-wrap;overflow-wrap:anywhere;grid-column:1}
 .notes .auto .txt{color:var(--muted);font-style:italic}
 .notes .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:var(--t-lg);line-height:1;padding:2px 8px;grid-row:1/3;grid-column:2;align-self:start}
@@ -427,6 +429,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       <label class="field">Rate locked?<select name="rateLocked"><option value="">Not locked</option><option value="yes">Locked</option></select></label>
       <label class="field lockf">Lock date<input name="lockDate" type="date"></label>
       <label class="field lockf">Lock length (days)<input name="lockDays" inputmode="numeric" autocomplete="off" placeholder="30"></label>
+      <label class="field lockf">Lender's expiration <span class="muted" style="font-weight:400">(if different)</span><input name="lockExp" type="date"></label>
     </div>
     <p class="small lockf" id="lockExp" role="status" style="margin:-4px 0 0"></p>
     <div class="dlgbtns">
@@ -757,7 +760,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     editing=c||null;
     const f=$("cform");f.reset();
     $("dlgTitle").textContent=c?"Edit client":"New client";
-    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
+    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","lockExp","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
     showCo(!!(c&&(c.coFirst||c.coLast||c.coEmail||c.coPhone)));
     fillLists();lockForm();
     f.elements.prospect.checked=c?c.status==="prospect":newAsProspect;
@@ -788,20 +791,22 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(t.matches("input[data-money]"))t.value=fmtMoney(t.value);else if(t.matches('input[name="rate"]'))t.value=fmtRate(t.value);},true);
   // Rate lock: expiration = lock date + days; if that lands on a weekend or federal holiday it moves back to the business day before.
   const workday=d=>d.getDay()!==0&&d.getDay()!==6&&!holidays(d.getFullYear()).has(ymd(d));
+  // A date typed from the lender's lock confirmation always wins over the worked-out one.
   function lockInfo(c){
     if(c.rateLocked!=="yes")return {locked:false};
-    const start=parseD(c.lockDate), days=parseInt(c.lockDays,10);
-    if(!start||!(days>0))return {locked:true,exp:null};
-    const raw=new Date(start);raw.setDate(raw.getDate()+days);
-    const exp=new Date(raw);while(!workday(exp))exp.setDate(exp.getDate()-1);
+    const start=parseD(c.lockDate), days=parseInt(c.lockDays,10), given=parseD(c.lockExp);
+    let exp=null,raw=null;
+    if(start&&days>0){raw=new Date(start);raw.setDate(raw.getDate()+days);exp=new Date(raw);while(!workday(exp))exp.setDate(exp.getDate()-1);}
+    if(given)exp=given;
+    if(!exp)return {locked:true,exp:null};
     const t=new Date(), left=Math.round((exp-new Date(t.getFullYear(),t.getMonth(),t.getDate()))/864e5);
     const close=parseD(closeDateOf(c));
-    return {locked:true,exp,raw,moved:+exp!==+raw,left,beforeClose:!!close&&exp<close};
+    return {locked:true,exp,raw,lender:!!given,moved:!given&&raw&&+exp!==+raw,left,beforeClose:!!close&&exp<close};
   }
   function lockText(c){const L=lockInfo(c);
     if(!L.locked)return "Not locked";
     if(!L.exp)return "Locked (add the lock date and days)";
-    return `Locked, expires ${fmtDay(L.exp)}`+(L.left<0?" (expired)":L.left===0?" (today)":` (${L.left} day${L.left===1?"":"s"})`);}
+    return `Locked, expires ${fmtDay(L.exp)}${L.lender?" (lender)":""}`+(L.left<0?" (expired)":L.left===0?" (today)":` (${L.left} day${L.left===1?"":"s"})`);}
   // Price, loan, down payment and rate as short lines; the down payment is figured from the other two when left blank.
   function loanNums(c){
     const p=num(c.price), l=num(c.loanAmt), d=num(c.down)??(p!==null&&l!==null&&p>=l?p-l:null), out=[];
@@ -846,12 +851,12 @@ dialog form{padding:16px;display:grid;gap:12px}
     const f=$("cform"), on=f.elements.rateLocked.value==="yes";
     f.querySelectorAll(".lockf").forEach(e=>e.hidden=!on);
     if(on&&!f.elements.lockDate.value)f.elements.lockDate.value=today();
-    const L=lockInfo({rateLocked:f.elements.rateLocked.value,lockDate:f.elements.lockDate.value,lockDays:f.elements.lockDays.value,closing:f.elements.closing.value,closingAt:editing&&editing.closingAt});
-    $("lockExp").innerHTML=!on?"":!L.exp?`<span class="muted">Enter the lock length to see when it expires.</span>`:
+    const L=lockInfo({rateLocked:f.elements.rateLocked.value,lockDate:f.elements.lockDate.value,lockDays:f.elements.lockDays.value,lockExp:f.elements.lockExp.value,closing:f.elements.closing.value,closingAt:editing&&editing.closingAt});
+    $("lockExp").innerHTML=!on?"":!L.exp?`<span class="muted">Enter the lock length to see when it expires.</span>`:L.lender?`Lock expires <b>${fmtDay(L.exp)}</b> <span class="muted">(the date you entered from the lender)</span>`+(L.beforeClose?` <b style="color:var(--bad)">· before the closing date</b>`:""):
       `Lock expires <b>${fmtDay(L.exp)}</b>${L.moved?` <span class="muted">(${fmtDay(L.raw)} falls on a ${workday(L.raw)?"":L.raw.getDay()%6===0?"weekend":"holiday"}, so it moves back)</span>`:""}`+
       (L.beforeClose?` <b style="color:var(--bad)">· before the closing date</b>`:"");
   }
-  $("cform").addEventListener("input",e=>{if(["rateLocked","lockDate","lockDays","closing"].includes(e.target.name))lockForm();});
+  $("cform").addEventListener("input",e=>{if(["rateLocked","lockDate","lockDays","lockExp","closing"].includes(e.target.name))lockForm();});
   $("cform").addEventListener("change",e=>{if(e.target.name==="rateLocked")lockForm();});
 
   // Co-borrower fields stay tucked away until needed.
@@ -869,7 +874,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     if($("dlg").returnValue!=="save")return;
     const f=$("cform"), v=k=>f.elements[k].value.trim();
     if(!v("first"))return;
-    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","loan","purpose","who","closing"].map(k=>[k,/phone$/i.test(k)?fmtPhone(v(k)):["price","loanAmt","down"].includes(k)?fmtMoney(v(k)):k==="rate"?fmtRate(v(k)):v(k)]));
+    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","lockExp","loan","purpose","who","closing"].map(k=>[k,/phone$/i.test(k)?fmtPhone(v(k)):["price","loanAmt","down"].includes(k)?fmtMoney(v(k)):k==="rate"?fmtRate(v(k)):v(k)]));
     const pros=f.elements.prospect.checked;
     if(editing){Object.assign(editing,data);
       if(pros)editing.status="prospect";else if(editing.status==="prospect")editing.status="active";
@@ -997,9 +1002,9 @@ dialog form{padding:16px;display:grid;gap:12px}
       const tr=S.ms&&S.ms.querySelector(".tracker");
       const tb=tr?box("panel trackbar",[tr]):null;
       // Left side bar picks what shows in the work area; everything else waits out of sight.
-      const view=sideView[c.id]||"overview", ci=cdInfo(c), oc=openConds(c).length, nn=(c.notes||[]).filter(n=>!n.auto).length;
+      const view=sideView[c.id]||"overview", ci=cdInfo(c), oc=openConds(c).length, nn=(c.notes||[]).filter(n=>!n.auto&&!isEmail(n)).length;
       const cdTag=!ci.close?"":ci.level==="ok"?"OK":ci.level==="late"?"Late":ci.level==="wait"?"":"Due";
-      const ITEMS=[["overview","Overview",""],["ms","Milestones",`${doneCount(c)}/${MAIN.length}`],["conds","Conditions",oc?String(oc):""],["notes","Notes",nn?String(nn):""],
+      const ITEMS=[["overview","Overview",""],["ms","Milestones",`${doneCount(c)}/${MAIN.length}`],["conds","Conditions",oc?String(oc):""],["notes","Notes / Emails",nn?String(nn):""],
         ["cd","Closing Disclosure",cdTag],["mail","Send an update",""],["docs","Document request",""]];
       const nav=document.createElement("nav");nav.className="sidenav";nav.setAttribute("aria-label","Client sections");
       nav.innerHTML=ITEMS.map(([k,l,b])=>`<button type="button" data-side="${k}"${k===view?' aria-current="true"':""}><span>${l}</span>${b?`<b class="${k==="cd"&&(ci.level==="late"||ci.level==="urgent")?"bad":k==="conds"||(k==="cd"&&cdTag==="Due")?"warn":""}">${b}</b>`:""}</button>`).join("");
@@ -1180,14 +1185,15 @@ dialog form{padding:16px;display:grid;gap:12px}
             <a class="tbtn primary" href="${docLink}">Build document request</a>
           </div>
           <div class="panel" data-sec="notes">
-            <h2>Notes</h2>
+            <h2>Notes / Emails sent</h2>
             <label class="field" style="margin-top:12px"><span class="muted" style="font-weight:600">Add a note</span><textarea id="noteTxt" placeholder="Called about appraisal, waiting on HOA cert…"></textarea></label>
             <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addNote">Add note</button>${SR?`<button class="tbtn mic" type="button" data-act="talk" aria-pressed="false">🎤 Talk</button>`:""}<span class="micmsg small muted" id="micMsg" role="status"></span></div>
-            ${(()=>{const all=(c.notes||[]).slice().reverse(), mine=all.filter(nt=>!nt.auto), auto=all.filter(nt=>nt.auto);
-              const li=nt=>`<li class="${nt.auto?"auto":""}"><span class="when">${fmtStamp(nt.t)}</span><span class="txt">${esc(nt.text)}</span><button class="x" data-delnote="${nt.t}" aria-label="Delete">×</button></li>`;
-              // Your own notes stay front and center; automatic entries (emails copied, conditions added) are tucked into a collapsed log.
-              return `<ul class="notes">${mine.map(li).join("")||`<li><span class="txt muted">No notes yet.</span></li>`}</ul>`+
-                (auto.length?`<details class="alog"${logOpen[c.id]?" open":""} data-alog="${c.id}"><summary>Activity log (${auto.length})</summary><ul class="notes">${auto.map(li).join("")}</ul></details>`:"");})()}
+            ${(()=>{const all=(c.notes||[]).slice().reverse(), mails=all.filter(isEmail), mine=all.filter(nt=>!isEmail(nt)&&!nt.auto), auto=all.filter(nt=>!isEmail(nt)&&nt.auto);
+              const li=(nt,txt)=>`<li class="${nt.auto?"auto":""}"><span class="when">${fmtStamp(nt.t)}</span><span class="txt">${esc(txt??nt.text)}</span><button class="x" data-delnote="${nt.t}" aria-label="Delete">×</button></li>`;
+              // Your notes first, then every email you copied, then other automatic entries in a collapsed log.
+              return `<h3 class="nsub">Notes</h3><ul class="notes">${mine.map(nt=>li(nt)).join("")||`<li><span class="txt muted">No notes yet.</span></li>`}</ul>`+
+                `<h3 class="nsub">Emails sent <span class="muted small">(${mails.length})</span></h3><ul class="notes mails">${mails.map(nt=>li(nt,emailText(nt))).join("")||`<li><span class="txt muted">No emails copied yet.</span></li>`}</ul>`+
+                (auto.length?`<details class="alog"${logOpen[c.id]?" open":""} data-alog="${c.id}"><summary>Activity log (${auto.length})</summary><ul class="notes">${auto.map(nt=>li(nt)).join("")}</ul></details>`:"");})()}
           </div>
         </div>
       </div>`;
@@ -1215,6 +1221,9 @@ dialog form{padding:16px;display:grid;gap:12px}
     $("me").addEventListener("input",e=>{try{localStorage.setItem("req-me",e.target.value);}catch(x){}renderMail(c);});
   }
 
+  // Emails copied from this page or the document request page; older entries are recognized by their wording.
+  const isEmail=n=>n.kind==="email"||/^(Milestone email copied|Email sent|Document request email copied)/.test(n.text||"");
+  const emailText=n=>n.kind==="email"?n.text:String(n.text).replace(/^Milestone email copied: |^Email sent: /,"").replace(/^Document request email copied/,"Document request");
   // Conditions start open on a computer or phone when there are some to see.
   const condShown=c=>condOpen[c.id]??(viewMode()!=="mid"&&(c.conds||[]).length>0);
   function condsBlock(c){
@@ -1263,7 +1272,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     const conds=sortedConds(c), open=conds.filter(x=>!x.done), done=conds.filter(x=>x.done);
     const ctable=who=>{const l=sortedConds(c,who);if(!l.length)return "";
       return `<h3>${who==="b"?"Borrower conditions":"Loan officer conditions"}</h3><table class="cd">${l.map(x=>`<tr class="${x.done?"done":""}"><td class="b">${x.done?"&#9745;":"&#9744;"}</td><td class="n">${x.n}.</td><td>${esc(x.text)}</td></tr>`).join("")}</table>`;};
-    const notes=(c.notes||[]).filter(x=>!x.auto).slice(-8).reverse();
+    const notes=(c.notes||[]).filter(x=>!x.auto&&!isEmail(x)).slice(-8).reverse();
     const tl=(label,parts)=>parts.some(Boolean)?`<td><b>${label}</b><br>${parts.filter(Boolean).map(esc).join("<br>")}</td>`:"";
     const tcells=tl("Title company",[c.title,c.titlePhone,c.titleAddr,c.closer&&"Closer: "+c.closer])+tl("Realtor",[c.realtor,c.realtorPhone,c.realtorEmail]);
     const team=tcells?`<table class="team"><tr>${tcells}</tr></table>`:"";
@@ -1442,8 +1451,8 @@ dialog form{padding:16px;display:grid;gap:12px}
         if(await copyRich(e.html,e.text)){
           // A message you rewrote is kept as a note so you can see later what you sent; the standard wording only goes in the activity log.
           const def=(closeMode?CLOSE_INTRO:purposeFix(c,MS.find(m=>m.k===annKey))).trim(), cur=($("annMsg")?.value||"").trim(), edited=!!cur&&cur!==def;
-          c.notes=c.notes||[];c.notes.push(edited?{t:stamp(),text:`Email sent: ${e.ann.name}\nMy message: ${cur}`}:{t:stamp(),text:`Milestone email copied: ${e.ann.name}`,auto:true});touch(c);save();renderClient(c);
-          say(edited?"Email copied. Your message was saved to Notes.":"Email copied. Paste it into a new Outlook message.");}
+          c.notes=c.notes||[];c.notes.push({t:stamp(),kind:"email",auto:true,text:`${e.ann.name}${edited?"\nMy message: "+cur:" (standard message)"}`});touch(c);save();renderClient(c);
+          say("Email copied and logged under Emails sent. Paste it into a new Outlook message.");}
         break;}
       case "copyAddr":{const a=[c.email,c.coEmail].filter(Boolean).join("; ");if(a&&await copyText(a))say("Copied: "+a);break;}
       case "closingMail":if(!closeMode){mileOpts={includeAll,includeConds,includeUp};includeAll=false;includeConds=false;includeUp=false;}closeMode=true;annKey="ctc";renderClient(c);setTimeout(()=>{const m=$("mailPrev");m&&m.scrollIntoView({behavior:"smooth",block:"start"});},50);break;
