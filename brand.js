@@ -70,18 +70,18 @@
     ".brandbar .bl{display:flex;align-items:center;gap:16px;min-width:0}"+
     ".brandbar img{display:block;height:72px;width:auto;max-width:min(300px,60vw);border-radius:8px}"+
     ".brandbar .bn{display:flex;flex-direction:column;line-height:1.2}"+
-    ".brandbar .bn b{font-size:1.25rem;font-weight:800;letter-spacing:-.01em;color:var(--ink)}"+
-    ".brandbar .bn span{font-size:.92rem;color:var(--muted)}"+
+    ".brandbar .bn b{font-size:var(--t-lg);font-weight:800;letter-spacing:-.01em;color:var(--ink)}"+
+    ".brandbar .bn span{font-size:var(--t-md);color:var(--muted)}"+
     ".brandnav{display:flex;flex-wrap:wrap;gap:8px}"+
     ".brandnav a{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:8px 16px;border-radius:10px;border:1px solid var(--rule);"+
-      "background:var(--panel);color:var(--ink);font-weight:700;font-size:1rem;text-decoration:none;font-family:inherit}"+
+      "background:var(--panel);color:var(--ink);font-weight:700;font-size:var(--t-md);text-decoration:none;font-family:inherit}"+
     ".brandnav a:hover{border-color:var(--ink)}"+
     ".brandnav a[aria-current=page]{background:var(--ink);color:var(--panel);border-color:var(--ink)}"+
     ".brandnav svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}"+
     ".brandnav .short{display:none}"+
     // Phones: three equal buttons on one row, icon above a short label
-    "@media (max-width:640px){.brandbar img{height:52px}.brandbar .bn b{font-size:1.05rem}.brandnav{width:100%;flex-wrap:nowrap}"+
-      ".brandnav a{flex:1 1 0;flex-direction:column;justify-content:center;gap:3px;padding:8px 4px;min-height:58px;font-size:.85rem}"+
+    "@media (max-width:640px){.brandbar img{height:52px}.brandbar .bn b{font-size:var(--t-md)}.brandnav{width:100%;flex-wrap:nowrap}"+
+      ".brandnav a{flex:1 1 0;flex-direction:column;justify-content:center;gap:3px;padding:8px 4px;min-height:58px;font-size:var(--t-sm)}"+
       ".brandnav svg{width:22px;height:22px}.brandnav .full{display:none}.brandnav .short{display:inline}}"+
     "@media print{.brandbar{display:none!important}}";
 
