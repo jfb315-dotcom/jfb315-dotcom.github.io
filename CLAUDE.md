@@ -1,6 +1,4 @@
-# CLAUDE.md
-
-Working notes for this repository. Read all of it before changing anything.
+# CLAUDE.md: working notes for this repository. Read all of it before changing anything.
 
 ## What this is
 
