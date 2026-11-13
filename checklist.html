@@ -84,6 +84,8 @@ button,select,input{font:inherit;color:inherit}
 .whyadd input{width:16px;height:16px;margin:0}
 .tipadd{display:flex;align-items:center;gap:8px;margin-top:4px;font-weight:600;font-size:var(--t-sm);cursor:pointer;width:fit-content}
 .tipadd input{width:16px;height:16px;margin:0}
+/* The "add to the email" boxes only matter once a document is checked, so they stay out of the way until then. */
+.item:not(.on) .whyadd,.item:not(.on) .tipadd{display:none}
 .tag{display:inline-block;font-size:var(--t-xs);font-weight:700;letter-spacing:.02em;color:var(--muted);border:1px solid var(--rule);padding:0 8px;margin-left:8px;vertical-align:2px}
 .tag.loan{color:var(--brass);border-color:var(--brass)}
 
