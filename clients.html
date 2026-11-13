@@ -343,6 +343,18 @@ details.phms[open]>summary{border-bottom:0}
 
 /* Printable desk sheet: only the sheet prints */
 #printSheet{display:none}
+#printSheet .rpt h2{margin-top:10px}
+#printSheet .r-t{width:100%;border-collapse:collapse;font-size:9pt;line-height:1.25}
+#printSheet .r-t th{text-align:left;font-size:8pt;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #000;padding:2px 4px}
+#printSheet .r-t td{border-bottom:1px solid #999;padding:3px 4px;vertical-align:top}
+#printSheet .r-m{color:#444;font-size:8.5pt}
+#printSheet .r-c{font-size:8.5pt;max-width:2.2in}
+#printSheet .r-n{width:1.7in}
+#printSheet .r-att{margin:0;padding-left:4px;list-style:none;columns:2;column-gap:24px;font-size:9pt;line-height:1.3}
+#printSheet .r-att li{break-inside:avoid;padding:1px 0}
+#printSheet .rpt .lines{height:.7in}
+#printSheet .rpt h1{font-size:15pt}
+#printSheet .rpt h2{font-size:10.5pt;margin:8px 0 2px}
 #printSheet{font-family:Calibri,Arial,Helvetica,sans-serif;font-size:10.5pt;color:#000;line-height:1.35}
 #printSheet .ph{display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #000;padding-bottom:6px}
 #printSheet h1{font-size:18pt;margin:0}
@@ -751,6 +763,7 @@ dialog form{padding:16px;display:grid;gap:12px}
           <button class="tbtn" data-act="newProspect">+ New prospect</button>
           <button class="tbtn" data-act="backup"${clients.length?"":" disabled"}>Download backup</button>
           <button class="tbtn" data-act="restore">Restore backup</button>
+          <button class="tbtn" data-act="report"${clients.some(c=>c.status!=="inactive")?"":" disabled"}>Print daily report</button>
         </div>
       </div>
       ${backupNote()}
@@ -1250,7 +1263,7 @@ dialog form{padding:16px;display:grid;gap:12px}
           <div class="panel" data-sec="proc">
             <h2>Send to processor</h2>
             ${(()=>{const L=lastProc(c);return L?`<p class="lastsent">Last sent to processor <b>${fmtStamp(L.t)}</b><br><span class="muted">${esc(emailText(L).split("\n")[0].replace(/^To processor: /,""))}</span></p>`:`<p class="lastsent muted">Nothing sent to the processor yet.</p>`;})()}
-            <p class="muted small" style="margin:4px 0 12px">Check the conditions you've put in the folder, then copy the email for your processor.</p>
+            <p class="muted small" style="margin:4px 0 12px">Check the conditions you've put in the share folder, then copy the email for your processor.</p>
             <div class="fgrid">
               <label class="field">Processor's name<input id="procName" list="dlProc" value="${esc(c.procName||"")}" autocomplete="off" placeholder="Name"></label>
               <label class="field">Processor's email<input id="procEmail" value="${esc(c.procEmail||"")}" inputmode="email" autocomplete="off" placeholder="name@company.com"></label>
@@ -1258,7 +1271,7 @@ dialog form{padding:16px;display:grid;gap:12px}
             <datalist id="dlProc">${[...contactBook().P.values()].map(x=>`<option value="${esc(x.name)}">${esc(x.procEmail||"")}</option>`).join("")}</datalist>
             ${(()=>{const open=openConds(c);if(!open.length)return `<p class="muted" style="margin:12px 0 0">No open conditions right now.</p>`;
               const sel=procSel[c.id]||new Set();
-              return `<div class="psel"><div class="pselhead"><b>Conditions in the folder</b><button type="button" class="linkbtn" data-act="procAll">${open.every(x=>sel.has(x.id))?"Clear all":"Select all"}</button></div>`+
+              return `<div class="psel"><div class="pselhead"><b>Conditions in the share folder</b><button type="button" class="linkbtn" data-act="procAll">${open.every(x=>sel.has(x.id))?"Clear all":"Select all"}</button></div>`+
                 open.map(x=>`<label><input type="checkbox" data-psel="${x.id}"${sel.has(x.id)?" checked":""}> <span>${x.n}. ${esc(x.text)} <span class="muted small">(${whoOf(x)==="b"?"borrower":"loan officer"})</span></span></label>`).join("")+`</div>`;})()}
             <label class="field" style="margin-top:12px">Note to add <span class="muted" style="font-weight:400">(optional)</span><textarea id="procMsg" placeholder="The pay stub covers two pay periods.">${esc(procMsgs[c.id]||"")}</textarea></label>
             <div class="acts" style="margin-top:12px">
@@ -1318,15 +1331,17 @@ dialog form{padding:16px;display:grid;gap:12px}
   function buildProc(c){
     const sel=procSel[c.id]||new Set(), list=openConds(c).filter(x=>sel.has(x.id)), me=(()=>{try{return localStorage.getItem("req-me")||"";}catch(e){return "";}})().trim();
     const who=[fullName(c),coName(c)].filter(Boolean).join(" & "), first=(c.procName||"").trim().split(/\s+/)[0]||"", note=(procMsgs[c.id]||"").trim();
-    const subject=`${who}: conditions uploaded to the folder`;
+    const subject=`${who}: conditions in the share folder`;
+    // "Morning," before noon; "Here you go." the rest of the day.
+    const hello=new Date().getHours()<12?"Morning,":"Here you go.";
     const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
     const p=t=>`<p style="margin:0 0 10px 0">${t}</p>`;
     const rows=list.map(x=>`<tr><td width="28" valign="top" style="width:28px;padding:0 0 4px 0;${F}">${x.n}.</td><td valign="top" style="padding:0 0 4px 0;${F}">${esc(x.text)}</td></tr>`).join("");
-    const html=`<div style="${F}">`+p(`Hi ${esc(first||"there")},`)+p(`I've uploaded the following conditions for ${esc(who)}${c.address?" ("+esc(c.address)+")":""} to the folder:`)+
+    const html=`<div style="${F}">`+p(hello)+p(`I've put the following conditions for ${esc(who)}${c.address?" ("+esc(c.address)+")":""} in the share folder:`)+
       (list.length?`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 10px 0">${rows}</table>`:p("<i>[Check the conditions above]</i>"))+
-      (note?p(esc(note).replace(/\n/g,"<br>")):"")+p("Please let me know if you need anything else.")+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
-    const text=[`Hi ${first||"there"},`,"",`I've uploaded the following conditions for ${who}${c.address?" ("+c.address+")":""} to the folder:`,"",...list.map(x=>`${x.n}. ${x.text}`),"",...(note?[note,""]:[]),
-      "Please let me know if you need anything else.","","Thank you,",me||"[Your name]"].join("\n");
+      (note?p(esc(note).replace(/\n/g,"<br>")):"")+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
+    const text=[hello,"",`I've put the following conditions for ${who}${c.address?" ("+c.address+")":""} in the share folder:`,"",...list.map(x=>`${x.n}. ${x.text}`),"",...(note?[note,""]:[]),
+      "Thank you,",me||"[Your name]"].join("\n");
     return {subject,html,text,list};
   }
   function renderProc(c){const e=buildProc(c);if($("procSubj"))$("procSubj").textContent=e.subject;if($("procPrev"))$("procPrev").innerHTML=e.html;}
@@ -1378,6 +1393,7 @@ dialog form{padding:16px;display:grid;gap:12px}
 
   // ---------- Printable desk sheet ----------
   function printSheet(c){
+    const rp=$("rptPage");if(rp)rp.remove(); // the daily report's landscape page setting must not carry over
     const box=d=>d?"&#9745;":"&#9744;";
     const info=[LOANS[c.loan]+" "+PURP[c.purpose],WHO[c.who]+" borrower",c.lender&&"Lender: "+c.lender,c.address,c.phone,c.email].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; ")+
       (coName(c)?"<br>Co-borrower: "+[coName(c),c.coPhone,c.coEmail].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; "):"")+
@@ -1407,6 +1423,60 @@ dialog form{padding:16px;display:grid;gap:12px}
     const ps=$("printSheet");ps.style.zoom="";ps.classList.add("measure");
     const h=ps.scrollHeight, max=9.9*96;ps.classList.remove("measure");
     if(h>max)ps.style.zoom=String(Math.max(.5,max/h));
+    window.print();
+  }
+
+  // ---------- Daily report: every active loan and prospect on one landscape page, with room for handwritten notes ----------
+  function printReport(){
+    const t0=new Date(), today0=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()), days=d=>Math.round((d-today0)/864e5);
+    const act=clients.filter(c=>c.status!=="inactive"&&c.status!=="prospect"), pros=clients.filter(c=>c.status==="prospect");
+    act.sort((a,b)=>(closeDateOf(a)||"9999").localeCompare(closeDateOf(b)||"9999"));
+    pros.sort((a,b)=>String(b.updated||"").localeCompare(String(a.updated||"")));
+    const nm=c=>esc(fullName(c))+(coName(c)?` <span class="r-m">&amp; ${esc(coName(c))}</span>`:"");
+    // Things that need attention today
+    const att=[];
+    act.forEach(c=>{const n=esc(fullName(c)), A=[], close=parseD(closeDateOf(c)), ci=cdInfo(c), L=lockInfo(c), ap=apprStatus(c), lu=lastUpdate(c);
+      if(close&&days(close)>=0&&days(close)<=7)A.push(`closing ${days(close)===0?"today":fmtDay(close)}${c.closingAt?" at "+new Date(c.closingAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):""}`);
+      if(ci.close&&ci.level==="late")A.push(`CD late${ci.earliest?", earliest closing "+fmtDay(ci.earliest):""}`);
+      else if(ci.close&&(ci.level==="urgent"||ci.level==="due"))A.push(`${ci.level==="urgent"?"CD must be received by "+fmtDay(ci.recvBy):"send CD by "+fmtDay(ci.sendBy)}`);
+      if(L.locked&&L.exp&&(L.left<0||L.beforeClose||L.left<=5))A.push(`rate lock ${L.left<0?"expired":"expires"} ${fmtDay(L.exp)}${L.beforeClose&&L.left>=0?" (before closing)":""}`);
+      if(!L.locked&&close&&days(close)<=21)A.push(`rate not locked, closing ${fmtDay(close)}`);
+      if(ap&&ap.cls!=="ok")A.push(`appraisal ${esc(ap.text)}`);
+      if(!lu||days(new Date(lu.t))<-7)A.push(`no update sent ${lu?"since "+fmtShort(new Date(lu.t)):"yet"}`);
+      if(A.length)att.push(`<b>${n}</b>: ${A.join(" · ")}`);});
+    const condTxt=c=>{const o=openConds(c);if(!o.length)return `<span class="r-m">None</span>`;
+      return `<b>${o.length} open</b> <span class="r-m">(${openConds(c,"b").length} borrower)</span><br>`+o.slice(0,2).map(x=>`${x.n}. ${esc(x.text.length>40?x.text.slice(0,38)+"…":x.text)}`).join("<br>")+(o.length>2?` <span class="r-m">+${o.length-2} more</span>`:"");};
+    const lockTxt=c=>{const L=lockInfo(c);return !L.locked?`<span class="r-m">Not locked</span>`:!L.exp?"Locked":`${fmtShort(L.exp)}${L.left<0?" (expired)":""}`;};
+    const cdTxt=c=>{const ci=cdInfo(c);if(!ci.close)return `<span class="r-m">—</span>`;return ci.level==="ok"?"OK":ci.level==="late"?"<b>Late</b>":ci.level==="urgent"||ci.sent?"Rcv by "+fmtShort(ci.recvBy):"Send by "+fmtShort(ci.sendBy);};
+    const rowsA=act.map(c=>{const cur=current(c), nx=nextStep(c), lu=lastUpdate(c);
+      return `<tr><td>${nm(c)}${c.phone?`<br><span class="r-m">${esc(c.phone)}</span>`:""}</td>
+        <td>${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.lender||c.loanAmt?`<br><span class="r-m">${esc([c.lender,c.loanAmt&&fmtMoney(c.loanAmt)].filter(Boolean).join(" · "))}</span>`:""}</td>
+        <td>${cur?esc(cur.name):"Not started"}${nx?`<br><span class="r-m">Next: ${esc(nx.name)}</span>`:""}</td>
+        <td>${c.closingAt?esc(fmtWhen(c.closingAt)):c.closing?esc(fmt(c.closing))+` <span class="r-m">(target)</span>`:`<span class="r-m">—</span>`}</td>
+        <td>${cdTxt(c)}</td><td>${lockTxt(c)}</td><td class="r-c">${condTxt(c)}</td>
+        <td>${lu?fmtShort(new Date(lu.t)):`<span class="r-m">None</span>`}</td><td class="r-n"></td></tr>`;}).join("");
+    const rowsP=pros.map(c=>`<tr><td>${nm(c)}</td><td>${esc([c.phone,c.email].filter(Boolean).join(" · "))||`<span class="r-m">—</span>`}</td>
+        <td>${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.price?` <span class="r-m">· ${esc(fmtMoney(c.price))}</span>`:""}</td>
+        <td>${c.updated?fmtShort(new Date(c.updated)):"—"}</td><td class="r-n"></td></tr>`).join("");
+    const ps=$("printSheet");
+    ps.innerHTML=`<div class="rpt">
+      <div class="ph"><div><h1>Daily pipeline report</h1><div>${act.length} active loan${act.length===1?"":"s"} · ${pros.length} prospect${pros.length===1?"":"s"}</div></div>
+        <div class="pr">${t0.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div></div>
+      <h2>Needs attention</h2>${att.length?`<ul class="r-att">${att.map(a=>`<li>☐ ${a}</li>`).join("")}</ul>`:`<p class="none">Nothing urgent.</p>`}
+      <h2>Active loans <span>sorted by closing date</span></h2>
+      ${act.length?`<table class="r-t"><thead><tr><th>Borrower</th><th>Loan</th><th>Where it is</th><th>Closing</th><th>CD</th><th>Lock</th><th>Open conditions</th><th>Last update</th><th>Notes</th></tr></thead><tbody>${rowsA}</tbody></table>`:`<p class="none">No active loans.</p>`}
+      <h2>Prospects</h2>
+      ${pros.length?`<table class="r-t"><thead><tr><th>Name</th><th>Contact</th><th>Looking for</th><th>Last activity</th><th>Notes</th></tr></thead><tbody>${rowsP}</tbody></table>`:`<p class="none">No prospects.</p>`}
+      <h2>Notes</h2><div class="lines"></div></div>`;
+    // Landscape for this report only, then shrink to one page if the pipeline is long.
+    const old=$("rptPage");if(old)old.remove();
+    const pg=document.createElement("style");pg.id="rptPage";pg.textContent="@page{size:letter landscape;margin:.4in}";document.head.appendChild(pg);
+    // Shrinking gives each line more room, so rows wrap less: measure at the width the shrunk page will have, a few times.
+    const W=10.2*96, max=7.6*96;let z=1;ps.style.zoom="";ps.classList.add("measure");
+    for(let i=0;i<5;i++){ps.style.width=(W/z)+"px";const nz=Math.min(1,max/ps.scrollHeight);if(Math.abs(nz-z)<.005){z=nz;break;}z=nz;}
+    ps.classList.remove("measure");ps.style.width="";
+    if(z<1)ps.style.zoom=String(Math.max(.45,z*.99));
+    const done=()=>{pg.remove();window.removeEventListener("afterprint",done);};window.addEventListener("afterprint",done);
     window.print();
   }
 
@@ -1558,9 +1628,9 @@ dialog form{padding:16px;display:grid;gap:12px}
       case "condCancel":condEdit=null;renderClient(c);break;
       case "procAll":{const open=openConds(c), set=procSel[c.id]=procSel[c.id]||new Set(), all=open.every(x=>set.has(x.id));
         open.forEach(x=>all?set.delete(x.id):set.add(x.id));renderClient(c);break;}
-      case "copyProc":{const e=buildProc(c);if(!e.list.length){say("Check the conditions you put in the folder first.");break;}
+      case "copyProc":{const e=buildProc(c);if(!e.list.length){say("Check the conditions you put in the share folder first.");break;}
         if(await copyRich(e.html,e.text)){c.notes=c.notes||[];
-          c.notes.push({t:stamp(),kind:"email",auto:true,subj:e.subject,text:`To processor: ${e.list.length} condition${e.list.length===1?"":"s"} in the folder\n${e.list.map(x=>x.n+". "+x.text).join("\n")}`});
+          c.notes.push({t:stamp(),kind:"email",auto:true,subj:e.subject,text:`To processor: ${e.list.length} condition${e.list.length===1?"":"s"} in the share folder\n${e.list.map(x=>x.n+". "+x.text).join("\n")}`});
           touch(c);save();procSel[c.id]=new Set();renderClient(c);say("Email copied and logged under Emails sent. Paste it into a new Outlook message.");}
         break;}
       case "copyProcSubj":if(await copyText(buildProc(c).subject))say("Subject copied.");break;
@@ -1627,6 +1697,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         touch(c);save();condOpen[c.id]=true;renderClient(c);say(added?`Added ${added} condition${added===1?"":"s"}.`:"Those conditions are already on the list.");break;}
       case "clearConds":if(confirm("Remove all conditions for this client?")){c.conds=[];touch(c);save();renderClient(c);}break;
       case "print":printSheet(c);break;
+      case "report":printReport();break;
       case "copySubj":{const e=buildMail(c);if(await copyText(e.subject))say("Subject copied.");break;}
     }
   });
