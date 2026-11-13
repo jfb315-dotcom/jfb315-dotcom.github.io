@@ -23,7 +23,7 @@ body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
   font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .wrap{max-width:980px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
 a{color:inherit}
-.back{display:inline-flex;align-items:center;gap:8px;font-size:var(--t-md);font-weight:700;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:8px 16px;min-height:44px;cursor:pointer;font-family:inherit}
+.back{display:inline-flex;align-items:center;gap:8px;font-size:var(--t-md);font-weight:700;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--rule);padding:8px 16px;min-height:44px;cursor:pointer;font-family:inherit}
 .back:hover{border-color:var(--ink)}
 h1{font-size:clamp(1.6rem,4vw,2.1rem);font-weight:800;letter-spacing:-.02em;margin:8px 0 2px;line-height:1.15}
 h2{font-size:var(--t-lg);font-weight:700;margin:0}
@@ -60,7 +60,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 .row:hover{background:var(--paper)}
 .row .nm{font-weight:700;font-size:var(--t-md)}
 .row .sub{font-size:var(--t-sm);color:var(--muted)}
-.bar{height:8px;background:var(--rule);border-radius:4px;overflow:hidden}
+.bar{height:8px;background:var(--rule);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--good)}
 .row .stat{font-size:var(--t-sm);margin-top:4px;display:flex;justify-content:space-between;gap:8px}
 .row .stat b{font-weight:600}
@@ -144,7 +144,7 @@ details.phms[open]>summary{border-bottom:0}
 .ctable .ad{font-size:var(--t-sm);color:var(--muted)}
 .ctable .mini{min-width:150px}
 .ctable .num{text-align:center}
-.ctable .oc{display:inline-block;min-width:26px;padding:1px 8px;border-radius:12px;background:var(--tipbg);color:var(--ink);font-weight:700;text-align:center}
+.ctable .oc{display:inline-block;min-width:26px;padding:1px 8px;border-radius:999px;background:var(--tipbg);color:var(--ink);font-weight:700;text-align:center}
 .ctable .dt{white-space:nowrap}
 /* Phone client list: name, step, closing */
 .prow{display:block;width:100%;text-align:left;background:none;border:0;padding:12px 16px;color:var(--ink);cursor:pointer;font:inherit}
@@ -183,7 +183,7 @@ details.phms[open]>summary{border-bottom:0}
 .closeat{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:var(--t-sm);color:var(--muted);font-weight:600}
 .closeat input{padding:4px 8px;border:1px solid var(--rule);background:var(--paper);font-size:var(--t-sm)}
 /* Conditions banner and list */
-.cbanner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--rule);border-left:5px solid var(--brass);border-radius:10px;padding:12px 16px;margin-top:12px}
+.cbanner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--rule);border-left:5px solid var(--brass);padding:12px 16px;margin-top:12px}
 .cbanner .arrow{color:var(--brass);font-weight:700;font-size:var(--t-lg);line-height:1}
 .cbanner .cnum{background:var(--brass);color:var(--onbrass);border-radius:999px;min-width:28px;height:28px;padding:0 8px;display:grid;place-items:center;font-weight:700;font-size:var(--t-sm)}
 .cbanner b{color:var(--brass)}
@@ -193,7 +193,7 @@ details.phms[open]>summary{border-bottom:0}
 .cbanner.clear .cnum{background:var(--good)}
 .cbanner.empty{border-left-color:var(--rule)}
 .cbanner.empty .arrow{color:var(--muted)}
-.tbtn.gold{background:var(--brass);border-color:var(--brass);color:var(--onbrass);border-radius:6px}
+.tbtn.gold{background:var(--brass);border-color:var(--brass);color:var(--onbrass)}
 .conds{margin-top:8px}
 .chead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .clist{list-style:none;margin:12px 0 0;padding:0}
