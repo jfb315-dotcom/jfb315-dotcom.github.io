@@ -23,6 +23,7 @@
     --good:#3F8A55; --goodtxt:#4CC197; --goodbg:#143329;
     --bad:#F08A73; --badbg:#3A2020;
     --line:#E8EDF5; --grid:#22304D;
+    color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
@@ -31,6 +32,7 @@
   --good:#3F8A55; --goodtxt:#4CC197; --goodbg:#143329;
   --bad:#F08A73; --badbg:#3A2020;
   --line:#E8EDF5; --grid:#22304D;
+  color-scheme:dark; /* dark date pickers, check boxes and scroll bars to match */
 }
 /* Color schemes picked on the dashboard */
 :root[data-palette="forest"]{--paper:#F2F5F1;--panel:#FFFFFF;--ink:#1D3B2A;--muted:#5C6E62;--rule:#D5DDD6;
