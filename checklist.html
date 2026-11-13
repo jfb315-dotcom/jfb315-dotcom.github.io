@@ -21,7 +21,7 @@
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
   font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.wrap{max-width:860px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
+.wrap{max-width:980px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
 .back{display:inline-flex;align-items:center;gap:6px;font-size:1rem;font-weight:700;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:9px 16px;min-height:44px;cursor:pointer;font-family:inherit}
 .back:hover{border-color:var(--ink)}
 h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin:8px 0 4px;line-height:1.15}
@@ -100,6 +100,11 @@ button,select,input{font:inherit;color:inherit}
 .empty{color:var(--muted);font-style:italic}
 .foot{margin-top:24px;font-size:.82rem;color:var(--muted)}
 @media (max-width:640px){.bar{position:static}}
+/* Computer: checklist on the left, the email it builds stays in view on the right */
+@media (min-width:1200px){.wrap{max-width:var(--wide)}
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+  .colside{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto}
+  .colside .preview{margin-top:0}}
 </style>
 <script src="brand.js?v=5" defer></script>
 </head>
@@ -109,6 +114,7 @@ button,select,input{font:inherit;color:inherit}
   <h1>Borrower document request</h1>
   <p class="lede">Pick the borrower's situation, check the documents you need, then copy a ready-to-send email that lists only those items.</p>
 
+  <div class="cols"><div class="colmain">
   <form class="pick" id="pick" onsubmit="return false">
     <fieldset>
       <legend>Borrower's income</legend>
@@ -173,7 +179,8 @@ button,select,input{font:inherit;color:inherit}
   <p class="toast" id="toast" role="status" aria-live="polite"></p>
 
   <div id="list"></div>
-
+  </div>
+  <aside class="colside">
   <section class="preview" aria-labelledby="ph">
     <div class="phead">
       <h2 id="ph">Email preview</h2>
@@ -192,6 +199,7 @@ button,select,input{font:inherit;color:inherit}
     <p class="subj"><b>Subject:</b> <span id="subject"></span> <button class="tbtn" id="copySubj" type="button">Copy subject</button></p>
     <div class="mail" id="mail"></div>
   </section>
+  </aside></div>
 
   <p class="foot">This is a general guide. Requirements vary by lender and loan program. Your selections are kept only until you close this tab; your sign-off is saved in this browser.</p>
 </div>
