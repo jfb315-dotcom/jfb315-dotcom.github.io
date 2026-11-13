@@ -126,6 +126,8 @@ button,select,input,textarea{font:inherit;color:inherit}
 .glance .gwarn{color:var(--bad);font-weight:700}
 .glance .gok{color:var(--good);font-weight:700}
 .glance .mini{margin:2px 0 4px}
+.gnums{display:grid;grid-template-columns:auto 1fr;gap:0 12px}
+.gnums span{color:var(--muted)}.gnums b{white-space:nowrap}
 .glender{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:8px}
 .glance a.lenderbtn{display:inline-block;border:1px solid var(--ink);background:var(--ink);color:var(--panel);font-weight:800;font-size:var(--t-xs);letter-spacing:.06em;padding:4px 12px;text-decoration:none}
 .glance a.lenderbtn:hover{opacity:.85}
@@ -414,6 +416,13 @@ dialog form{padding:16px;display:grid;gap:12px}
       <label class="field">Lender website<input name="lenderUrl" inputmode="url" autocomplete="off" placeholder="https://"></label>
     </div>
     <datalist id="dlLender"></datalist>
+    <h3 class="fsub">Loan numbers <span class="muted small">(for your reference)</span></h3>
+    <div class="fgrid">
+      <label class="field">Purchase price<input name="price" data-money inputmode="decimal" autocomplete="off" placeholder="$450,000"></label>
+      <label class="field">Loan amount<input name="loanAmt" data-money inputmode="decimal" autocomplete="off" placeholder="$360,000"></label>
+      <label class="field">Down payment<input name="down" data-money inputmode="decimal" autocomplete="off" placeholder="Leave blank to figure it"></label>
+      <label class="field">Rate<input name="rate" inputmode="decimal" autocomplete="off" placeholder="6.875%"></label>
+    </div>
     <div class="dlgbtns">
       <button class="tbtn" value="cancel" formnovalidate>Cancel</button>
       <button class="tbtn primary" value="save" id="dlgSave">Save client</button>
@@ -742,7 +751,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     editing=c||null;
     const f=$("cform");f.reset();
     $("dlgTitle").textContent=c?"Edit client":"New client";
-    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
+    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
     showCo(!!(c&&(c.coFirst||c.coLast||c.coEmail||c.coPhone)));
     fillLists();
     f.elements.prospect.checked=c?c.status==="prospect":newAsProspect;
@@ -763,6 +772,23 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(e.inputType&&e.inputType.startsWith("delete"))return;
     if(t.selectionStart===t.value.length){const f=fmtPhone(t.value);if(f!==t.value)t.value=f;}});
   document.addEventListener("blur",e=>{const t=e.target;if(t.matches&&t.matches('input[type=tel]'))t.value=fmtPhone(t.value);},true);
+
+  // ---------- Loan numbers: $450,000 and 6.875% ----------
+  const num=v=>{const n=parseFloat(String(v||"").replace(/[^0-9.]/g,""));return isNaN(n)?null:n;};
+  function fmtMoney(v){const n=num(v);if(n===null)return String(v||"").trim();
+    return "$"+n.toLocaleString("en-US",{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});}
+  function fmtRate(v){const n=num(v);return n===null?String(v||"").trim():n+"%";}
+  document.addEventListener("blur",e=>{const t=e.target;if(!t.matches)return;
+    if(t.matches("input[data-money]"))t.value=fmtMoney(t.value);else if(t.matches('input[name="rate"]'))t.value=fmtRate(t.value);},true);
+  // Price, loan, down payment and rate as short lines; the down payment is figured from the other two when left blank.
+  function loanNums(c){
+    const p=num(c.price), l=num(c.loanAmt), d=num(c.down)??(p!==null&&l!==null&&p>=l?p-l:null), out=[];
+    if(c.price)out.push(["Purchase price",fmtMoney(c.price)]);
+    if(c.loanAmt)out.push(["Loan amount",fmtMoney(c.loanAmt)+(p&&l!==null?` (${Math.round(l/p*1000)/10}% LTV)`:"")]);
+    if(d!==null)out.push(["Down payment",fmtMoney(d)+(p?` (${Math.round(d/p*1000)/10}%)`:"")]);
+    if(c.rate)out.push(["Rate",fmtRate(c.rate)]);
+    return out;
+  }
 
   // ---------- Saved realtors and title companies (from your other clients) ----------
   function contactBook(){
@@ -807,7 +833,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     if($("dlg").returnValue!=="save")return;
     const f=$("cform"), v=k=>f.elements[k].value.trim();
     if(!v("first"))return;
-    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","loan","purpose","who","closing"].map(k=>[k,/phone$/i.test(k)?fmtPhone(v(k)):v(k)]));
+    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","loan","purpose","who","closing"].map(k=>[k,/phone$/i.test(k)?fmtPhone(v(k)):["price","loanAmt","down"].includes(k)?fmtMoney(v(k)):k==="rate"?fmtRate(v(k)):v(k)]));
     const pros=f.elements.prospect.checked;
     if(editing){Object.assign(editing,data);
       if(pros)editing.status="prospect";else if(editing.status==="prospect")editing.status="active";
@@ -974,6 +1000,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       return `<div class="qk">
         <div class="qrow qclose">${when?`Closing <b>${esc(when)}</b>`:`<span class="muted">No closing date yet</span>`}${c.address?`<div class="qs">${esc(c.address)}</div>`:""}
           ${oc?`<div class="qs" style="color:var(--brass);font-weight:700">${oc} open condition${oc===1?"":"s"}</div>`:""}
+          ${loanNums(c).length?`<div class="qs">${loanNums(c).map(([k,v])=>k+" "+esc(v)).join(" · ")}</div>`:""}
           ${c.lenderUrl?`<div class="qb"><a href="${esc(asHref(c.lenderUrl))}" target="_blank" rel="noopener">LENDER ↗${c.lender?" "+esc(c.lender):""}</a></div>`:c.lender?`<div class="qs">Lender: ${esc(c.lender)}</div>`:""}</div>
         ${person("Borrower",fullName(c),c.phone,c.email)}${person("Co-borrower",coName(c),c.coPhone,c.coEmail)}
         ${person("Title company",c.title+(c.closer?" · "+c.closer:""),c.titlePhone,"")}${person("Realtor",c.realtor,c.realtorPhone,c.realtorEmail)}
@@ -992,9 +1019,8 @@ dialog form{padding:16px;display:grid;gap:12px}
       ${cell("Closing",when?`<b>${esc(when)}</b>${cdLine}`:add("Not scheduled")+cdLine)}
       ${cell("Title company",c.title||c.titlePhone?`<b>${esc(c.title||"")}</b>${c.titlePhone?`<div>${tel(c.titlePhone)}</div>`:""}${c.closer?`<div class="muted">Closer: ${esc(c.closer)}</div>`:""}`:add("Add with Edit"))}
       ${cell("Realtor",c.realtor||c.realtorPhone?`<b>${esc(c.realtor||"")}</b>${c.realtorPhone?`<div>${tel(c.realtorPhone)}</div>`:""}${c.realtorEmail?`<div>${mail(c.realtorEmail)}</div>`:""}`:add("Add with Edit"))}
-      ${cell("Progress",`<div class="mini" aria-label="${doneCount(c)} of ${MAIN.length} steps complete">${mini}</div><div>${doneCount(c)} of ${MAIN.length}${nx?` · Next: <b style="color:var(--brass)">${esc(nx.name)}</b>`:" · Done"}</div>`+
-        `<div>${oc?`<b style="color:var(--brass)">${oc} open condition${oc===1?"":"s"}</b> <span class="muted small">(${ob} borrower)</span>`:`<span class="muted">No open conditions</span>`}</div>`+
-        `<div class="muted small">${procOf(c)?"Processing "+fmt(procOf(c))+" · ":""}Last activity ${fmt((c.updated||stamp()).slice(0,10))}</div>`)}
+      ${cell("Loan numbers",(loanNums(c).length?`<div class="gnums">${loanNums(c).map(([k,v])=>`<span>${k.split(" ")[0]==="Purchase"?"Price":k.split(" ")[0]}</span><b>${esc(v)}</b>`).join("")}</div>`:add("Add price, loan amount and rate with Edit"))+
+        `<div class="muted small" style="margin-top:4px">${procOf(c)?"Processing "+fmt(procOf(c))+" · ":""}Last activity ${fmt((c.updated||stamp()).slice(0,10))}</div>`)}
     </div>`;
   }
   function renderClient(c){
@@ -1100,6 +1126,7 @@ dialog form{padding:16px;display:grid;gap:12px}
             <div class="acts" style="margin-top:12px">
               <button class="tbtn primary" data-act="copyMail">Copy email</button>
               <button class="tbtn" data-act="copySubj">Copy subject</button>
+              <button class="tbtn" data-act="copyAddr"${c.email||c.coEmail?"":" disabled"} title="${esc([c.email,c.coEmail].filter(Boolean).join("; ")||"Add an email address with Edit")}">Copy email addresses</button>
             </div>
             <p class="subj"><b class="muted">Subject:</b> <span id="subjTxt"></span></p>
             <div class="mail" id="mailPrev"></div>
@@ -1187,6 +1214,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     const box=d=>d?"&#9745;":"&#9744;";
     const info=[LOANS[c.loan]+" "+PURP[c.purpose],WHO[c.who]+" borrower",c.lender&&"Lender: "+c.lender,c.address,c.phone,c.email].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; ")+
       (coName(c)?"<br>Co-borrower: "+[coName(c),c.coPhone,c.coEmail].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; "):"")+
+      (loanNums(c).length?"<br>"+loanNums(c).map(([k,v])=>k+": "+esc(v)).join(" &nbsp;·&nbsp; "):"")+
       (procOf(c)?"<br>Submitted to processing "+esc(fmt(procOf(c))):"");
     const ms=MAIN.map((nd,i)=>{const d=c.ms[nodeKey(nd)];
       return `<tr><td class="b">${box(d)}</td><td><b>${i+1}. ${esc(nd.name)}</b></td><td class="d">${d?fmt(d):""}</td></tr>`+
@@ -1371,9 +1399,12 @@ dialog form{padding:16px;display:grid;gap:12px}
       case "copyMail":{
         const e=buildMail(c);
         if(await copyRich(e.html,e.text)){
-          c.notes=c.notes||[];c.notes.push({t:stamp(),text:`Milestone email copied: ${e.ann.name}`,auto:true});touch(c);save();renderClient(c);
-          say("Email copied. Paste it into a new Outlook message.");}
+          // A message you rewrote is kept as a note so you can see later what you sent; the standard wording only goes in the activity log.
+          const def=(closeMode?CLOSE_INTRO:purposeFix(c,MS.find(m=>m.k===annKey))).trim(), cur=($("annMsg")?.value||"").trim(), edited=!!cur&&cur!==def;
+          c.notes=c.notes||[];c.notes.push(edited?{t:stamp(),text:`Email sent: ${e.ann.name}\nMy message: ${cur}`}:{t:stamp(),text:`Milestone email copied: ${e.ann.name}`,auto:true});touch(c);save();renderClient(c);
+          say(edited?"Email copied. Your message was saved to Notes.":"Email copied. Paste it into a new Outlook message.");}
         break;}
+      case "copyAddr":{const a=[c.email,c.coEmail].filter(Boolean).join("; ");if(a&&await copyText(a))say("Copied: "+a);break;}
       case "closingMail":if(!closeMode){mileOpts={includeAll,includeConds,includeUp};includeAll=false;includeConds=false;includeUp=false;}closeMode=true;annKey="ctc";renderClient(c);setTimeout(()=>{const m=$("mailPrev");m&&m.scrollIntoView({behavior:"smooth",block:"start"});},50);break;
       case "closingOff":leaveClose();renderClient(c);break;
       case "early":earlyOpen[c.id]=!earlyOpen[c.id];renderClient(c);break;
