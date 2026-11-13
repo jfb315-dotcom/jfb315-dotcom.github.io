@@ -87,7 +87,8 @@ Storage keys in use (keep the names; old data must keep loading):
 - Rendering is "rebuild the HTML string, then re-attach". `renderClient(c)` builds every
   section, `arrange(c)` moves the `[data-sec]` blocks into the wide, mid or phone layout, then
   listeners by id are attached. Add a section by giving it a `data-sec` name and placing it in
-  all three branches of `arrange`.
+  all three branches of `arrange`. On wide screens a left side bar (`sideView`) picks the
+  section shown; the others are parked in a hidden box, never removed, so their ids still exist.
 - Clicks go through one delegated listener keyed by `data-act` (plus `data-open`, `data-tab`,
   `data-sort`, `data-status`...). Changes go through one delegated `change` listener keyed by
   `data-*`. Add a case there; do not sprinkle `onclick` attributes.

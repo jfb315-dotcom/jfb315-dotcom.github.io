@@ -514,7 +514,7 @@ dialog form{padding:16px;display:grid;gap:12px}
   // Open conditions first, then cleared ones; each group in number order.
   const sortedConds=(c,who)=>(numberConds(c),(c.conds||[]).filter(x=>!who||whoOf(x)===who).sort((a,b)=>(a.done-b.done)||(a.n-b.n)));
   let condWho="b";
-  let condOpen={}, clearedOpen={};
+  let condOpen={}, clearedOpen={}, addOpen={};
 
   // ---------- Storage (this browser only) ----------
   const KEY="clients-v1";
@@ -1171,14 +1171,14 @@ dialog form{padding:16px;display:grid;gap:12px}
     return banner+`<div class="panel conds">
         ${all.length?`<div class="chead"><h3>Conditions <span class="muted small">${open.length} open · ${all.length-open.length} cleared</span></h3><button class="tbtn danger" data-act="clearConds">Remove all</button></div>
           ${group("b","Borrower conditions")}${group("lo","Loan officer conditions")}`:""}
-        ${viewMode()==="phone"&&all.length?`<details class="addc"><summary class="small" style="cursor:pointer;margin-top:12px;font-weight:700">+ Add conditions</summary>`:""}
+        ${all.length?`<details class="addc" data-addc="${c.id}"${addOpen[c.id]?" open":""}><summary class="small" style="cursor:pointer;margin-top:12px;font-weight:700">+ Add conditions</summary>`:""}
         <label class="field" style="margin-top:12px">Type conditions (one per line) or paste them from your processor's email<textarea id="condTxt" placeholder="One condition per line, or paste a numbered list:&#10;&#10;Borrower conditions:&#10;1. Updated pay stub covering 30 days&#10;2. Letter of explanation for large deposit on 10/14&#10;LO conditions:&#10;3. Updated title commitment"></textarea></label>
         <div class="cwho" role="radiogroup" aria-label="Who these conditions are for">
           <span class="muted small">These are:</span>
           <label><input type="radio" name="condWho" value="b"${condWho==="b"?" checked":""}> Borrower conditions</label>
           <label><input type="radio" name="condWho" value="lo"${condWho==="lo"?" checked":""}> Loan officer conditions</label>
         </div>
-        <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addConds">Add conditions</button><span class="muted small" style="align-self:center">Typed by hand, each line is its own condition. In a pasted numbered list, each number starts a new condition. Headings like "Borrower conditions" or "LO conditions" in the pasted text sort them automatically.</span></div>${viewMode()==="phone"&&all.length?"</details>":""}
+        <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addConds">Add conditions</button><span class="muted small" style="align-self:center">Typed by hand, each line is its own condition. In a pasted numbered list, each number starts a new condition. Headings like "Borrower conditions" or "LO conditions" in the pasted text sort them automatically.</span></div>${all.length?"</details>":""}
       </div>`;
   }
 
@@ -1405,11 +1405,11 @@ dialog form{padding:16px;display:grid;gap:12px}
       if(ev.target.checked){c.ms[k]=today();annKey=k;includeUp=null;if(k==="condAppr"&&openConds(c,"b").length)includeConds=true;}else delete c.ms[k];
       touch(c);save();renderClient(c);
       if(wasPros)say(`${MS.find(m=>m.k===k).name} checked. ${c.first} moved from Prospects to Active.`);
-      else if(ev.target.checked)say(`${MS.find(m=>m.k===k).name} checked. The update email below is ready to copy.`);
+      else if(ev.target.checked)say(`${MS.find(m=>m.k===k).name} checked. The update email is ready to copy.`);
     }else if(kd&&ev.target.value){c.ms[kd]=ev.target.value;touch(c);save();renderClient(c);}
   });
 
-  document.addEventListener("toggle",ev=>{const d=ev.target;if(!d.matches)return;if(d.matches("details[data-alog]"))logOpen[d.dataset.alog]=d.open;if(d.matches("details[data-msopen]"))msOpen[d.dataset.msopen]=d.open;if(d.matches("details[data-clopen]"))clearedOpen[d.dataset.clopen]=d.open;},true);
+  document.addEventListener("toggle",ev=>{const d=ev.target;if(!d.matches)return;if(d.matches("details[data-alog]"))logOpen[d.dataset.alog]=d.open;if(d.matches("details[data-msopen]"))msOpen[d.dataset.msopen]=d.open;if(d.matches("details[data-clopen]"))clearedOpen[d.dataset.clopen]=d.open;if(d.matches("details[data-addc]"))addOpen[d.dataset.addc]=d.open;},true);
   render();
 })();
 </script>
