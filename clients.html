@@ -454,9 +454,11 @@ dialog form{padding:16px;display:grid;gap:12px}
     <div class="fgrid">
       <label class="field">Title company<input name="title" list="dlTitle" autocomplete="off"></label>
       <label class="field">Title company phone<input name="titlePhone" type="tel" autocomplete="off"></label>
-      <label class="field">Closing agent (closer)<input name="closer" list="dlCloser" autocomplete="off"></label>
     </div>
-    <label class="field">Title company address<input name="titleAddr" autocomplete="off"></label>
+    <label class="field">Title company address<input name="titleAddr" autocomplete="off" placeholder="Street, city, state and zip"></label>
+    <div class="fgrid">
+      <label class="field">Closing agent (closer)<input name="closer" list="dlCloser" autocomplete="off" placeholder="Closers at this title company are listed first"></label>
+    </div>
     <p class="muted small" style="margin:-4px 0 0">Realtors and title companies you've used before show up as you type. Pick one to fill in their phone, email or address.</p>
     <datalist id="dlRealtor"></datalist><datalist id="dlTitle"></datalist><datalist id="dlCloser"></datalist>
     <div class="fgrid">
@@ -821,7 +823,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     $("dlgTitle").textContent=c?"Edit client":"New client";
     if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","lockExp","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
     showCo(!!(c&&(c.coFirst||c.coLast||c.coEmail||c.coPhone)));
-    fillLists();lockForm();
+    autoFill={};fillLists();lockForm();
     f.elements.prospect.checked=c?c.status==="prospect":newAsProspect;
     $("dlg").showModal();f.elements.first.focus();
   }
@@ -973,11 +975,11 @@ dialog form{padding:16px;display:grid;gap:12px}
 
   // ---------- Saved realtors and title companies (from your other clients, then imported contacts) ----------
   function contactBook(){
-    const R=new Map(),T=new Map(),C=new Set(),L=new Map(),P=new Map();
+    const R=new Map(),T=new Map(),C=new Map(),L=new Map(),P=new Map();
     [...clients].sort((a,b)=>String(b.updated||"").localeCompare(String(a.updated||""))).forEach(c=>{
       if(c.realtor){const k=c.realtor.trim().toLowerCase();if(!R.has(k))R.set(k,{name:c.realtor.trim(),realtorPhone:c.realtorPhone||"",realtorEmail:c.realtorEmail||""});}
       if(c.title){const k=c.title.trim().toLowerCase();if(!T.has(k))T.set(k,{name:c.title.trim(),titlePhone:c.titlePhone||"",titleAddr:c.titleAddr||""});}
-      if(c.closer)C.add(c.closer.trim());
+      if(c.closer){const k=c.closer.trim().toLowerCase();if(!C.has(k))C.set(k,{name:c.closer.trim(),company:(c.title||"").trim()});}
       if(c.lender){const k=c.lender.trim().toLowerCase();if(!L.has(k))L.set(k,{name:c.lender.trim(),lenderUrl:c.lenderUrl||""});}
       if(c.procName&&c.procEmail){const k=c.procName.trim().toLowerCase();if(!P.has(k))P.set(k,{name:c.procName.trim(),procEmail:c.procEmail||""});}
     });
@@ -986,7 +988,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     (imported.titles||[]).forEach(t=>add(T,t.name,{titlePhone:t.phone||"",titleAddr:t.addr||""}));
     (imported.lenders||[]).forEach(l=>add(L,l.name,{lenderUrl:l.url||""}));
     (imported.processors||[]).forEach(p=>{if(p.email)add(P,p.name,{procEmail:p.email});});
-    (imported.closers||[]).forEach(x=>{if(x.name)C.add(x.name.trim());});
+    (imported.closers||[]).forEach(x=>add(C,x.name,{company:x.company||""}));
     return {R,T,C,L,P};
   }
   let book=null;
@@ -995,15 +997,31 @@ dialog form{padding:16px;display:grid;gap:12px}
     const opt=(v,l)=>`<option value="${esc(v)}">${l?esc(l):""}</option>`;
     $("dlRealtor").innerHTML=[...book.R.values()].map(r=>opt(r.name,[r.company,r.realtorPhone,r.realtorEmail].filter(Boolean).join(" · "))).join("");
     $("dlTitle").innerHTML=[...book.T.values()].map(t=>opt(t.name,[t.titlePhone,t.titleAddr].filter(Boolean).join(" · "))).join("");
-    $("dlCloser").innerHTML=[...book.C].map(n=>opt(n)).join("");
+    fillClosers();
     $("dlLender").innerHTML=[...book.L.values()].map(l=>opt(l.name,l.lenderUrl)).join("");
+  }
+  // Closers who work at the title company typed above come first; the others follow, each labeled with its company.
+  let autoFill={};
+  function fillClosers(){
+    if(!book)return;const t=($("cform").elements.title.value||"").trim().toLowerCase();
+    const all=[...book.C.values()], mine=t?all.filter(x=>x.company.toLowerCase()===t):[], rest=all.filter(x=>!mine.includes(x));
+    const opt=x=>`<option value="${esc(x.name)}">${esc(x.company||"")}</option>`;
+    $("dlCloser").innerHTML=(mine.length?mine:all).map(opt).join("")+(mine.length?rest.map(opt).join(""):"");
+    return mine;
   }
   // Picking a saved name fills in the rest of that contact's details.
   $("cform").addEventListener("input",e=>{
     const n=e.target.name;if(!book||!["realtor","title","lender"].includes(n))return;
+    if(n==="title")fillClosers();
     const hit=({realtor:book.R,title:book.T,lender:book.L})[n].get(e.target.value.trim().toLowerCase());if(!hit)return;
     if(e.target.value!==hit.name)e.target.value=hit.name;
-    const f=$("cform");Object.keys(hit).forEach(k=>{if(k!=="name"&&hit[k]&&f.elements[k])f.elements[k].value=hit[k];});
+    // Details filled in from an earlier pick are cleared when a different contact is picked, so nothing stale is left behind.
+    const f=$("cform");Object.keys(hit).forEach(k=>{if(k==="name"||!f.elements[k])return;
+      if(hit[k]){f.elements[k].value=hit[k];autoFill[k]=hit[k];}else if(autoFill[k]&&f.elements[k].value===autoFill[k]){f.elements[k].value="";delete autoFill[k];}});
+    // A title company with just one closer on file fills the closer in too.
+    if(n==="title"){const m=fillClosers(), cl=f.elements.closer;
+      if(autoFill.closer&&cl.value===autoFill.closer){cl.value="";delete autoFill.closer;}
+      if(m.length===1&&!cl.value){cl.value=m[0].name;autoFill.closer=m[0].name;}}
   });
 
   // Rate lock fields show only when the rate is locked, with the expiration worked out as you type.
@@ -1235,7 +1253,7 @@ dialog form{padding:16px;display:grid;gap:12px}
           ${loanNums(c).length?`<div class="qs">${loanNums(c).map(([k,v])=>k+" "+esc(v)).join(" · ")}</div>`:""}
           ${c.lenderUrl?`<div class="qb"><a href="${esc(asHref(c.lenderUrl))}" target="_blank" rel="noopener">LENDER ↗${c.lender?" "+esc(c.lender):""}</a></div>`:c.lender?`<div class="qs">Lender: ${esc(c.lender)}</div>`:""}</div>
         ${person("Borrower",fullName(c),c.phone,c.email)}${person("Co-borrower",coName(c),c.coPhone,c.coEmail)}
-        ${person("Title company",c.title+(c.closer?" · "+c.closer:""),c.titlePhone,"")}${person("Realtor",c.realtor,c.realtorPhone,c.realtorEmail)}
+        ${person("Title company"+(c.titleAddr?" · "+c.titleAddr:""),c.title+(c.closer?" · "+c.closer:""),c.titlePhone,"")}${person("Realtor",c.realtor,c.realtorPhone,c.realtorEmail)}
       </div>`;
     }
     const cell=(label,body)=>`<div class="gc"><div class="gl">${label}</div>${body}</div>`;
@@ -1249,7 +1267,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       ${cell("Loan",`<b>${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}</b><div>${esc(WHO[c.who]||"")} borrower</div>${c.address?`<div>${esc(c.address)}</div>`:add("No property address")}`+
         (c.lender||c.lenderUrl?`<div class="glender">${c.lender?`<span>Lender: <b>${esc(c.lender)}</b></span>`:""}${c.lenderUrl?`<a class="lenderbtn" href="${esc(asHref(c.lenderUrl))}" target="_blank" rel="noopener">LENDER ↗</a>`:""}</div>`:add("Add the lender with Edit")))}
       ${cell("Closing",when?`<b>${esc(when)}</b>${cdLine}`:add("Not scheduled")+cdLine)}
-      ${cell("Title company",c.title||c.titlePhone?`<b>${esc(c.title||"")}</b>${c.titlePhone?`<div>${tel(c.titlePhone)}</div>`:""}${c.closer?`<div class="muted">Closer: ${esc(c.closer)}</div>`:""}`:add("Add with Edit"))}
+      ${cell("Title company",c.title||c.titlePhone?`<b>${esc(c.title||"")}</b>${c.titlePhone?`<div>${tel(c.titlePhone)}</div>`:""}${c.titleAddr?`<div>${esc(c.titleAddr)}</div>`:""}${c.closer?`<div class="muted">Closer: ${esc(c.closer)}</div>`:""}`:add("Add with Edit"))}
       ${cell("Realtor",c.realtor||c.realtorPhone?`<b>${esc(c.realtor||"")}</b>${c.realtorPhone?`<div>${tel(c.realtorPhone)}</div>`:""}${c.realtorEmail?`<div>${mail(c.realtorEmail)}</div>`:""}`:add("Add with Edit"))}
       ${(()=>{const L=lockInfo(c), nums=loanNums(c).filter(([k])=>k!=="Lock");
         const lk=!L.locked?["Not locked","off"]:!L.exp?["Locked · add date","warn"]:L.left<0?["Lock expired "+fmtShort(L.exp),"bad"]:
