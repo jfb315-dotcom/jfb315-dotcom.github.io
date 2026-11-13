@@ -234,7 +234,9 @@ details.phms[open]>summary{border-bottom:0}
 .clist li.csep{display:block;padding:12px 0 2px;font-size:var(--t-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .clist .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:var(--t-lg);line-height:1;padding:2px 8px}
 .clist .x:hover{color:var(--bad)}
-.clist .cact{display:flex;gap:2px;align-items:center}
+.clist .cact{display:flex;gap:4px;align-items:center}
+.clist li.cedit{align-items:start}
+.clist li.cedit textarea{width:100%;padding:8px;border:1px solid var(--ink);background:var(--panel);color:var(--ink);font:inherit;resize:vertical}
 .clist .cmove{background:none;border:1px solid var(--rule);color:var(--muted);cursor:pointer;font-size:var(--t-xs);font-weight:600;padding:1px 8px;white-space:nowrap}
 .clist .cmove:hover{border-color:var(--ink);color:var(--ink)}
 .cgroup{margin-top:12px}
@@ -316,6 +318,10 @@ details.phms[open]>summary{border-bottom:0}
 .apprsum b{color:var(--ink)}
 .linkbtn{background:none;border:0;padding:0 4px;font:inherit;font-weight:700;color:var(--ink);text-decoration:underline;cursor:pointer}
 .gnums b.ok{color:var(--goodtxt)}.gnums b.warn{color:var(--brass)}.gnums b.bad{color:var(--bad)}
+.psel{display:grid;gap:4px;margin-top:12px;padding:12px;background:var(--paper);border:1px solid var(--rule)}
+.pselhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.psel label{display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:4px 0}
+.psel input{margin-top:4px;flex:none}
 .lastsent{margin:8px 0 0;padding:8px 12px;background:var(--paper);border-left:4px solid var(--goodtxt);font-size:var(--t-sm)}
 .nsub{font-size:var(--t-xs);font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 4px}
 .notes.mails .txt,.notes.mails li.auto .txt{color:var(--ink);font-style:normal}
@@ -550,7 +556,7 @@ dialog form{padding:16px;display:grid;gap:12px}
   // Open conditions first, then cleared ones; each group in number order.
   const sortedConds=(c,who)=>(numberConds(c),(c.conds||[]).filter(x=>!who||whoOf(x)===who).sort((a,b)=>(a.done-b.done)||(a.n-b.n)));
   let condWho="b";
-  let condOpen={}, clearedOpen={}, addOpen={};
+  let condOpen={}, clearedOpen={}, addOpen={}, condEdit=null;
 
   // ---------- Storage (this browser only) ----------
   const KEY="clients-v1";
@@ -838,16 +844,21 @@ dialog form{padding:16px;display:grid;gap:12px}
     return out;
   }
 
+  document.addEventListener("keydown",e=>{if(e.target.id!=="condEditTxt")return;
+    if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();const b=document.querySelector('[data-act="condSave"]');if(b)b.click();}
+    else if(e.key==="Escape"){const b=document.querySelector('[data-act="condCancel"]');if(b)b.click();}});
+
   // ---------- Saved realtors and title companies (from your other clients) ----------
   function contactBook(){
-    const R=new Map(),T=new Map(),C=new Set(),L=new Map();
+    const R=new Map(),T=new Map(),C=new Set(),L=new Map(),P=new Map();
     [...clients].sort((a,b)=>String(b.updated||"").localeCompare(String(a.updated||""))).forEach(c=>{
       if(c.realtor){const k=c.realtor.trim().toLowerCase();if(!R.has(k))R.set(k,{name:c.realtor.trim(),realtorPhone:c.realtorPhone||"",realtorEmail:c.realtorEmail||""});}
       if(c.title){const k=c.title.trim().toLowerCase();if(!T.has(k))T.set(k,{name:c.title.trim(),titlePhone:c.titlePhone||"",titleAddr:c.titleAddr||""});}
       if(c.closer)C.add(c.closer.trim());
       if(c.lender){const k=c.lender.trim().toLowerCase();if(!L.has(k))L.set(k,{name:c.lender.trim(),lenderUrl:c.lenderUrl||""});}
+      if(c.procName&&c.procEmail){const k=c.procName.trim().toLowerCase();if(!P.has(k))P.set(k,{name:c.procName.trim(),procEmail:c.procEmail||""});}
     });
-    return {R,T,C,L};
+    return {R,T,C,L,P};
   }
   let book=null;
   function fillLists(){
@@ -963,9 +974,9 @@ dialog form{padding:16px;display:grid;gap:12px}
         <label><input type="radio" name="apprRep" value="yes"${c.apprRepairs==="yes"?" checked":""}> Yes</label></div>
       <label class="field" id="apprRepBox"${c.apprRepairs==="yes"?"":" hidden"}>What repairs? <span class="muted" style="font-weight:400">(optional)</span><input id="apprRepTxt" autocomplete="off" value="${esc(c.apprRepairsText||"")}" placeholder="Handrail on the back steps, peeling paint"></label>
       ${c.price?`<p class="muted small" style="margin:0">Purchase price: ${esc(fmtMoney(c.price))}</p>`:`<p class="small" style="margin:0;color:var(--bad)">Add the purchase price with Edit so the value can be compared.</p>`}
-      <div class="acts"><button class="tbtn primary" type="button" data-act="apprSave">Save appraisal result</button><button class="tbtn" type="button" data-act="apprCancel">Cancel</button></div></div>`;
+      <div class="acts"><button class="tbtn primary" type="button" data-act="apprSave">Save appraisal result</button><button class="tbtn" type="button" data-act="apprCancel">Cancel</button>${c.apprValue?`<button class="tbtn danger" type="button" data-act="apprReset">Clear appraisal result</button>`:""}</div></div>`;
     const st=apprStatus(c);if(!st)return "";
-    return `<div class="apprsum ${st.cls}">Appraised at <b>${esc(fmtMoney(c.apprValue))}</b> · ${st.cls==="ok"?"✓ ":""}${esc(st.text)} <button type="button" class="linkbtn" data-act="apprEdit">Edit</button></div>`;
+    return `<div class="apprsum ${st.cls}">Appraised at <b>${esc(fmtMoney(c.apprValue))}</b> · ${st.cls==="ok"?"✓ ":""}${esc(st.text)} <button type="button" class="linkbtn" data-act="apprEdit">Edit</button><button type="button" class="linkbtn" data-act="apprReset">Reset</button></div>`;
   }
   function addAprCond(c,kind,text){
     c.conds=c.conds||[];numberConds(c);const max=c.conds.reduce((m,x)=>Math.max(m,x.n||0),0);
@@ -1052,10 +1063,10 @@ dialog form{padding:16px;display:grid;gap:12px}
       const view=sideView[c.id]||"overview", ci=cdInfo(c), oc=openConds(c).length, nn=(c.notes||[]).filter(n=>!n.auto&&!isEmail(n)).length;
       const cdTag=!ci.close?"":ci.level==="ok"?"OK":ci.level==="late"?"Late":ci.level==="wait"?"":"Due";
       const ITEMS=[["overview","Overview",""],["ms","Milestones",`${doneCount(c)}/${MAIN.length}`],["conds","Conditions",oc?String(oc):""],["notes","Notes / Emails",nn?String(nn):""],
-        ["cd","Closing Disclosure",cdTag],["docs","Document request",""],["mail","Send an update",lastUpdate(c)?fmtShort(new Date(lastUpdate(c).t)):""]];
+        ["cd","Closing Disclosure",cdTag],["docs","Document request",""],["mail","Send an update",lastUpdate(c)?fmtShort(new Date(lastUpdate(c).t)):""],["proc","Send to processor",lastProc(c)?fmtShort(new Date(lastProc(c).t)):""]];
       const nav=document.createElement("nav");nav.className="sidenav";nav.setAttribute("aria-label","Client sections");
       nav.innerHTML=ITEMS.map(([k,l,b])=>`<button type="button" data-side="${k}"${k===view?' aria-current="true"':""}><span>${l}</span>${b?`<b class="${k==="cd"&&(ci.level==="late"||ci.level==="urgent")?"bad":k==="conds"||(k==="cd"&&cdTag==="Due")?"warn":""}">${b}</b>`:""}</button>`).join("");
-      const SEC={ms:[S.ms],conds:[S.conds],notes:[S.notes],cd:[S.cd],mail:[S.mail],docs:[S.docs]};
+      const SEC={ms:[S.ms],conds:[S.conds],notes:[S.notes],cd:[S.cd],mail:[S.mail],docs:[S.docs],proc:[S.proc]};
       const main=view==="overview"?box("cols2",[box("stack",[S.conds,S.notes]),box("stack",[S.ms])]):box("stack sidemain",SEC[view]);
       // Sections not on screen stay in the page (hidden) so their controls keep working.
       const shown=new Set(view==="overview"?["ms","conds","notes"]:[view]);
@@ -1067,14 +1078,14 @@ dialog form{padding:16px;display:grid;gap:12px}
       const cur=current(c);
       det.innerHTML=`<summary>Milestones <span class="muted small" style="font-weight:400">· ${doneCount(c)} of ${MAIN.length}${cur?" · "+esc(cur.name):""}</span></summary>`;
       det.appendChild(S.ms);
-      const mb=document.createElement("button");mb.className="tbtn phmail";mb.type="button";mb.textContent=phoneMail?"Hide email builder":"✉ Send an email";
+      const mb=document.createElement("button");mb.className="tbtn phmail";mb.type="button";mb.textContent=phoneMail?"Hide emails":"✉ Send an update or email the processor";
       mb.addEventListener("click",()=>{phoneMail=!phoneMail;renderClient(c);});
-      if(!phoneMail)S.mail.hidden=true;
+      if(!phoneMail){S.mail.hidden=true;S.proc.hidden=true;}
       // Clear to close: the closing panel (with its alerts) goes right under the contacts, unfolded.
-      if(isCTC(c))lay.append(S.glance,S.ms,S.conds,S.notes,S.cd,S.docs,mb,S.mail);
-      else lay.append(S.glance,S.conds,S.notes,det,S.cd,S.docs,mb,S.mail);
+      if(isCTC(c))lay.append(S.glance,S.ms,S.conds,S.notes,S.cd,S.docs,mb,S.mail,S.proc);
+      else lay.append(S.glance,S.conds,S.notes,det,S.cd,S.docs,mb,S.mail,S.proc);
     }else{
-      lay.append(S.glance,S.ms,S.cd,S.conds,box("grid",[box("stack",[S.mail]),box("stack",[S.docs,S.notes])]));
+      lay.append(S.glance,S.ms,S.cd,S.conds,box("grid",[box("stack",[S.mail]),box("stack",[S.docs,S.proc,S.notes])]));
       lay.querySelector(".grid").style.marginTop="0";
     }
     app.innerHTML="";app.append(S.head,lay);
@@ -1236,6 +1247,28 @@ dialog form{padding:16px;display:grid;gap:12px}
             <p class="muted small" style="margin:4px 0 12px">Opens the document request page set up for ${esc(c.first)}'s loan.</p>
             <a class="tbtn primary" href="${docLink}">Build document request</a>
           </div>
+          <div class="panel" data-sec="proc">
+            <h2>Send to processor</h2>
+            ${(()=>{const L=lastProc(c);return L?`<p class="lastsent">Last sent to processor <b>${fmtStamp(L.t)}</b><br><span class="muted">${esc(emailText(L).split("\n")[0].replace(/^To processor: /,""))}</span></p>`:`<p class="lastsent muted">Nothing sent to the processor yet.</p>`;})()}
+            <p class="muted small" style="margin:4px 0 12px">Check the conditions you've put in the folder, then copy the email for your processor.</p>
+            <div class="fgrid">
+              <label class="field">Processor's name<input id="procName" list="dlProc" value="${esc(c.procName||"")}" autocomplete="off" placeholder="Name"></label>
+              <label class="field">Processor's email<input id="procEmail" value="${esc(c.procEmail||"")}" inputmode="email" autocomplete="off" placeholder="name@company.com"></label>
+            </div>
+            <datalist id="dlProc">${[...contactBook().P.values()].map(x=>`<option value="${esc(x.name)}">${esc(x.procEmail||"")}</option>`).join("")}</datalist>
+            ${(()=>{const open=openConds(c);if(!open.length)return `<p class="muted" style="margin:12px 0 0">No open conditions right now.</p>`;
+              const sel=procSel[c.id]||new Set();
+              return `<div class="psel"><div class="pselhead"><b>Conditions in the folder</b><button type="button" class="linkbtn" data-act="procAll">${open.every(x=>sel.has(x.id))?"Clear all":"Select all"}</button></div>`+
+                open.map(x=>`<label><input type="checkbox" data-psel="${x.id}"${sel.has(x.id)?" checked":""}> <span>${x.n}. ${esc(x.text)} <span class="muted small">(${whoOf(x)==="b"?"borrower":"loan officer"})</span></span></label>`).join("")+`</div>`;})()}
+            <label class="field" style="margin-top:12px">Note to add <span class="muted" style="font-weight:400">(optional)</span><textarea id="procMsg" placeholder="The pay stub covers two pay periods.">${esc(procMsgs[c.id]||"")}</textarea></label>
+            <div class="acts" style="margin-top:12px">
+              <button class="tbtn primary" data-act="copyProc">Copy email</button>
+              <button class="tbtn" data-act="copyProcSubj">Copy subject</button>
+              <button class="tbtn" data-act="copyProcAddr">Copy processor's email</button>
+            </div>
+            <p class="subj"><b class="muted">Subject:</b> <span id="procSubj"></span></p>
+            <div class="mail" id="procPrev"></div>
+          </div>
           <div class="panel" data-sec="notes">
             <h2>Notes / Emails sent</h2>
             <label class="field" style="margin-top:12px"><span class="muted" style="font-weight:600">Add a note</span><textarea id="noteTxt" placeholder="Called about appraisal, waiting on HOA cert…"></textarea></label>
@@ -1250,7 +1283,12 @@ dialog form{padding:16px;display:grid;gap:12px}
         </div>
       </div>`;
     arrange(c);
-    renderMail(c);
+    renderMail(c);renderProc(c);
+    // Processor name and email save as you type; a known processor fills in the email.
+    $("procName").addEventListener("input",e=>{const hit=contactBook().P.get(e.target.value.trim().toLowerCase());c.procName=e.target.value;
+      if(hit&&hit.procEmail&&!$("procEmail").value){$("procEmail").value=hit.procEmail;c.procEmail=hit.procEmail;}save();renderProc(c);});
+    $("procEmail").addEventListener("input",e=>{c.procEmail=e.target.value;save();});
+    $("procMsg").addEventListener("input",e=>{procMsgs[c.id]=e.target.value;renderProc(c);});
     $("annSel").addEventListener("change",e=>{annKey=e.target.value;leaveClose();includeUp=null;if(annKey==="condAppr"&&openConds(c,"b").length)includeConds=true;renderClient(c);});
     if($("annVar"))$("annVar").addEventListener("change",e=>{annVar[c.id+annKey]=+e.target.value;delete annMsg[c.id+annKey];renderClient(c);});
     $("annMsg").addEventListener("input",e=>{annMsg[c.id+(closeMode?"close":annKey)]=e.target.value;renderMail(c);});
@@ -1274,8 +1312,26 @@ dialog form{padding:16px;display:grid;gap:12px}
   }
 
   // Emails copied from this page or the document request page; older entries are recognized by their wording.
+  const lastProc=c=>(c.notes||[]).filter(x=>isEmail(x)&&/^To processor/.test(emailText(x))).sort((a,b)=>String(b.t).localeCompare(String(a.t)))[0]||null;
+  // Email to the processor: the checked conditions that are now in the folder.
+  let procSel={}, procMsgs={};
+  function buildProc(c){
+    const sel=procSel[c.id]||new Set(), list=openConds(c).filter(x=>sel.has(x.id)), me=(()=>{try{return localStorage.getItem("req-me")||"";}catch(e){return "";}})().trim();
+    const who=[fullName(c),coName(c)].filter(Boolean).join(" & "), first=(c.procName||"").trim().split(/\s+/)[0]||"", note=(procMsgs[c.id]||"").trim();
+    const subject=`${who}: conditions uploaded to the folder`;
+    const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
+    const p=t=>`<p style="margin:0 0 10px 0">${t}</p>`;
+    const rows=list.map(x=>`<tr><td width="28" valign="top" style="width:28px;padding:0 0 4px 0;${F}">${x.n}.</td><td valign="top" style="padding:0 0 4px 0;${F}">${esc(x.text)}</td></tr>`).join("");
+    const html=`<div style="${F}">`+p(`Hi ${esc(first||"there")},`)+p(`I've uploaded the following conditions for ${esc(who)}${c.address?" ("+esc(c.address)+")":""} to the folder:`)+
+      (list.length?`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 10px 0">${rows}</table>`:p("<i>[Check the conditions above]</i>"))+
+      (note?p(esc(note).replace(/\n/g,"<br>")):"")+p("Please let me know if you need anything else.")+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
+    const text=[`Hi ${first||"there"},`,"",`I've uploaded the following conditions for ${who}${c.address?" ("+c.address+")":""} to the folder:`,"",...list.map(x=>`${x.n}. ${x.text}`),"",...(note?[note,""]:[]),
+      "Please let me know if you need anything else.","","Thank you,",me||"[Your name]"].join("\n");
+    return {subject,html,text,list};
+  }
+  function renderProc(c){const e=buildProc(c);if($("procSubj"))$("procSubj").textContent=e.subject;if($("procPrev"))$("procPrev").innerHTML=e.html;}
   function lastUpdate(c){
-    const n=(c.notes||[]).filter(x=>isEmail(x)&&!/^Document request/.test(emailText(x))).sort((a,b)=>String(b.t).localeCompare(String(a.t)))[0];
+    const n=(c.notes||[]).filter(x=>isEmail(x)&&!/^(Document request|To processor)/.test(emailText(x))).sort((a,b)=>String(b.t).localeCompare(String(a.t)))[0];
     if(!n)return null;
     const name=emailText(n).split("\n")[0].replace(/ \(standard message\)$/,"");
     return {t:n.t,subj:n.subj||(/closing email/.test(name)?"You're clear to close! Your closing details":"Loan update: "+name)};
@@ -1300,9 +1356,12 @@ dialog form{padding:16px;display:grid;gap:12px}
         ${op?`<ol class="clist">${list.filter(x=>!x.done).map(item).join("")}</ol>`:`<p class="muted small" style="margin:8px 0">All cleared.</p>`}
         ${list.length-op?`<details class="cleared" data-clopen="${c.id}-${who}"${clearedOpen[c.id+"-"+who]?" open":""}><summary>Cleared (${list.length-op})</summary>
           <ol class="clist">${list.filter(x=>x.done).map(item).join("")}</ol></details>`:""}</div>`;
-      function item(x){return `<li class="${x.done?"done":""}"><span class="cn">${x.n}</span>
+      function item(x){
+        if(condEdit===x.id)return `<li class="cedit"><span class="cn">${x.n}</span><textarea id="condEditTxt" rows="2" aria-label="Condition ${x.n}">${esc(x.text)}</textarea>
+          <span class="cact"><button class="tbtn primary" type="button" data-act="condSave" data-id="${x.id}">Save</button><button class="tbtn" type="button" data-act="condCancel">Cancel</button></span></li>`;
+        return `<li class="${x.done?"done":""}"><span class="cn">${x.n}</span>
           <label><input type="checkbox" data-cond="${x.id}"${x.done?" checked":""} aria-label="Cleared"><span class="ct">${esc(x.text)}</span></label>
-          <span class="cact"><button class="cmove" data-condwho="${x.id}" title="Move to ${who==="b"?"loan officer":"borrower"} conditions">${who==="b"?"→ LO":"→ Borrower"}</button><button class="x" data-delcond="${x.id}" aria-label="Remove condition ${x.n}">×</button></span></li>`;}};
+          <span class="cact"><button class="cmove" data-condedit="${x.id}" title="Edit the wording">Edit</button><button class="cmove" data-condwho="${x.id}" title="Move to ${who==="b"?"loan officer":"borrower"} conditions">${who==="b"?"→ LO":"→ Borrower"}</button><button class="x" data-delcond="${x.id}" aria-label="Remove condition ${x.n}">×</button></span></li>`;}};
     return banner+`<div class="panel conds">
         ${all.length?`<div class="chead"><h3>Conditions <span class="muted small">${open.length} open · ${all.length-open.length} cleared</span></h3><button class="tbtn danger" data-act="clearConds">Remove all</button></div>
           ${group("b","Borrower conditions")}${group("lo","Loan officer conditions")}`:""}
@@ -1479,7 +1538,8 @@ dialog form{padding:16px;display:grid;gap:12px}
   // ---------- Clicks ----------
   const curClient=()=>{const m=location.hash.match(/client=([\w]+)/);return m&&clients.find(x=>x.id===m[1]);};
   document.addEventListener("click",async ev=>{
-    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote],[data-delcond],[data-condwho],[data-sort],[data-side]");if(!t)return;
+    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote],[data-delcond],[data-condwho],[data-sort],[data-side],[data-condedit]");if(!t)return;
+    if(t.dataset.condedit){const c0=curClient();if(c0){condEdit=t.dataset.condedit;renderClient(c0);const e=$("condEditTxt");if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length);}}return;}
     if(t.dataset.side){const c0=curClient();if(c0){sideView[c0.id]=t.dataset.side;const y=scrollY;renderClient(c0);scrollTo(0,y);}return;}
     if(t.dataset.sort){const k=t.dataset.sort;if(sortKey===k)sortDir=-sortDir;else{sortKey=k;sortDir=["name","loan","next","cd","closing"].includes(k)?1:-1;}renderList();return;}
     const c=curClient();
@@ -1493,8 +1553,25 @@ dialog form{padding:16px;display:grid;gap:12px}
       case "new":newAsProspect=tab==="prospect";openForm();break;
       case "newProspect":newAsProspect=true;openForm();break;
       case "edit":openForm(c);break;
+      case "condSave":{const x=(c.conds||[]).find(y=>y.id===t.dataset.id), v=($("condEditTxt").value||"").replace(/\s+/g," ").trim();
+        if(x&&v){x.text=v;touch(c);save();}condEdit=null;renderClient(c);if(x&&v)say("Condition updated.");break;}
+      case "condCancel":condEdit=null;renderClient(c);break;
+      case "procAll":{const open=openConds(c), set=procSel[c.id]=procSel[c.id]||new Set(), all=open.every(x=>set.has(x.id));
+        open.forEach(x=>all?set.delete(x.id):set.add(x.id));renderClient(c);break;}
+      case "copyProc":{const e=buildProc(c);if(!e.list.length){say("Check the conditions you put in the folder first.");break;}
+        if(await copyRich(e.html,e.text)){c.notes=c.notes||[];
+          c.notes.push({t:stamp(),kind:"email",auto:true,subj:e.subject,text:`To processor: ${e.list.length} condition${e.list.length===1?"":"s"} in the folder\n${e.list.map(x=>x.n+". "+x.text).join("\n")}`});
+          touch(c);save();procSel[c.id]=new Set();renderClient(c);say("Email copied and logged under Emails sent. Paste it into a new Outlook message.");}
+        break;}
+      case "copyProcSubj":if(await copyText(buildProc(c).subject))say("Subject copied.");break;
+      case "copyProcAddr":{const a=(c.procEmail||"").trim();if(!a){say("Add the processor's email first.");$("procEmail").focus();break;}if(await copyText(a))say("Copied: "+a);break;}
       case "apprEdit":apprForm[c.id]=true;renderClient(c);setTimeout(()=>{const v=$("apprVal");if(v)v.focus();},30);break;
       case "apprCancel":delete apprForm[c.id];renderClient(c);break;
+      case "apprReset":{if(!confirm("Clear the appraised value, the repairs answer and the appraisal conditions, and uncheck Received?"))break;
+        ["apprValue","apprRepairs","apprRepairsText","apprAt"].forEach(k=>delete c[k]);
+        c.conds=(c.conds||[]).filter(x=>!x.apr);delete c.ms.apprRecv;delete apprForm[c.id];
+        c.notes=c.notes||[];c.notes.push({t:stamp(),auto:true,text:"Appraisal result cleared"});
+        touch(c);save();renderClient(c);say("Appraisal result cleared. Received is unchecked.");break;}
       case "apprSave":{
         const val=fmtMoney($("apprVal").value), v=num(val);if(v===null){$("apprVal").focus();say("Enter the appraised value first.");break;}
         const rep=(document.querySelector('input[name="apprRep"]:checked')||{}).value==="yes", rtxt=($("apprRepTxt").value||"").trim();
@@ -1562,6 +1639,8 @@ dialog form{padding:16px;display:grid;gap:12px}
         touch(c);save();renderClient(c);
         if(aprDone)say("Appraisal conditions cleared. Appraisal received is now checked.");else if(!openConds(c).length&&x.done)say("All conditions cleared!");}return;}
     if(ev.target.name==="condWho"){condWho=ev.target.value;return;}
+    if(ev.target.dataset.psel){const set=procSel[c.id]=procSel[c.id]||new Set();ev.target.checked?set.add(ev.target.dataset.psel):set.delete(ev.target.dataset.psel);
+      const all=openConds(c).every(x=>set.has(x.id)), b=document.querySelector('[data-act="procAll"]');if(b)b.textContent=all?"Clear all":"Select all";renderProc(c);return;}
     if(ev.target.dataset.ctcchk){c.ctcChk=c.ctcChk||{};c.ctcChk[ev.target.dataset.ctcchk]=ev.target.checked;touch(c);save();renderClient(c);return;}
     if(ev.target.dataset.cd){c[ev.target.dataset.cd]=ev.target.value;touch(c);save();renderClient(c);return;}
     if(ev.target.hasAttribute("data-closeat")){c.closingAt=ev.target.value;delete annMsg[c.id+"closingSched"];touch(c);save();renderClient(c);return;}
