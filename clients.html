@@ -387,6 +387,12 @@ details.phms[open]>summary{border-bottom:0}
 }
 dialog{border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 40px)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
+.impin{padding:16px;display:grid;gap:12px}
+.impin ol{margin:0;padding-left:20px;display:grid;gap:4px}
+.impin table{width:100%;border-collapse:collapse;font-size:var(--t-sm)}
+.impin th,.impin td{text-align:left;padding:4px 8px;border-top:1px solid var(--rule)}
+.impin select{padding:4px 8px;border:1px solid var(--rule);background:var(--paper)}
+.impin .impmap{font-size:var(--t-sm);color:var(--muted)}
 dialog form{padding:16px;display:grid;gap:12px}
 .coadd{justify-self:start}
 .prospck{display:flex;gap:8px;align-items:center;cursor:pointer;padding:8px 12px;border:1px dashed var(--rule);background:var(--paper)}
@@ -476,6 +482,8 @@ dialog form{padding:16px;display:grid;gap:12px}
 </dialog>
 <div id="printSheet" aria-hidden="true"></div>
 <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+<input type="file" id="impFile" accept=".csv,.txt,.asc,.tsv,text/plain,text/csv" hidden>
+<dialog id="impDlg"><div class="impin" id="impBody"></div></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -673,7 +681,7 @@ dialog form{padding:16px;display:grid;gap:12px}
   // Where supported (Chrome, Edge), ask where to save the backup; otherwise download it as usual.
   // The folder picked last time is remembered by the browser for the next save.
   async function backup(){
-    const json=JSON.stringify({app:"client-tracker",version:1,saved:stamp(),clients},null,2);
+    const json=JSON.stringify({app:"client-tracker",version:1,saved:stamp(),clients,contacts:imported},null,2);
     const name=`clients-backup-${today()}.json`;
     const done=msg=>{try{localStorage.setItem("clients-backup",stamp());}catch(e){}say(msg);render();};
     if(window.showSaveFilePicker){
@@ -701,6 +709,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       const mode=clients.length?confirm(`Restore ${list.length} client(s) from this backup?\n\nOK = add them to your current list (matching clients are replaced)\nCancel = don't restore`):true;
       if(!mode)return;
       list.forEach(c=>{const i=clients.findIndex(x=>x.id===c.id);if(i>=0)clients[i]=c;else clients.push(c);});
+      if(data.contacts&&typeof data.contacts==="object"&&!(imported.at&&imported.at>(data.contacts.at||""))){imported=Object.assign({realtors:[],titles:[],lenders:[],closers:[],processors:[]},data.contacts);saveImported();}
       save();say(`Restored ${list.length} client(s).`);go("");render();
     }catch(e){alert("That file isn't a client tracker backup.");}
   });
@@ -763,6 +772,7 @@ dialog form{padding:16px;display:grid;gap:12px}
           <button class="tbtn" data-act="newProspect">+ New prospect</button>
           <button class="tbtn" data-act="backup"${clients.length?"":" disabled"}>Download backup</button>
           <button class="tbtn" data-act="restore">Restore backup</button>
+          <button class="tbtn" data-act="importContacts">Import contacts</button>
           <button class="tbtn" data-act="report"${clients.some(c=>c.status!=="inactive")?"":" disabled"}>Print daily report</button>
         </div>
       </div>
@@ -861,7 +871,78 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();const b=document.querySelector('[data-act="condSave"]');if(b)b.click();}
     else if(e.key==="Escape"){const b=document.querySelector('[data-act="condCancel"]');if(b)b.click();}});
 
-  // ---------- Saved realtors and title companies (from your other clients) ----------
+  // ---------- Contacts imported from another system (Calyx Point Cardex export); kept only in this browser ----------
+  const CKEY="contacts-v1";
+  let imported={realtors:[],titles:[],lenders:[],closers:[],processors:[],from:"",at:""};
+  try{const v=JSON.parse(localStorage.getItem(CKEY)||"null");if(v&&typeof v==="object")imported=Object.assign(imported,v);}catch(e){}
+  const saveImported=()=>{try{localStorage.setItem(CKEY,JSON.stringify(imported));}catch(e){say("Couldn't save the contacts in this browser.");}};
+  // Reads a delimited text export; the separator (comma, tab, pipe or semicolon) is found from the header line.
+  function parseDelim(txt){
+    txt=String(txt).replace(/^\uFEFF/,"");
+    const head=txt.split(/\r?\n/)[0]||"", cnt=ch=>head.split(ch).length-1;
+    const sep=[["\t",cnt("\t")],["|",cnt("|")],[",",cnt(",")],[";",cnt(";")]].sort((a,b)=>b[1]-a[1])[0][0];
+    const rows=[];let row=[],f="",q=false;
+    for(let i=0;i<txt.length;i++){const ch=txt[i];
+      if(q){if(ch==='"'){if(txt[i+1]==='"'){f+='"';i++;}else q=false;}else f+=ch;continue;}
+      if(ch==='"'&&f==="")q=true;
+      else if(ch===sep){row.push(f);f="";}
+      else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&txt[i+1]==="\n")i++;row.push(f);f="";if(row.some(x=>x.trim()))rows.push(row);row=[];}
+      else f+=ch;}
+    row.push(f);if(row.some(x=>x.trim()))rows.push(row);
+    return {sep,rows};
+  }
+  // Column names differ between programs, so each field is matched by the words in its heading.
+  const COLS={category:/^(category|type|group)$/i,name:/^(name|contact|contact name|full name)$/i,first:/^first( name)?$/i,last:/^last( name)?$/i,company:/^(company|company name|business|firm)$/i,
+    phone:/^(phone|work phone|business phone|office phone|phone 1|telephone|work)$/i,cell:/^(cell|cell phone|mobile|mobile phone)$/i,email:/^(e-?mail|e-?mail address|email 1)$/i,
+    web:/^(web|website|web site|url|web address)$/i,addr:/^(address|street|address 1|street address)$/i,city:/^city$/i,state:/^(state|st)$/i,zip:/^(zip|zip code|postal code)$/i};
+  const KINDS=[["realtors","Realtor"],["titles","Title company"],["lenders","Lender"],["closers","Closer"],["processors","Processor"],["","Skip"]];
+  const guessKind=cat=>/realt|agent|broker/i.test(cat)?"realtors":/title|escrow|closing|settlement|attorney/i.test(cat)?"titles":/lend|wholesale|bank|investor/i.test(cat)?"lenders":/process/i.test(cat)?"processors":"";
+  let impData=null;
+  function impRender(){
+    const counts=["realtors","titles","lenders","closers","processors"].map(k=>[k,(imported[k]||[]).length]).filter(x=>x[1]);
+    const how=`<ol class="small"><li>In Point, open the Cardex and choose <b>File › Export</b> (Custom ASCII).</li><li>Leave <b>Text Qualifier</b> as <b>"</b>, keep <b>Include Field Names in First Row</b> checked, and click <b>Export</b>. Any field separator works; a comma is the most common.</li><li>Click <b>Choose the export file</b> below and pick the file you saved.</li></ol>`;
+    let body;
+    if(!impData)body=how+`<div class="acts"><button class="tbtn primary" type="button" data-act="impPick">Choose the export file</button></div>`;
+    else{const {cols,cats}=impData, mapped=Object.entries(cols).filter(([,i])=>i>=0).map(([k])=>k);
+      body=`<p class="small" style="margin:0">Found <b>${impData.rows.length}</b> contacts in <b>${esc(impData.file)}</b>. Pick what each category is. Categories set to Skip are left out.</p>
+        <table><thead><tr><th>Category in the file</th><th>Contacts</th><th>Use as</th></tr></thead><tbody>${cats.map(([cat,n],i)=>`<tr><td>${esc(cat||"(no category)")}</td><td>${n}</td>
+          <td><select data-impcat="${i}">${KINDS.map(([k,l])=>`<option value="${k}"${impData.kind[i]===k?" selected":""}>${l}</option>`).join("")}</select></td></tr>`).join("")}</tbody></table>
+        <p class="impmap" style="margin:0">Columns used: ${mapped.map(esc).join(", ")||"none found"}.${cols.category<0?" No Category column was found, so every row is in one group.":""}</p>
+        <div class="acts"><button class="tbtn primary" type="button" data-act="impSave">Import ${impData.kind.reduce((n,k,i)=>n+(k?cats[i][1]:0),0)} contacts</button><button class="tbtn" type="button" data-act="impPick">Choose a different file</button></div>`;}
+    $("impBody").innerHTML=`<h2>Import contacts</h2>
+      <p class="muted small" style="margin:0">Realtors, title companies, lenders, closers and processors from your Calyx Point Cardex (or any spreadsheet saved as CSV). They show up as suggestions when you type in Edit and in Send to processor. They're saved only in this browser.</p>
+      ${counts.length?`<p class="small" style="margin:0">Imported now: ${counts.map(([k,n])=>`${n} ${KINDS.find(x=>x[0]===k)[1].toLowerCase()}${n===1?"":"s"}`).join(", ")}${imported.at?` <span class="muted">(from ${esc(imported.from)}, ${esc(fmt(imported.at.slice(0,10)))})</span>`:""}. A new import replaces these.</p>`:""}
+      ${body}
+      <div class="dlgbtns">${counts.length?`<button class="tbtn danger" type="button" data-act="impClear">Remove imported contacts</button>`:""}<button class="tbtn" type="button" data-act="impClose">Close</button></div>`;
+  }
+  $("impFile").addEventListener("change",async ev=>{
+    const f=ev.target.files[0];ev.target.value="";if(!f)return;
+    const {rows}=parseDelim(await f.text());if(rows.length<2){say("That file doesn't have a header row and contacts.");return;}
+    const head=rows[0].map(h=>h.trim()), cols={};Object.entries(COLS).forEach(([k,re])=>{cols[k]=head.findIndex(h=>re.test(h));});
+    if(cols.name<0&&cols.company<0&&cols.first<0){say("Couldn't find a Name or Company column. Make sure Include Field Names in First Row is checked.");return;}
+    const data=rows.slice(1), get=(r,k)=>cols[k]>=0?String(r[cols[k]]||"").trim():"";
+    const byCat=new Map();data.forEach(r=>{const c=get(r,"category");byCat.set(c,(byCat.get(c)||0)+1);});
+    const cats=[...byCat.entries()].sort((a,b)=>b[1]-a[1]);
+    impData={file:f.name,rows:data,cols,cats,get,kind:cats.map(([c])=>guessKind(c))};impRender();
+  });
+  function impSave(){
+    const {rows,cats,kind,get,file}=impData, kindOf=new Map(cats.map(([c],i)=>[c,kind[i]]));
+    const out={realtors:[],titles:[],lenders:[],closers:[],processors:[],from:file,at:stamp()};
+    rows.forEach(r=>{const k=kindOf.get(get(r,"category"));if(!k)return;
+      const person=get(r,"name")||[get(r,"first"),get(r,"last")].filter(Boolean).join(" "), co=get(r,"company");
+      const phone=fmtPhone(get(r,"phone")||get(r,"cell")), email=get(r,"email");
+      const addr=[get(r,"addr"),[get(r,"city"),[get(r,"state"),get(r,"zip")].filter(Boolean).join(" ")].filter(Boolean).join(", ")].filter(Boolean).join(", ");
+      if(k==="realtors"&&person)out.realtors.push({name:person,phone,email,company:co});
+      else if(k==="titles"&&(co||person)){out.titles.push({name:co||person,phone,addr,contact:co?person:""});if(co&&person)out.closers.push({name:person,company:co});}
+      else if(k==="lenders"&&(co||person))out.lenders.push({name:co||person,url:get(r,"web"),contact:co?person:"",phone});
+      else if(k==="closers"&&person)out.closers.push({name:person,company:co});
+      else if(k==="processors"&&person)out.processors.push({name:person,email,company:co});});
+    imported=out;saveImported();
+    const n=rows.filter(r=>kindOf.get(get(r,"category"))).length;
+    impData=null;$("impDlg").close();say(`Imported ${n} contacts. They'll show up as suggestions when you type in Edit.`);
+  }
+
+  // ---------- Saved realtors and title companies (from your other clients, then imported contacts) ----------
   function contactBook(){
     const R=new Map(),T=new Map(),C=new Set(),L=new Map(),P=new Map();
     [...clients].sort((a,b)=>String(b.updated||"").localeCompare(String(a.updated||""))).forEach(c=>{
@@ -871,13 +952,19 @@ dialog form{padding:16px;display:grid;gap:12px}
       if(c.lender){const k=c.lender.trim().toLowerCase();if(!L.has(k))L.set(k,{name:c.lender.trim(),lenderUrl:c.lenderUrl||""});}
       if(c.procName&&c.procEmail){const k=c.procName.trim().toLowerCase();if(!P.has(k))P.set(k,{name:c.procName.trim(),procEmail:c.procEmail||""});}
     });
+    const add=(M,name,v)=>{const k=String(name||"").trim().toLowerCase();if(k&&!M.has(k))M.set(k,Object.assign({name:String(name).trim()},v));};
+    (imported.realtors||[]).forEach(r=>add(R,r.name,{realtorPhone:r.phone||"",realtorEmail:r.email||"",company:r.company||""}));
+    (imported.titles||[]).forEach(t=>add(T,t.name,{titlePhone:t.phone||"",titleAddr:t.addr||""}));
+    (imported.lenders||[]).forEach(l=>add(L,l.name,{lenderUrl:l.url||""}));
+    (imported.processors||[]).forEach(p=>{if(p.email)add(P,p.name,{procEmail:p.email});});
+    (imported.closers||[]).forEach(x=>{if(x.name)C.add(x.name.trim());});
     return {R,T,C,L,P};
   }
   let book=null;
   function fillLists(){
     book=contactBook();
     const opt=(v,l)=>`<option value="${esc(v)}">${l?esc(l):""}</option>`;
-    $("dlRealtor").innerHTML=[...book.R.values()].map(r=>opt(r.name,[r.realtorPhone,r.realtorEmail].filter(Boolean).join(" · "))).join("");
+    $("dlRealtor").innerHTML=[...book.R.values()].map(r=>opt(r.name,[r.company,r.realtorPhone,r.realtorEmail].filter(Boolean).join(" · "))).join("");
     $("dlTitle").innerHTML=[...book.T.values()].map(t=>opt(t.name,[t.titlePhone,t.titleAddr].filter(Boolean).join(" · "))).join("");
     $("dlCloser").innerHTML=[...book.C].map(n=>opt(n)).join("");
     $("dlLender").innerHTML=[...book.L.values()].map(l=>opt(l.name,l.lenderUrl)).join("");
@@ -887,7 +974,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     const n=e.target.name;if(!book||!["realtor","title","lender"].includes(n))return;
     const hit=({realtor:book.R,title:book.T,lender:book.L})[n].get(e.target.value.trim().toLowerCase());if(!hit)return;
     if(e.target.value!==hit.name)e.target.value=hit.name;
-    const f=$("cform");Object.keys(hit).forEach(k=>{if(k!=="name"&&hit[k])f.elements[k].value=hit[k];});
+    const f=$("cform");Object.keys(hit).forEach(k=>{if(k!=="name"&&hit[k]&&f.elements[k])f.elements[k].value=hit[k];});
   });
 
   // Rate lock fields show only when the rate is locked, with the expiration worked out as you type.
@@ -1698,10 +1785,17 @@ dialog form{padding:16px;display:grid;gap:12px}
       case "clearConds":if(confirm("Remove all conditions for this client?")){c.conds=[];touch(c);save();renderClient(c);}break;
       case "print":printSheet(c);break;
       case "report":printReport();break;
+      case "importContacts":impData=null;impRender();$("impDlg").showModal();break;
+      case "impPick":$("impFile").click();break;
+      case "impSave":impSave();break;
+      case "impClose":impData=null;$("impDlg").close();break;
+      case "impClear":if(confirm("Remove all imported contacts? Contacts saved on your clients stay."))
+        {imported={realtors:[],titles:[],lenders:[],closers:[],processors:[],from:"",at:""};saveImported();impRender();say("Imported contacts removed.");}break;
       case "copySubj":{const e=buildMail(c);if(await copyText(e.subject))say("Subject copied.");break;}
     }
   });
   document.addEventListener("change",ev=>{
+    if(ev.target.dataset&&ev.target.dataset.impcat!==undefined&&impData){impData.kind[+ev.target.dataset.impcat]=ev.target.value;impRender();return;}
     const c=curClient();if(!c)return;
     if(ev.target.dataset.cond){const x=(c.conds||[]).find(y=>y.id===ev.target.dataset.cond);
       if(x){x.done=ev.target.checked;x.doneAt=x.done?stamp():undefined;
