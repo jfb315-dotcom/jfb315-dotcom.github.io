@@ -308,6 +308,14 @@ details.phms[open]>summary{border-bottom:0}
 .notes{list-style:none;margin:12px 0 0;padding:0}
 .notes li{border-top:1px solid var(--rule);padding:12px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
 .notes .when{font-size:var(--t-xs);color:var(--muted)}
+.apprf{display:grid;gap:8px;margin:8px 0 4px;padding:12px;background:var(--paper);border:1px solid var(--rule);max-width:420px}
+.apprq{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.apprq label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.apprsum{font-size:var(--t-sm);margin-top:2px}
+.apprsum.ok{color:var(--goodtxt)}.apprsum.warn{color:var(--brass)}.apprsum.bad{color:var(--bad)}
+.apprsum b{color:var(--ink)}
+.linkbtn{background:none;border:0;padding:0 4px;font:inherit;font-weight:700;color:var(--ink);text-decoration:underline;cursor:pointer}
+.gnums b.ok{color:var(--goodtxt)}.gnums b.warn{color:var(--brass)}.gnums b.bad{color:var(--bad)}
 .lastsent{margin:8px 0 0;padding:8px 12px;background:var(--paper);border-left:4px solid var(--goodtxt);font-size:var(--t-sm)}
 .nsub{font-size:var(--t-xs);font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 4px}
 .notes.mails .txt,.notes.mails li.auto .txt{color:var(--ink);font-style:normal}
@@ -825,6 +833,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(c.loanAmt)out.push(["Loan amount",fmtMoney(c.loanAmt)+(p&&l!==null?` (${Math.round(l/p*1000)/10}% LTV)`:"")]);
     if(d!==null)out.push(["Down payment",fmtMoney(d)+(p?` (${Math.round(d/p*1000)/10}%)`:"")]);
     if(c.rate)out.push(["Rate",fmtRate(c.rate)]);
+    if(c.apprValue){const st=apprStatus(c);out.push(["Appraised",fmtMoney(c.apprValue)+(st.cls==="ok"?" ✓":" · "+st.text)]);}
     if(c.rate||c.rateLocked)out.push(["Lock",lockText(c)]);
     return out;
   }
@@ -936,6 +945,33 @@ dialog form{padding:16px;display:grid;gap:12px}
     const open=!!earlyOpen[c.id];
     return `<li class="earlytog"><button type="button" data-act="early" aria-expanded="${open}">${open?"▾ Hide":"▸ Show"} steps 1–4</button></li>`+(open?rows.slice(0,4).join(""):"")+rows.slice(4).join("");
   }
+  // ---------- Appraisal result: value first, then repairs. Problems become conditions and hold the step open. ----------
+  let apprForm={};
+  function apprStatus(c){
+    if(!c.apprValue)return null;
+    const v=num(c.apprValue), p=num(c.price), short=p!==null&&v!==null&&v<p?p-v:0;
+    const open=k=>(c.conds||[]).some(x=>x.apr===k&&!x.done);
+    if(open("value"))return {cls:"bad",text:`value low, ${fmtMoney(short||0)} short`};
+    if(open("repairs"))return {cls:"warn",text:"subject to repairs"};
+    return {cls:"ok",text:short?"low value resolved":c.apprRepairs==="yes"?"repairs done":"all good"};
+  }
+  function apprBlock(c){
+    if(apprForm[c.id])return `<div class="apprf">
+      <label class="field">Appraised value<input id="apprVal" data-money inputmode="decimal" autocomplete="off" value="${esc(c.apprValue||"")}" placeholder="$450,000"></label>
+      <div class="apprq"><span class="muted small" style="font-weight:700">Subject to repairs?</span>
+        <label><input type="radio" name="apprRep" value="no"${c.apprRepairs!=="yes"?" checked":""}> No</label>
+        <label><input type="radio" name="apprRep" value="yes"${c.apprRepairs==="yes"?" checked":""}> Yes</label></div>
+      <label class="field" id="apprRepBox"${c.apprRepairs==="yes"?"":" hidden"}>What repairs? <span class="muted" style="font-weight:400">(optional)</span><input id="apprRepTxt" autocomplete="off" value="${esc(c.apprRepairsText||"")}" placeholder="Handrail on the back steps, peeling paint"></label>
+      ${c.price?`<p class="muted small" style="margin:0">Purchase price: ${esc(fmtMoney(c.price))}</p>`:`<p class="small" style="margin:0;color:var(--bad)">Add the purchase price with Edit so the value can be compared.</p>`}
+      <div class="acts"><button class="tbtn primary" type="button" data-act="apprSave">Save appraisal result</button><button class="tbtn" type="button" data-act="apprCancel">Cancel</button></div></div>`;
+    const st=apprStatus(c);if(!st)return "";
+    return `<div class="apprsum ${st.cls}">Appraised at <b>${esc(fmtMoney(c.apprValue))}</b> · ${st.cls==="ok"?"✓ ":""}${esc(st.text)} <button type="button" class="linkbtn" data-act="apprEdit">Edit</button></div>`;
+  }
+  function addAprCond(c,kind,text){
+    c.conds=c.conds||[];numberConds(c);const max=c.conds.reduce((m,x)=>Math.max(m,x.n||0),0);
+    c.conds.push({id:uid(),n:max+1,text,who:"lo",apr:kind,done:false,added:stamp()});
+  }
+
   function cdBlock(c){
     const ci=cdInfo(c);
     const tag={ok:"✓",late:"⚠",urgent:"⚠",due:"⏰",wait:"•"}[ci.level]||"•";
@@ -1079,7 +1115,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         const lk=!L.locked?["Not locked","off"]:!L.exp?["Locked · add date","warn"]:L.left<0?["Lock expired "+fmtShort(L.exp),"bad"]:
           [`Lock exp ${fmtShort(L.exp)}${L.lender?" (lender)":""}`,L.beforeClose?"bad":L.left<=5?"warn":"ok"];
         return `<div class="gc"><div class="gl ghead"><span>Loan info</span><button type="button" class="lockpill ${lk[1]}" data-act="editLock" title="${L.locked&&L.exp?esc(lockText(c))+(L.beforeClose?", before the closing date":""):"Set the rate lock"}">${esc(lk[0])}</button></div>`+
-          (nums.length?`<div class="gnums">${nums.map(([k,v])=>`<span>${k==="Purchase price"?"Price":k.split(" ")[0]}</span><b>${esc(v)}</b>`).join("")}</div>`:add("Add price, loan amount and rate with Edit"))+
+          (nums.length?`<div class="gnums">${nums.map(([k,v])=>`<span>${k==="Purchase price"?"Price":k==="Appraised"?"Value":k.split(" ")[0]}</span><b class="${k==="Appraised"?apprStatus(c).cls:""}">${esc(v)}</b>`).join("")}</div>`:add("Add price, loan amount and rate with Edit"))+
           (L.locked&&L.exp&&L.beforeClose&&L.left>=0?`<div class="gwarn small">Lock ends before the closing date</div>`:"")+
           `<div class="muted small" style="margin-top:4px">${procOf(c)?"Processing "+fmt(procOf(c))+" · ":""}Last activity ${fmt((c.updated||stamp()).slice(0,10))}</div></div>`;})()}
     </div>`;
@@ -1129,7 +1165,7 @@ dialog form{padding:16px;display:grid;gap:12px}
           const st=nodeDone(c,nd)?"done":(i===stg?"next":"");
           const item=(k,sub)=>{const m=msBy(k), d=c.ms[k], isNx=nx&&nx.k===k;
             return `<li class="${sub?"sub ":""}${d?"done":isNx?"next":""}"><span class="dot">${d?"✓":sub?"":i+1}</span>
-            <div class="lblwrap"><label><input type="checkbox" data-ms="${k}"${d?" checked":""}>${esc(sub?m.short:m.name)}${isNx?'<span class="nexttag">NEXT</span>':""}</label>${k==="closingSched"?`<label class="closeat">Closing date &amp; time <input type="datetime-local" data-closeat value="${esc(c.closingAt||"")}"></label>`:""}</div>
+            <div class="lblwrap"><label><input type="checkbox" data-ms="${k}"${d?" checked":""}>${esc(sub?m.short:m.name)}${isNx?'<span class="nexttag">NEXT</span>':""}</label>${k==="apprRecv"?apprBlock(c):""}${k==="closingSched"?`<label class="closeat">Closing date &amp; time <input type="datetime-local" data-closeat value="${esc(c.closingAt||"")}"></label>`:""}</div>
             ${d?`<input type="date" data-msdate="${k}" value="${d}" aria-label="Date for ${esc(m.name)}">`:`<span class="muted small">—</span>`}</li>`;};
           const head=nd.group?`<li class="${st}"><span class="dot">${st==="done"?"✓":i+1}</span><span class="grp">${esc(nd.name)} <span class="muted small">(check the steps below)</span></span><span></span></li>`:item(nd.k,false);
           return head+(nd.subs||[]).map(k=>item(k,true)).join("");}).join("")}</ul>
@@ -1146,7 +1182,7 @@ dialog form{padding:16px;display:grid;gap:12px}
           const st=nodeDone(c,nd)?"done":(i===stg?"next":"");
           const item=(k,sub)=>{const m=msBy(k), d=c.ms[k], isNx=nx&&nx.k===k;
             return `<li class="${sub?"sub ":""}${d?"done":isNx?"next":""}"><span class="dot">${d?"✓":sub?"":i+1}</span>
-            <div class="lblwrap"><label><input type="checkbox" data-ms="${k}"${d?" checked":""}>${esc(sub?m.short:m.name)}${isNx?'<span class="nexttag">NEXT</span>':""}</label>${k==="closingSched"?`<label class="closeat">Closing date &amp; time <input type="datetime-local" data-closeat value="${esc(c.closingAt||"")}"></label>`:""}</div>
+            <div class="lblwrap"><label><input type="checkbox" data-ms="${k}"${d?" checked":""}>${esc(sub?m.short:m.name)}${isNx?'<span class="nexttag">NEXT</span>':""}</label>${k==="apprRecv"?apprBlock(c):""}${k==="closingSched"?`<label class="closeat">Closing date &amp; time <input type="datetime-local" data-closeat value="${esc(c.closingAt||"")}"></label>`:""}</div>
             ${d?`<input type="date" data-msdate="${k}" value="${d}" aria-label="Date for ${esc(m.name)}">`:`<span class="muted small">—</span>`}</li>`;};
           const head=nd.group?`<li class="${st}"><span class="dot">${st==="done"?"✓":i+1}</span><span class="grp">${esc(nd.name)} <span class="muted small">(check the steps below)</span></span><span></span></li>`:item(nd.k,false);
           return head+(nd.subs||[]).map(k=>item(k,true)).join("");}))}</ul>
@@ -1457,6 +1493,25 @@ dialog form{padding:16px;display:grid;gap:12px}
       case "new":newAsProspect=tab==="prospect";openForm();break;
       case "newProspect":newAsProspect=true;openForm();break;
       case "edit":openForm(c);break;
+      case "apprEdit":apprForm[c.id]=true;renderClient(c);setTimeout(()=>{const v=$("apprVal");if(v)v.focus();},30);break;
+      case "apprCancel":delete apprForm[c.id];renderClient(c);break;
+      case "apprSave":{
+        const val=fmtMoney($("apprVal").value), v=num(val);if(v===null){$("apprVal").focus();say("Enter the appraised value first.");break;}
+        const rep=(document.querySelector('input[name="apprRep"]:checked')||{}).value==="yes", rtxt=($("apprRepTxt").value||"").trim();
+        Object.assign(c,{apprValue:val,apprRepairs:rep?"yes":"no",apprRepairsText:rep?rtxt:"",apprAt:today()});
+        // A new result replaces the open appraisal conditions from the last one; cleared ones stay in the record.
+        c.conds=(c.conds||[]).filter(x=>!(x.apr&&!x.done));
+        const p=num(c.price), short=p!==null&&v<p?p-v:0, added=[];
+        if(short){addAprCond(c,"value",`Appraisal came in at ${val}, ${fmtMoney(short)} below the ${fmtMoney(p)} purchase price. Resolve the shortfall (price change, borrower covers the difference, or appraisal review).`);added.push("low value");}
+        if(rep){addAprCond(c,"repairs",`Appraisal is subject to repairs${rtxt?": "+rtxt:""}. Repairs must be completed and a final inspection done.`);added.push("repairs");}
+        delete apprForm[c.id];c.notes=c.notes||[];
+        if(added.length){delete c.ms.apprRecv;condOpen[c.id]=true;
+          c.notes.push({t:stamp(),auto:true,text:`Appraisal received at ${val}: ${added.join(" and ")}. Condition added.`});}
+        else{c.ms.apprRecv=today();annKey="apprRecv";includeUp=null;c.notes.push({t:stamp(),auto:true,text:`Appraisal received at ${val}. All good.`});}
+        touch(c);save();renderClient(c);
+        say(added.length?`Appraisal saved. ${added.length===2?"Two conditions":"A condition"} added (${added.join(" and ")}). The appraisal step stays open until ${added.length===2?"they're":"it's"} cleared.`
+          :p===null?"Appraisal saved and checked. Add the purchase price with Edit to compare the value.":"Appraisal value is at or above the purchase price. Appraisal received is checked.");
+        break;}
       case "editLock":{openForm(c);const f=$("cform"), sel=f.elements.rateLocked;
         if(sel.value!=="yes"){sel.value="yes";lockForm();}
         const box=f.elements.lockDays.value?f.elements.lockExp:f.elements.lockDays;
@@ -1501,12 +1556,18 @@ dialog form{padding:16px;display:grid;gap:12px}
   document.addEventListener("change",ev=>{
     const c=curClient();if(!c)return;
     if(ev.target.dataset.cond){const x=(c.conds||[]).find(y=>y.id===ev.target.dataset.cond);
-      if(x){x.done=ev.target.checked;x.doneAt=x.done?stamp():undefined;touch(c);save();renderClient(c);if(!openConds(c).length&&x.done)say("All conditions cleared!");}return;}
+      if(x){x.done=ev.target.checked;x.doneAt=x.done?stamp():undefined;
+        const aprDone=x.apr&&x.done&&!c.conds.some(y=>y.apr&&!y.done)&&!c.ms.apprRecv;
+        if(aprDone){c.ms.apprRecv=today();annKey="apprRecv";}
+        touch(c);save();renderClient(c);
+        if(aprDone)say("Appraisal conditions cleared. Appraisal received is now checked.");else if(!openConds(c).length&&x.done)say("All conditions cleared!");}return;}
     if(ev.target.name==="condWho"){condWho=ev.target.value;return;}
     if(ev.target.dataset.ctcchk){c.ctcChk=c.ctcChk||{};c.ctcChk[ev.target.dataset.ctcchk]=ev.target.checked;touch(c);save();renderClient(c);return;}
     if(ev.target.dataset.cd){c[ev.target.dataset.cd]=ev.target.value;touch(c);save();renderClient(c);return;}
     if(ev.target.hasAttribute("data-closeat")){c.closingAt=ev.target.value;delete annMsg[c.id+"closingSched"];touch(c);save();renderClient(c);return;}
     const k=ev.target.dataset.ms, kd=ev.target.dataset.msdate;
+    if(k==="apprRecv"&&ev.target.checked){ev.target.checked=false;apprForm[c.id]=true;renderClient(c);setTimeout(()=>{const v=$("apprVal");if(v)v.focus();},30);return;}
+    if(ev.target.name==="apprRep"){const b=$("apprRepBox");if(b)b.hidden=ev.target.value!=="yes";return;}
     if(k){
       const wasPros=ev.target.checked&&c.status==="prospect";if(wasPros)c.status="active";
       if(ev.target.checked){c.ms[k]=today();annKey=k;includeUp=null;if(k==="condAppr"&&openConds(c,"b").length)includeConds=true;}else delete c.ms[k];
