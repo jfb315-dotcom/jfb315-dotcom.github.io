@@ -6,8 +6,9 @@ Working notes for this repository. Read all of it before changing anything.
 
 John Bischof's personal work site (loan officer, Home Mortgage Solutions, LLC), live at
 https://jfb315-dotcom.github.io/. It is a static GitHub Pages site: three hand-written HTML
-pages, one shared script, and a Python job that refreshes market data. There is no framework,
-no bundler, no package.json and no server. Each page holds its own CSS and JavaScript inline.
+pages, one shared stylesheet, one shared script, and a Python job that refreshes market data.
+There is no framework, no bundler, no package.json and no server. Each page holds its own
+component CSS and JavaScript inline; colors, sizes and spacing come from `site.css`.
 
 John is not a programmer. He describes what he wants in plain words (often dictated, with
 typos), looks at the live site, and replies with screenshots. Write to him in plain English:
@@ -20,7 +21,8 @@ what changed, where to click, what he will see. No code, file names or git terms
 | `index.html` | Market dashboard. Reads `data/market.json`. Charts, alert level, quick links, "My tools" tiles, color scheme picker. |
 | `checklist.html` | Document request email builder (borrower type, loan type, checked items, tips, upload button). |
 | `clients.html` | Client tracker, the biggest and most-changed file. Client list, client page, milestones, conditions, notes, emails, CD (TRID) dates, print sheet, backup. |
-| `brand.js` | Logo bar and Dashboard / Clients / Document request buttons, injected at the top of every page. Loaded as `brand.js?v=5`. |
+| `site.css` | The design system: color tokens for every scheme, the text and spacing scales, base styles, the top bar's styles, phone tap sizes. Loaded as `site.css?v=1`. |
+| `brand.js` | Fills the empty `#brandbar` at the top of every page with the logo and the Dashboard / Clients / Document request buttons. Loaded as `brand.js?v=7`. |
 | `data/market.json` | Written only by the workflow. Never edit by hand. |
 | `scripts/fetch_fred.py` | Pulls FRED series and release dates (standard library only). Holds the Fed meeting date list. |
 | `.github/workflows/update-data.yml` | Runs the fetch on a weekday schedule and on every push to `main`, then publishes. |
@@ -109,7 +111,7 @@ Storage keys in use (keep the names; old data must keep loading):
   send-by = receive-by minus 3; presumed receipt = sent plus 3; earliest closing = receipt
   plus 3. Check any change against a hand count that crosses a holiday. The page always says
   to confirm with the LOS or compliance; keep that sentence.
-- When `brand.js` changes, bump `?v=` in all three pages, or browsers keep the old copy.
+- When `brand.js` or `site.css` changes, bump its `?v=` in all three pages, or browsers keep the old copy.
 - Comments say why, in one line, in plain words. Commit messages: a short imperative subject,
   then bullets describing what the user will see.
 
@@ -130,15 +132,19 @@ John pastes emails into classic Outlook, which strips most CSS. Email markup mus
 
 - Font: Public Sans (400 to 800), system fallbacks. Headings 800 weight with slight negative
   letter-spacing; small labels are .7 to .75rem, 700 to 800 weight, uppercase, letter-spaced.
-- Color only through tokens: `--paper` (page), `--panel` (cards), `--ink`, `--muted`, `--rule`
-  (borders), `--good`/`--goodtxt`/`--goodbg`, `--bad`, `--brass` (attention, "next"),
-  `--tipbg`. Tokens are redefined for dark mode and for the palettes (classic, forest,
-  burgundy, harbor, night) chosen on the dashboard and stored in `theme`. A hard-coded color
-  on a page will break in dark mode; a new token must be added to every palette block.
-- Shape: square corners on panels, inputs and buttons; 1px `--rule` borders; a 5px left border
-  marks status (green done, brass attention, red late). Round only pills, dots and the brand bar.
-- Spacing: panels pad 16px, gaps are 14 to 16px between panels and 8 to 12px inside. Page
-  gutter 16px. Content width 980px, 1560px on wide screens.
+- Color only through the tokens in `site.css`: `--paper` (page), `--panel` (cards), `--ink`,
+  `--muted`, `--rule` (borders), `--brass` (the one accent; text on it is `--onbrass`),
+  `--good` (solid fills) / `--goodtxt` (green text) / `--goodbg`, `--bad` / `--badbg`, `--tipbg`.
+  They are redefined for dark mode and each scheme (classic, forest, burgundy, harbor, night)
+  picked on the dashboard and stored in `theme`. A hard-coded color breaks in dark mode; a new
+  token goes in every scheme block and must pass 4.5:1 contrast on `--paper` and `--panel`.
+- Text sizes: only `var(--t-xs)` .75, `--t-sm` .875, `--t-md` 1, `--t-lg` 1.125, `--t-xl` 1.5,
+  `--t-2xl` 2rem (plus the `clamp()` page titles). Weights: 400, 600, 700, 800 only.
+- Shape: square corners everywhere; 1px `--rule` borders; a 5px left border marks status
+  (green done, brass attention, red late). Round only pills (999px) and dots (50%).
+- Spacing: only 4, 8, 12, 16, 24, 32, 48px (0, 1, 2 for hairlines). Panels pad 16px. Page
+  gutter 16px. Content width 980px, `var(--wide)` (1560px) at 1200px and up, on every page.
+- Check boxes and radios take `accent-color` from `site.css` (ink); do not set it per element.
 - Components to reuse, not reinvent: `.panel`, `.tbtn` (`.primary`, `.danger`, `.gold`),
   `.field` (label above input), `.fgrid` (auto-fit form grid), `.seg` and `.tabs` (segmented
   buttons with `aria-pressed`), `.cbanner`, `.cdtag`, `.ctcbadge`, `.mini` (dot progress bar),
@@ -175,6 +181,9 @@ John pastes emails into classic Outlook, which strips most CSS. Email markup mus
 15. **Replying with code or internals.** He wants to know what he will see and where to click.
 16. **Leaving the form blocked by validation**: `type="email"` or `type="url"` inputs reject
     partial values and silently stop Save. Website fields are plain text, fixed up by `asHref`.
+17. **Tidying spacing, sizes or colors inside email or print code.** Email builders (`email()`
+    in the checklist, `buildMail*` in clients) and `#printSheet` keep their own px, pt and hex
+    values. After any sweep, compare email HTML and text against `main`; they must be identical.
 
 ## Before saying a task is done
 
@@ -184,6 +193,7 @@ John pastes emails into classic Outlook, which strips most CSS. Email markup mus
 - [ ] Old saved data still loads (a record without the new field renders correctly).
 - [ ] Looked at a screenshot yourself, in light mode, and dark mode if colors changed.
 - [ ] No client data, keys or test scripts added to the repo; `git status` shows only intended files.
-- [ ] `brand.js?v=` bumped if `brand.js` changed; workflow `cp` line updated if a file was added.
+- [ ] `?v=` bumped if `brand.js` or `site.css` changed; workflow `cp` line updated if a file was added.
+- [ ] Email HTML and plain text unchanged unless the task was to change them.
 - [ ] Committed, pushed, pull request squash-merged, publish run finished with `success`.
 - [ ] Reply to John: what changed, where it is on the page, "press Ctrl+F5", and anything not done or not verified, said plainly.
