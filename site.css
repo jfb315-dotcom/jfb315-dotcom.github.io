@@ -5,6 +5,7 @@
      Every text color here passes 4.5:1 contrast on --paper and --panel. */
   --paper:#F3F5F8; --panel:#FFFFFF; --ink:#14233C; --muted:#5B6A80; --rule:#D9DEE6;
   --brass:#8F6614; --onbrass:#FFFFFF; --tipbg:#FBF4E4;
+  --condbg:#EAF5EE; --condrule:#B9D9C5; /* light green tint that marks the conditions box */
   --good:#2C5234; --goodtxt:#1F7A5A; --goodbg:#E5F3EC;
   --bad:#B4412F; --badbg:#F8E7E3;
   --line:#14233C; --grid:#E6EAF0;
@@ -19,7 +20,7 @@
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
-    --brass:#E0B455; --onbrass:#1B1404; --tipbg:#2C2717;
+    --brass:#E0B455; --onbrass:#1B1404; --tipbg:#2C2717; --condbg:#15302A; --condrule:#2B5A48;
     --good:#3F8A55; --goodtxt:#4CC197; --goodbg:#143329;
     --bad:#F08A73; --badbg:#3A2020;
     --line:#E8EDF5; --grid:#22304D;
@@ -28,7 +29,7 @@
 }
 :root[data-theme="dark"]{
   --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
-  --brass:#E0B455; --onbrass:#1B1404; --tipbg:#2C2717;
+  --brass:#E0B455; --onbrass:#1B1404; --tipbg:#2C2717; --condbg:#15302A; --condrule:#2B5A48;
   --good:#3F8A55; --goodtxt:#4CC197; --goodbg:#143329;
   --bad:#F08A73; --badbg:#3A2020;
   --line:#E8EDF5; --grid:#22304D;
@@ -36,13 +37,13 @@
 }
 /* Color schemes picked on the dashboard */
 :root[data-palette="forest"]{--paper:#F2F5F1;--panel:#FFFFFF;--ink:#1D3B2A;--muted:#5C6E62;--rule:#D5DDD6;
-  --brass:#8C5F14;--tipbg:#FAF3E3;--goodtxt:#2C7D4F;--goodbg:#E4F1E8;--bad:#B4412F;--badbg:#F8E7E3;--line:#1D3B2A;--grid:#E5EBE6}
+  --brass:#8C5F14;--tipbg:#FAF3E3;--condbg:#E8F3EC;--condrule:#B5D3BF;--goodtxt:#2C7D4F;--goodbg:#E4F1E8;--bad:#B4412F;--badbg:#F8E7E3;--line:#1D3B2A;--grid:#E5EBE6}
 :root[data-palette="burgundy"]{--paper:#F7F3F2;--panel:#FFFFFF;--ink:#4A1D27;--muted:#7A6266;--rule:#E3D8D8;
-  --brass:#8A6418;--tipbg:#FAF3E3;--goodtxt:#1F7A5A;--goodbg:#E5F3EC;--bad:#C0392B;--badbg:#F9E6E3;--line:#4A1D27;--grid:#EFE7E6}
+  --brass:#8A6418;--tipbg:#FAF3E3;--condbg:#EAF5EE;--condrule:#B9D9C5;--goodtxt:#1F7A5A;--goodbg:#E5F3EC;--bad:#C0392B;--badbg:#F9E6E3;--line:#4A1D27;--grid:#EFE7E6}
 :root[data-palette="harbor"]{--paper:#0E1F24;--panel:#15303A;--ink:#E6F1F1;--muted:#94B0B4;--rule:#24454F;
-  --brass:#E8B860;--onbrass:#1B1404;--tipbg:#2F2C1A;--goodtxt:#5CCB9E;--goodbg:#15372E;--bad:#F2907A;--badbg:#3B2424;--line:#E6F1F1;--grid:#1D3C45}
+  --brass:#E8B860;--onbrass:#1B1404;--tipbg:#2F2C1A;--condbg:#163A33;--condrule:#2D6152;--goodtxt:#5CCB9E;--goodbg:#15372E;--bad:#F2907A;--badbg:#3B2424;--line:#E6F1F1;--grid:#1D3C45}
 :root[data-palette="night"]{--paper:#0F1726;--panel:#16213A;--ink:#E8EDF5;--muted:#9AA8BD;--rule:#2A3756;
-  --brass:#E0B455;--onbrass:#1B1404;--tipbg:#2C2717;--goodtxt:#4CC197;--goodbg:#143329;--bad:#F08A73;--badbg:#3A2020;--line:#E8EDF5;--grid:#22304D}
+  --brass:#E0B455;--onbrass:#1B1404;--tipbg:#2C2717;--condbg:#15302A;--condrule:#2B5A48;--goodtxt:#4CC197;--goodbg:#143329;--bad:#F08A73;--badbg:#3A2020;--line:#E8EDF5;--grid:#22304D}
 
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;

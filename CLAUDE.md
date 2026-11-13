@@ -19,7 +19,7 @@ what changed, where to click, what he will see. No code, file names or git terms
 | `index.html` | Market dashboard. Reads `data/market.json`. Charts, alert level, quick links, "My tools" tiles, color scheme picker. |
 | `checklist.html` | Document request email builder (borrower type, loan type, checked items, tips, upload button). |
 | `clients.html` | Client tracker, the biggest and most-changed file. Client list, client page, milestones, conditions, notes, emails, CD (TRID) dates, print sheet, backup. |
-| `site.css` | The design system: color tokens for every scheme, the text and spacing scales, base styles, the top bar's styles, phone tap sizes. Loaded as `site.css?v=1`. |
+| `site.css` | The design system: color tokens for every scheme, the text and spacing scales, base styles, the top bar's styles, phone tap sizes. Loaded as `site.css?v=2`. |
 | `brand.js` | Fills the empty `#brandbar` at the top of every page with the logo and the Dashboard / Clients / Document request buttons. Loaded as `brand.js?v=7`. |
 | `data/market.json` | Written only by the workflow. Never edit by hand. |
 | `scripts/fetch_fred.py` | Pulls FRED series and release dates (standard library only). Holds the Fed meeting date list. |
@@ -133,7 +133,8 @@ John pastes emails into classic Outlook, which strips most CSS. Email markup mus
   letter-spacing; small labels are .7 to .75rem, 700 to 800 weight, uppercase, letter-spaced.
 - Color only through the tokens in `site.css`: `--paper` (page), `--panel` (cards), `--ink`,
   `--muted`, `--rule` (borders), `--brass` (the one accent; text on it is `--onbrass`),
-  `--good` (solid fills) / `--goodtxt` (green text) / `--goodbg`, `--bad` / `--badbg`, `--tipbg`.
+  `--good` (solid fills) / `--goodtxt` (green text) / `--goodbg`, `--bad` / `--badbg`, `--tipbg`,
+  `--condbg` / `--condrule` (the green tint on the conditions box).
   They are redefined for dark mode and each scheme (classic, forest, burgundy, harbor, night)
   picked on the dashboard and stored in `theme`. A hard-coded color breaks in dark mode; a new
   token goes in every scheme block and must pass 4.5:1 contrast on `--paper` and `--panel`.

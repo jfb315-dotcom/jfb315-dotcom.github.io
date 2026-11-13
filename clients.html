@@ -16,7 +16,7 @@
     if(v!=="auto"){r.dataset.theme=dark[v]?"dark":"light";if(v!=="classic")r.dataset.palette=v;}
   })();
 </script>
-<link rel="stylesheet" href="site.css?v=1">
+<link rel="stylesheet" href="site.css?v=2">
 <style>
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
@@ -217,6 +217,10 @@ details.phms[open]>summary{border-bottom:0}
 .cbanner.empty .arrow{color:var(--muted)}
 .tbtn.gold{background:var(--brass);border-color:var(--brass);color:var(--onbrass)}
 .conds{margin-top:8px}
+/* Conditions stand out with a light green tint, in every color scheme */
+.cbanner,.panel.conds{background:var(--condbg);border-color:var(--condrule)}
+.cbanner{border-left-color:var(--brass)}
+.panel.conds .clist li,.panel.conds .cgroup h4{border-top-color:var(--condrule)}
 .chead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .clist{list-style:none;margin:12px 0 0;padding:0}
 .clist li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:start;padding:8px 0;border-top:1px solid var(--rule)}
