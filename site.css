@@ -1,0 +1,49 @@
+/* Shared design system for every page: colors, text sizes, spacing and base styles.
+   Pages keep their own component styles but take every color, size and space from here. */
+:root{
+  /* Colors. --brass is the one accent; --good and --bad are for status only. */
+  --paper:#F3F5F8; --panel:#FFFFFF; --ink:#14233C; --muted:#5B6A80; --rule:#D9DEE6;
+  --brass:#A97A1E; --onbrass:#FFFFFF; --tipbg:#FBF4E4;
+  --good:#2C5234; --goodtxt:#1F7A5A; --goodbg:#E5F3EC;
+  --bad:#B4412F; --badbg:#F8E7E3;
+  --line:#14233C; --grid:#E6EAF0;
+  /* Text sizes: six steps, nothing in between. */
+  --t-xs:.75rem; --t-sm:.875rem; --t-md:1rem; --t-lg:1.125rem; --t-xl:1.5rem; --t-2xl:2rem;
+  /* Spacing scale: 4, 8, 12, 16, 24, 32, 48. */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px;
+  /* Content width on large screens, the same on every page so the top bar never shifts. */
+  --wide:1560px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
+    --brass:#E0B455; --onbrass:#FFFFFF; --tipbg:#2C2717;
+    --good:#3F8A55; --goodtxt:#4CC197; --goodbg:#143329;
+    --bad:#F08A73; --badbg:#3A2020;
+    --line:#E8EDF5; --grid:#22304D;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
+  --brass:#E0B455; --onbrass:#FFFFFF; --tipbg:#2C2717;
+  --good:#3F8A55; --goodtxt:#4CC197; --goodbg:#143329;
+  --bad:#F08A73; --badbg:#3A2020;
+  --line:#E8EDF5; --grid:#22304D;
+}
+/* Color schemes picked on the dashboard */
+:root[data-palette="forest"]{--paper:#F2F5F1;--panel:#FFFFFF;--ink:#1D3B2A;--muted:#5C6E62;--rule:#D5DDD6;
+  --brass:#A8731F;--tipbg:#FAF3E3;--goodtxt:#2C7D4F;--goodbg:#E4F1E8;--bad:#B4412F;--badbg:#F8E7E3;--line:#1D3B2A;--grid:#E5EBE6}
+:root[data-palette="burgundy"]{--paper:#F7F3F2;--panel:#FFFFFF;--ink:#4A1D27;--muted:#7A6266;--rule:#E3D8D8;
+  --brass:#9A7020;--tipbg:#FAF3E3;--goodtxt:#1F7A5A;--goodbg:#E5F3EC;--bad:#C0392B;--badbg:#F9E6E3;--line:#4A1D27;--grid:#EFE7E6}
+:root[data-palette="harbor"]{--paper:#0E1F24;--panel:#15303A;--ink:#E6F1F1;--muted:#94B0B4;--rule:#24454F;
+  --brass:#E8B860;--tipbg:#2F2C1A;--goodtxt:#5CCB9E;--goodbg:#15372E;--bad:#F2907A;--badbg:#3B2424;--line:#E6F1F1;--grid:#1D3C45}
+:root[data-palette="night"]{--paper:#0F1726;--panel:#16213A;--ink:#E8EDF5;--muted:#9AA8BD;--rule:#2A3756;
+  --brass:#E0B455;--tipbg:#2C2717;--goodtxt:#4CC197;--goodbg:#143329;--bad:#F08A73;--badbg:#3A2020;--line:#E8EDF5;--grid:#22304D}
+
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
+  font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:inherit}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}

@@ -7,26 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css?v=1">
 <style>
-:root{
-  --paper:#F3F5F8; --panel:#FFFFFF; --ink:#14233C; --muted:#5B6A80; --rule:#D9DEE6;
-  --good:#1F7A5A; --bad:#B4412F; --brass:#A97A1E; --line:#14233C; --grid:#E6EAF0;
-  --goodbg:#E5F3EC; --badbg:#F8E7E3;
-  box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
-    --good:#4CC197; --bad:#F08A73; --brass:#E0B455; --line:#E8EDF5; --grid:#22304D;
-    --goodbg:#143329; --badbg:#3A2020;
-  }
-}
-:root[data-theme="dark"]{
-  --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
-  --good:#4CC197; --bad:#F08A73; --brass:#E0B455; --line:#E8EDF5; --grid:#22304D;
-  --goodbg:#143329; --badbg:#3A2020;
-}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + var(--headh,0px) + 8px)}
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);
@@ -61,7 +44,7 @@ button.tile{width:100%;text-align:left;cursor:pointer;font:inherit}
 .toolwrap .x:hover{color:var(--bad)}
 
 /* Alert */
-.alert{margin-top:18px;padding:14px 18px;border-left:6px solid var(--good);background:var(--goodbg);
+.alert{margin-top:18px;padding:14px 18px;border-left:6px solid var(--goodtxt);background:var(--goodbg);
   display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;justify-content:space-between}
 .alert.bad{border-left-color:var(--bad);background:var(--badbg)}
 .alert.calm{border-left-color:var(--rule);background:var(--panel);border:1px solid var(--rule);border-left-width:6px}
@@ -81,7 +64,7 @@ button.tile{width:100%;text-align:left;cursor:pointer;font:inherit}
 .rate .val{font-size:clamp(2rem,4.6vw,2.8rem);font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-top:8px}
 .rate .val small{font-size:.45em;font-weight:600;color:var(--muted);margin-left:2px}
 .chg{font-size:.9rem;font-weight:700;margin-top:2px}
-.good{color:var(--good)} .bad{color:var(--bad)}
+.good{color:var(--goodtxt)} .bad{color:var(--bad)}
 .chg span{font-weight:500;color:var(--muted)}
 .rate.off{cursor:default}
 .rate.off .val{font-size:1rem;font-weight:600;letter-spacing:0;margin-top:14px}
@@ -148,15 +131,6 @@ button.tile{width:100%;text-align:left;cursor:pointer;font:inherit}
   .rate:last-child{border-bottom:0}
 }
 
-/* Palettes */
-:root[data-palette="forest"]{--paper:#F2F5F1;--panel:#FFFFFF;--ink:#1D3B2A;--muted:#5C6E62;--rule:#D5DDD6;
-  --good:#2C7D4F;--bad:#B4412F;--brass:#A8731F;--line:#1D3B2A;--grid:#E5EBE6;--goodbg:#E4F1E8;--badbg:#F8E7E3}
-:root[data-palette="burgundy"]{--paper:#F7F3F2;--panel:#FFFFFF;--ink:#4A1D27;--muted:#7A6266;--rule:#E3D8D8;
-  --good:#1F7A5A;--bad:#C0392B;--brass:#9A7020;--line:#4A1D27;--grid:#EFE7E6;--goodbg:#E5F3EC;--badbg:#F9E6E3}
-:root[data-palette="harbor"]{--paper:#0E1F24;--panel:#15303A;--ink:#E6F1F1;--muted:#94B0B4;--rule:#24454F;
-  --good:#5CCB9E;--bad:#F2907A;--brass:#E8B860;--line:#E6F1F1;--grid:#1D3C45;--goodbg:#15372E;--badbg:#3B2424}
-:root[data-palette="night"]{--paper:#0F1726;--panel:#16213A;--ink:#E8EDF5;--muted:#9AA8BD;--rule:#2A3756;
-  --good:#4CC197;--bad:#F08A73;--brass:#E0B455;--line:#E8EDF5;--grid:#22304D;--goodbg:#143329;--badbg:#3A2020}
 
 /* Toolbar */
 .headright{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
@@ -187,7 +161,7 @@ body.dragging{user-select:none;-webkit-user-select:none;overflow-anchor:none}
 .mhead{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between}
 .status{font-size:.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px}
 .status::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--muted)}
-.status.open::before{background:var(--good)}
+.status.open::before{background:var(--goodtxt)}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(150px,100%),1fr));margin-top:12px;
   border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
 .mcell{padding:10px 14px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
@@ -524,7 +498,7 @@ body.dragging{user-select:none;-webkit-user-select:none;overflow-anchor:none}
     for(let i=0;i<5;i++){const j=Math.round((X.length-1)*i/4);
       g+=`<text x="${sx(j)}" y="${H-8}" text-anchor="${i===0?"start":i===4?"end":"middle"}" font-size="12" fill="${css("--muted")}">${X[j].toLocaleDateString("en-US",fmt)}</text>`;}
     const path=Y.map((v,i)=>(i?"L":"M")+sx(i).toFixed(1)+" "+sy(v).toFixed(1)).join(" ");
-    const c=change(s,Y[0],Y.at(-1)), col=c.flat?css("--muted"):c.good?css("--good"):css("--bad");
+    const c=change(s,Y[0],Y.at(-1)), col=c.flat?css("--muted"):c.good?css("--goodtxt"):css("--bad");
     g+=`<path d="${path} L${sx(Y.length-1)} ${H-P.b} L${P.l} ${H-P.b} Z" fill="${col}" opacity=".08"/>
         <path d="${path}" fill="none" stroke="${css("--line")}" stroke-width="2"/>
         <circle cx="${sx(Y.length-1)}" cy="${sy(Y.at(-1))}" r="4" fill="${col}"/>
