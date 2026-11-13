@@ -6,7 +6,7 @@
 <title>Mortgage Market Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400..800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="site.css?v=1">
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -22,7 +22,9 @@ header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-be
   border-bottom:2px solid var(--ink);padding-bottom:16px;
   position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--paper);padding-top:12px;margin-top:-12px}
 h1{font-size:clamp(1.5rem,3.2vw,2rem);font-weight:800;letter-spacing:-.02em;margin:0}
-.stamp{color:var(--muted);font-size:var(--t-sm)}
+.stamp{color:var(--muted);font-size:var(--t-sm);min-height:1.5em}
+/* Hold each section's space while the numbers load, so the page does not jump when they arrive. */
+@media (min-width:1200px){#mgrid{min-height:95px}#rates{min-height:159px}#rates2{min-height:74px}#spread{min-height:48px}#charttitle{min-height:27px}#periodline{min-height:21px}#range{min-height:39px}}
 .sample{display:block;margin-top:16px;font-size:var(--t-sm);color:var(--brass);font-weight:600}
 button,input{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--brass);outline-offset:2px}
@@ -208,9 +210,10 @@ body.dragging{user-select:none;-webkit-user-select:none;overflow-anchor:none}
 }
 @media (prefers-reduced-motion:reduce){.side{transition:none}}
 </style>
-<script src="brand.js?v=6" defer></script>
+<script src="brand.js?v=7" defer></script>
 </head>
 <body>
+<div id="brandbar" class="brandbar"></div>
 <div class="shell">
 <aside class="side" id="side" aria-label="Quick links">
   <div class="sidein" id="sidein">

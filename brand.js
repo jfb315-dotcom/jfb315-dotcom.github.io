@@ -8,22 +8,22 @@
   var NAME = "John Bischof";
   var COMPANY = "Home Mortgage Solutions, LLC";
   var LOGOS = [
-    {f:"img/logos/everyday-slate.webp", bg:"dark"},
-    {f:"img/logos/everyday-black.webp", bg:"light"},
-    {f:"img/logos/everyday-green.webp", bg:"dark"},
-    {f:"img/logos/everyday-navy-gold.webp", bg:"dark"},
-    {f:"img/logos/everyday-white-gold.webp", bg:"light"},
-    {f:"img/logos/everyday-orange.webp", bg:"light"},
-    {f:"img/logos/everyday-navy-orange.webp", bg:"dark"},
-    {f:"img/logos/everyday-white-orange.webp", bg:"light"},
-    {f:"img/logos/everyday-gray-orange.webp", bg:"dark"},
-    {f:"img/logos/thanksgiving-brown.webp", bg:"dark", holiday:"thanksgiving"},
-    {f:"img/logos/thanksgiving-white.webp", bg:"light", holiday:"thanksgiving"},
-    {f:"img/logos/thanksgiving-navy-grateful.webp", bg:"dark", holiday:"thanksgiving"},
-    {f:"img/logos/christmas-navy-lights.webp", bg:"dark", holiday:"christmas"},
-    {f:"img/logos/christmas-red.webp", bg:"dark", holiday:"christmas"},
-    {f:"img/logos/christmas-white-green.webp", bg:"light", holiday:"christmas"},
-    {f:"img/logos/christmas-happy-holidays-green.webp", bg:"dark", holiday:"christmas"}
+    {h:201, f:"img/logos/everyday-slate.webp", bg:"dark"},
+    {h:201, f:"img/logos/everyday-black.webp", bg:"light"},
+    {h:201, f:"img/logos/everyday-green.webp", bg:"dark"},
+    {h:201, f:"img/logos/everyday-navy-gold.webp", bg:"dark"},
+    {h:201, f:"img/logos/everyday-white-gold.webp", bg:"light"},
+    {h:201, f:"img/logos/everyday-orange.webp", bg:"light"},
+    {h:201, f:"img/logos/everyday-navy-orange.webp", bg:"dark"},
+    {h:201, f:"img/logos/everyday-white-orange.webp", bg:"light"},
+    {h:201, f:"img/logos/everyday-gray-orange.webp", bg:"dark"},
+    {h:236, f:"img/logos/thanksgiving-brown.webp", bg:"dark", holiday:"thanksgiving"},
+    {h:236, f:"img/logos/thanksgiving-white.webp", bg:"light", holiday:"thanksgiving"},
+    {h:236, f:"img/logos/thanksgiving-navy-grateful.webp", bg:"dark", holiday:"thanksgiving"},
+    {h:236, f:"img/logos/christmas-navy-lights.webp", bg:"dark", holiday:"christmas"},
+    {h:236, f:"img/logos/christmas-red.webp", bg:"dark", holiday:"christmas"},
+    {h:236, f:"img/logos/christmas-white-green.webp", bg:"light", holiday:"christmas"},
+    {h:236, f:"img/logos/christmas-happy-holidays-green.webp", bg:"dark", holiday:"christmas"}
   ];
 
   var DAY = 864e5;
@@ -65,30 +65,12 @@
      icon:'<path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>'}
   ];
 
-  var css = ".brandbar{display:flex;align-items:center;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;margin:0 auto;box-sizing:border-box;"+
-    "padding-top:calc(env(safe-area-inset-top,0px) + 16px)}"+
-    ".brandbar .bl{display:flex;align-items:center;gap:16px;min-width:0}"+
-    ".brandbar img{display:block;height:72px;width:auto;max-width:min(300px,60vw)}"+
-    ".brandbar .bn{display:flex;flex-direction:column;line-height:1.2}"+
-    ".brandbar .bn b{font-size:var(--t-lg);font-weight:800;letter-spacing:-.01em;color:var(--ink)}"+
-    ".brandbar .bn span{font-size:var(--t-md);color:var(--muted)}"+
-    ".brandnav{display:flex;flex-wrap:wrap;gap:8px}"+
-    ".brandnav a{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:8px 16px;border:1px solid var(--rule);"+
-      "background:var(--panel);color:var(--ink);font-weight:700;font-size:var(--t-md);text-decoration:none;font-family:inherit}"+
-    ".brandnav a:hover{border-color:var(--ink)}"+
-    ".brandnav a[aria-current=page]{background:var(--ink);color:var(--panel);border-color:var(--ink)}"+
-    ".brandnav svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}"+
-    ".brandnav .short{display:none}"+
-    // Phones: three equal buttons on one row, icon above a short label
-    "@media (max-width:640px){.brandbar img{height:52px}.brandbar .bn b{font-size:var(--t-md)}.brandnav{width:100%;flex-wrap:nowrap}"+
-      ".brandnav a{flex:1 1 0;flex-direction:column;justify-content:center;gap:4px;padding:8px 4px;min-height:58px;font-size:var(--t-sm)}"+
-      ".brandnav svg{width:22px;height:22px}.brandnav .full{display:none}.brandnav .short{display:inline}}"+
-    "@media print{.brandbar{display:none!important}}";
-
   function render(){
-    if (document.getElementById("brandbar")) return;
-    var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
-    var bar = document.createElement("div"); bar.id = "brandbar"; bar.className = "brandbar";
+    // Each page has an empty #brandbar at the top (its space is reserved in site.css) so nothing jumps when this fills it.
+    var bar = document.getElementById("brandbar"), made = !bar;
+    if (bar && bar.firstChild) return;
+    if (made){ bar = document.createElement("div"); bar.id = "brandbar"; }
+    bar.className = "brandbar";
     // Line the bar up with the page's own content column.
     var host = document.querySelector(".shell, .wrap");
     if (host){ var cs = getComputedStyle(host); bar.style.maxWidth = cs.maxWidth; bar.style.paddingLeft = cs.paddingLeft; bar.style.paddingRight = cs.paddingRight; }
@@ -97,6 +79,7 @@
     var logo = pick(new Date());
     if (logo){
       var img = document.createElement("img");
+      img.width = 480; img.height = logo.h; img.fetchPriority = "high";
       img.src = logo.f; img.alt = COMPANY; img.onerror = function(){ img.remove(); };
       left.appendChild(img);
     }
@@ -113,7 +96,7 @@
       nav.appendChild(a);
     });
     bar.appendChild(nav);
-    document.body.insertBefore(bar, document.body.firstChild);
+    if (made) document.body.insertBefore(bar, document.body.firstChild);
   }
   window.Brand = { season: season, thanksgiving: thanksgiving, pick: pick, LOGOS: LOGOS };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", render); else render();

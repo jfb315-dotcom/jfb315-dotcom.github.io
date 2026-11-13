@@ -52,3 +52,29 @@ button,select,input,textarea{font:inherit;color:inherit}
 /* Check boxes and radio buttons use the ink color everywhere, not the browser's blue. */
 input[type=checkbox],input[type=radio]{accent-color:var(--ink)}
 :focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+
+/* Top bar on every page: logo, name and the three page buttons (filled in by brand.js).
+   Its height is reserved here so the page does not jump while it loads. */
+.brandbar{display:flex;align-items:center;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;margin:0 auto;
+  max-width:var(--wide);padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 0;min-height:88px}
+.brandbar .bl{display:flex;align-items:center;gap:16px;min-width:0}
+.brandbar img{display:block;height:72px;width:auto;max-width:min(300px,60vw)}
+.brandbar .bn{display:flex;flex-direction:column;line-height:1.2}
+.brandbar .bn b{font-size:var(--t-lg);font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+.brandbar .bn span{font-size:var(--t-md);color:var(--muted)}
+.brandnav{display:flex;flex-wrap:wrap;gap:8px}
+.brandnav a{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:8px 16px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);font-weight:700;font-size:var(--t-md);text-decoration:none;font-family:inherit}
+.brandnav a:hover{border-color:var(--ink)}
+.brandnav a[aria-current=page]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.brandnav svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.brandnav .short{display:none}
+@media (max-width:640px){.brandbar{min-height:151px}
+  .brandbar img{height:52px}
+  .brandbar .bn b{font-size:var(--t-md)}
+  .brandnav{width:100%;flex-wrap:nowrap}
+  .brandnav a{flex:1 1 0;flex-direction:column;justify-content:center;gap:4px;padding:8px 4px;min-height:58px;font-size:var(--t-sm)}
+  .brandnav svg{width:22px;height:22px}
+  .brandnav .full{display:none}
+  .brandnav .short{display:inline}
+}
+@media print{.brandbar{display:none!important}}
