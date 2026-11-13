@@ -73,7 +73,7 @@ If a new top-level file must be served, add it to the `cp` line in the workflow'
 - Emails carry no logo and no client data in image URLs. John's Outlook signature has his logo.
 
 Storage keys in use (keep the names; old data must keep loading):
-`clients-v1`, `clients-backup`, `req-me`, `req-ulink`, `req-style`, `ms-list`, `theme`,
+`clients-v1`, `contacts-v1`, `clients-backup`, `req-me`, `req-ulink`, `req-style`, `ms-list`, `theme`,
 `alertBps`, `builtinAdded`, `sectionOrder` (localStorage); `req-sel`, `req-tips`, `req-why`,
 `req-yrs`, `req-client` (sessionStorage). Wrap every read and write in `try/catch`.
 
@@ -103,8 +103,8 @@ Storage keys in use (keep the names; old data must keep loading):
   one-off Playwright script, not kept in the repo). Do not change the chain casually.
 - Statuses are `active`, `prospect`, `inactive`. Records with no status count as active.
 - Phone inputs are `type="tel"` and format themselves to `555-201-4400` (`fmtPhone`).
-- Realtor, title company, closer and lender suggestions come from `contactBook()`, built from
-  saved clients. Do not create a second store for them.
+- Realtor, title company, closer, lender and processor suggestions come from `contactBook()`:
+  saved clients first, then contacts imported from a Cardex/CSV file (`contacts-v1`). No other store.
 - TRID dates (`holidays`, `isBiz`, `bizShift`, `cdInfo`): a business day is every day except
   Sundays and federal holidays (Saturdays count). Receive-by = closing minus 3 business days;
   send-by = receive-by minus 3; presumed receipt = sent plus 3; earliest closing = receipt
