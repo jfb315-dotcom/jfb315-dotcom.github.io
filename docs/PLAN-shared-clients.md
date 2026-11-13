@@ -67,6 +67,18 @@ John asked about suggesting addresses as he types in the client form's property 
   with the Firebase question above.
 - Pick this up at the same time as the Firebase work.
 
+## Also on hold: "Improve my wording" button (AI)
+
+John asked for a button in Send an update that uses AI to tidy the message he typed.
+
+- A static page cannot do this alone: it needs an AI service, and an API key cannot sit in
+  this public repository.
+- Workable later: a small sign-in backed service (fits the Firebase plan) that holds the key
+  and forwards only the message text.
+- **Compliance first:** the message can contain borrower details, which would go to the AI
+  provider. Clear it with the Firebase and address questions above.
+- Until then John can use the AI built into Outlook or Edge on the pasted email.
+
 ## Other notes
 
 - The document request page and email builders don't need the database.
