@@ -66,7 +66,7 @@
   ];
 
   var css = ".brandbar{display:flex;align-items:center;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;margin:0 auto;box-sizing:border-box;"+
-    "padding-top:calc(env(safe-area-inset-top,0px) + 14px)}"+
+    "padding-top:calc(env(safe-area-inset-top,0px) + 16px)}"+
     ".brandbar .bl{display:flex;align-items:center;gap:16px;min-width:0}"+
     ".brandbar img{display:block;height:72px;width:auto;max-width:min(300px,60vw);border-radius:8px}"+
     ".brandbar .bn{display:flex;flex-direction:column;line-height:1.2}"+
@@ -81,7 +81,7 @@
     ".brandnav .short{display:none}"+
     // Phones: three equal buttons on one row, icon above a short label
     "@media (max-width:640px){.brandbar img{height:52px}.brandbar .bn b{font-size:var(--t-md)}.brandnav{width:100%;flex-wrap:nowrap}"+
-      ".brandnav a{flex:1 1 0;flex-direction:column;justify-content:center;gap:3px;padding:8px 4px;min-height:58px;font-size:var(--t-sm)}"+
+      ".brandnav a{flex:1 1 0;flex-direction:column;justify-content:center;gap:4px;padding:8px 4px;min-height:58px;font-size:var(--t-sm)}"+
       ".brandnav svg{width:22px;height:22px}.brandnav .full{display:none}.brandnav .short{display:inline}}"+
     "@media print{.brandbar{display:none!important}}";
 

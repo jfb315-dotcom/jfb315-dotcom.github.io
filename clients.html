@@ -21,72 +21,72 @@
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
   font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.wrap{max-width:980px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 20px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
+.wrap{max-width:980px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
 a{color:inherit}
-.back{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-md);font-weight:700;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:9px 16px;min-height:44px;cursor:pointer;font-family:inherit}
+.back{display:inline-flex;align-items:center;gap:8px;font-size:var(--t-md);font-weight:700;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:8px 16px;min-height:44px;cursor:pointer;font-family:inherit}
 .back:hover{border-color:var(--ink)}
-h1{font-size:clamp(1.6rem,4vw,2.1rem);font-weight:800;letter-spacing:-.02em;margin:6px 0 2px;line-height:1.15}
+h1{font-size:clamp(1.6rem,4vw,2.1rem);font-weight:800;letter-spacing:-.02em;margin:8px 0 2px;line-height:1.15}
 h2{font-size:var(--t-lg);font-weight:700;margin:0}
 h3{font-size:var(--t-md);font-weight:700;margin:0}
 button,select,input,textarea{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--brass);outline-offset:2px}
 .muted{color:var(--muted)}
 .small{font-size:var(--t-sm)}
-.top{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:12px}
-.acts{display:flex;flex-wrap:wrap;gap:6px}
-.tbtn{font-size:var(--t-sm);font-weight:600;background:var(--panel);border:1px solid var(--rule);padding:7px 12px;cursor:pointer;color:var(--ink);text-decoration:none;display:inline-block}
+.top{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:12px}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.tbtn{font-size:var(--t-sm);font-weight:600;background:var(--panel);border:1px solid var(--rule);padding:8px 12px;cursor:pointer;color:var(--ink);text-decoration:none;display:inline-block}
 .tbtn:hover{border-color:var(--ink)}
 .tbtn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .tbtn.danger{color:var(--bad)}
 .tbtn:disabled{opacity:.45;cursor:default}
 .note-local{font-size:var(--t-sm);color:var(--muted);margin:8px 0 0}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--panel);
-  padding:10px 16px;font-weight:600;font-size:var(--t-sm);opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100vw - 32px);text-align:center;z-index:50}
+  padding:12px 16px;font-weight:600;font-size:var(--t-sm);opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100vw - 32px);text-align:center;z-index:50}
 .toast.on{opacity:1}
 .panel{background:var(--panel);border:1px solid var(--rule);padding:16px}
-.backupwarn{margin-top:12px;padding:10px 14px;background:var(--tipbg);border-left:4px solid var(--brass);font-size:var(--t-sm);display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
+.backupwarn{margin-top:12px;padding:12px 16px;background:var(--tipbg);border-left:4px solid var(--brass);font-size:var(--t-sm);display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
 
 /* List */
-.listbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:16px 0 10px}
+.listbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:16px 0 12px}
 .tabs{display:flex;border:1px solid var(--rule)}
-.tabs button{background:var(--panel);border:0;border-right:1px solid var(--rule);padding:7px 14px;font-weight:600;font-size:var(--t-sm);cursor:pointer;color:var(--muted)}
+.tabs button{background:var(--panel);border:0;border-right:1px solid var(--rule);padding:8px 16px;font-weight:600;font-size:var(--t-sm);cursor:pointer;color:var(--muted)}
 .tabs button:last-child{border-right:0}
 .tabs button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
-.search{padding:8px 10px;border:1px solid var(--rule);background:var(--panel);min-width:0;flex:1;max-width:320px}
+.search{padding:8px 12px;border:1px solid var(--rule);background:var(--panel);min-width:0;flex:1;max-width:320px}
 .rows{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--rule)}
 .rows li{border-top:1px solid var(--rule)}
 .rows li:first-child{border-top:0}
-.row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) auto;gap:6px 20px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:14px 16px;cursor:pointer;color:var(--ink)}
+.row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) auto;gap:8px 24px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:16px 16px;cursor:pointer;color:var(--ink)}
 .row:hover{background:var(--paper)}
 .row .nm{font-weight:700;font-size:var(--t-md)}
 .row .sub{font-size:var(--t-sm);color:var(--muted)}
 .bar{height:8px;background:var(--rule);border-radius:4px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--good)}
-.row .stat{font-size:var(--t-sm);margin-top:5px;display:flex;justify-content:space-between;gap:8px}
+.row .stat{font-size:var(--t-sm);margin-top:4px;display:flex;justify-content:space-between;gap:8px}
 .row .stat b{font-weight:600}
-.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.empty{padding:32px 16px;text-align:center;color:var(--muted)}
 .row .co{font-weight:400;color:var(--muted);font-size:var(--t-sm)}
-.mini{display:flex;align-items:center;padding:3px 0}
+.mini{display:flex;align-items:center;padding:4px 0}
 .mini b{width:12px;height:12px;border-radius:50%;border:2px solid var(--rule);background:var(--panel);flex:none}
 .mini b.done{background:var(--good);border-color:var(--good)}
 .mini b.next{background:var(--brass);border-color:var(--brass);box-shadow:0 0 0 3px color-mix(in srgb,var(--brass) 25%,transparent)}
 .mini i{flex:1;height:2px;background:var(--rule)}
 .mini i.on{background:var(--good)}
-.dates{display:grid;grid-template-columns:auto auto;gap:1px 10px;margin:0;font-size:var(--t-sm);white-space:nowrap}
+.dates{display:grid;grid-template-columns:auto auto;gap:1px 12px;margin:0;font-size:var(--t-sm);white-space:nowrap}
 .dates div{display:contents}
 .dates dt{color:var(--muted)}
 .dates dd{margin:0;font-weight:600;text-align:right}
-@media (max-width:860px){.row{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}.dates{grid-column:1/-1;grid-template-columns:repeat(3,auto);justify-content:start;gap:0 18px}.dates div{display:flex;gap:6px}}
+@media (max-width:860px){.row{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}.dates{grid-column:1/-1;grid-template-columns:repeat(3,auto);justify-content:start;gap:0 16px}.dates div{display:flex;gap:8px}}
 @media (max-width:640px){.row{grid-template-columns:1fr}.row .stat{flex-direction:column;gap:0}.search{max-width:none;flex-basis:100%}}
 
 /* Detail */
-.dhead{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-start;justify-content:space-between;margin-top:6px}
+.dhead{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-start;justify-content:space-between;margin-top:8px}
 .nmrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.nmrow h1{margin:6px 0 2px}
+.nmrow h1{margin:8px 0 2px}
 .dhead .info{font-size:var(--t-sm);color:var(--muted)}
 .dhead .info span+span::before{content:" · "}
 .seg{display:inline-flex;border:1px solid var(--rule)}
-.seg button{background:var(--panel);border:0;border-right:1px solid var(--rule);padding:6px 12px;font-weight:600;font-size:var(--t-sm);cursor:pointer;color:var(--muted)}
+.seg button{background:var(--panel);border:0;border-right:1px solid var(--rule);padding:8px 12px;font-weight:600;font-size:var(--t-sm);cursor:pointer;color:var(--muted)}
 .seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
@@ -94,16 +94,16 @@ button,select,input,textarea{font:inherit;color:inherit}
 .stack{display:grid;gap:16px}
 /* Screen sizes: wide computer (3 columns), medium, phone (quick look) */
 @media (min-width:1200px){.wrap{max-width:var(--wide)}}
-.lay{display:grid;gap:14px;margin-top:14px}
+.lay{display:grid;gap:16px;margin-top:16px}
 .lay>[data-sec],.lay .stack>[data-sec]{margin-top:0!important}
-.cols3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.08fr);gap:14px;align-items:start}
-.cols3 .stack{gap:14px}
-.trackbar{padding:6px 16px 10px}
-.trackbar .tracker{margin:10px 0 4px}
+.cols3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.08fr);gap:16px;align-items:start}
+.cols3 .stack{gap:16px}
+.trackbar{padding:8px 16px 12px}
+.trackbar .tracker{margin:12px 0 4px}
 .mode-wide [data-sec="conds"]>.panel{margin-top:8px!important}
 /* At a glance strip */
 .glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0;background:var(--panel);border:1px solid var(--rule)}
-.glance .gc{padding:10px 14px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);font-size:var(--t-sm);line-height:1.45;min-width:0;overflow-wrap:anywhere}
+.glance .gc{padding:12px 16px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);font-size:var(--t-sm);line-height:1.45;min-width:0;overflow-wrap:anywhere}
 .glance .gl{font-size:var(--t-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
 .glance .gc b{font-weight:700}
 .glance a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--muted)}
@@ -112,21 +112,21 @@ button,select,input,textarea{font:inherit;color:inherit}
 .glance .gwarn{color:var(--bad);font-weight:700}
 .glance .gok{color:var(--good);font-weight:700}
 .glance .mini{margin:2px 0 4px}
-.glender{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:6px}
-.glance a.lenderbtn{display:inline-block;border:1px solid var(--ink);background:var(--ink);color:var(--panel);font-weight:800;font-size:var(--t-xs);letter-spacing:.06em;padding:4px 10px;text-decoration:none}
+.glender{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:8px}
+.glance a.lenderbtn{display:inline-block;border:1px solid var(--ink);background:var(--ink);color:var(--panel);font-weight:800;font-size:var(--t-xs);letter-spacing:.06em;padding:4px 12px;text-decoration:none}
 .glance a.lenderbtn:hover{opacity:.85}
-.msl li.earlytog{display:block;padding:6px 0}
+.msl li.earlytog{display:block;padding:8px 0}
 .msl li.earlytog button{background:none;border:0;padding:4px 0;font:inherit;font-weight:700;font-size:var(--t-sm);color:var(--muted);cursor:pointer}
 .msl li.earlytog button:hover{color:var(--ink)}
 /* Phone quick look */
 .qk{display:grid;gap:8px}
-.qk .qrow{background:var(--panel);border:1px solid var(--rule);padding:10px 12px}
+.qk .qrow{background:var(--panel);border:1px solid var(--rule);padding:12px 12px}
 .qk .qn{font-weight:700}
 .qk .qs{font-size:var(--t-sm);color:var(--muted)}
 .qk .qb{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-.qk .qb a{flex:1 1 0;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:6px 10px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);text-decoration:none;font-weight:700;font-size:var(--t-sm)}
+.qk .qb a{flex:1 1 0;min-width:120px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 12px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);text-decoration:none;font-weight:700;font-size:var(--t-sm)}
 .qk .qclose{font-size:var(--t-md)}
-details.phms>summary{cursor:pointer;list-style:none;background:var(--panel);border:1px solid var(--rule);padding:12px 14px;font-weight:700}
+details.phms>summary{cursor:pointer;list-style:none;background:var(--panel);border:1px solid var(--rule);padding:12px 16px;font-weight:700}
 details.phms>summary::-webkit-details-marker{display:none}
 details.phms>summary::before{content:"▸ ";color:var(--muted)}
 details.phms[open]>summary::before{content:"▾ "}
@@ -135,9 +135,9 @@ details.phms[open]>summary{border-bottom:0}
 /* Wide client list: one line per client, sortable */
 .ctable{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--rule);font-size:var(--t-sm)}
 .ctable th{text-align:left;font-size:var(--t-xs);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;border-bottom:2px solid var(--rule);padding:0;white-space:nowrap}
-.ctable th button{background:none;border:0;padding:10px 12px;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;width:100%;text-align:left}
+.ctable th button{background:none;border:0;padding:12px 12px;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;width:100%;text-align:left}
 .ctable th button:hover,.ctable th button[aria-sort]{color:var(--ink)}
-.ctable td{padding:9px 12px;border-top:1px solid var(--rule);vertical-align:middle}
+.ctable td{padding:8px 12px;border-top:1px solid var(--rule);vertical-align:middle}
 .ctable tbody tr{cursor:pointer}
 .ctable tbody tr:hover{background:var(--paper)}
 .ctable .nmb{background:none;border:0;padding:0;font:inherit;font-weight:700;font-size:var(--t-md);color:var(--ink);cursor:pointer;text-align:left}
@@ -147,7 +147,7 @@ details.phms[open]>summary{border-bottom:0}
 .ctable .oc{display:inline-block;min-width:26px;padding:1px 8px;border-radius:12px;background:var(--tipbg);color:var(--ink);font-weight:700;text-align:center}
 .ctable .dt{white-space:nowrap}
 /* Phone client list: name, step, closing */
-.prow{display:block;width:100%;text-align:left;background:none;border:0;padding:12px 14px;color:var(--ink);cursor:pointer;font:inherit}
+.prow{display:block;width:100%;text-align:left;background:none;border:0;padding:12px 16px;color:var(--ink);cursor:pointer;font:inherit}
 .prow .nm{font-weight:700}
 .prow .ps{display:flex;justify-content:space-between;gap:8px;font-size:var(--t-sm);color:var(--muted);margin-top:2px}
 
@@ -157,35 +157,35 @@ details.phms[open]>summary{border-bottom:0}
 .tracker .st::before{content:"";position:absolute;top:15px;left:-50%;width:100%;height:2px;background:var(--rule);z-index:0}
 .tracker .st:first-child::before{display:none}
 .tracker .st.done::before,.tracker .st.next::before{background:var(--good)}
-.dot{width:32px;height:32px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;font-weight:700;font-size:var(--t-sm);position:relative;z-index:1;
+.dot{width:32px;height:32px;border-radius:50%;margin:0 auto 8px;display:grid;place-items:center;font-weight:700;font-size:var(--t-sm);position:relative;z-index:1;
   background:var(--panel);border:2px solid var(--rule);color:var(--muted)}
 .done .dot{background:var(--good);border-color:var(--good);color:#fff}
 .next .dot{background:var(--brass);border-color:var(--brass);color:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--brass) 25%,transparent)}
 .tracker .lbl{font-weight:600}
 .tracker .dt{color:var(--muted);font-size:var(--t-xs)}
-.tracker .subs{display:inline-grid;gap:1px;margin-top:6px;text-align:left;font-size:var(--t-xs);color:var(--muted)}
+.tracker .subs{display:inline-grid;gap:1px;margin-top:8px;text-align:left;font-size:var(--t-xs);color:var(--muted)}
 .tracker .sb.done{color:var(--goodtxt);font-weight:600}
 .tracker .sb span{color:var(--muted);font-weight:400}
 @media (max-width:760px){.tracker{display:none}}
 
-.msl{list-style:none;margin:10px 0 0;padding:0}
-.msl li{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--rule)}
+.msl{list-style:none;margin:12px 0 0;padding:0}
+.msl li{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--rule)}
 .msl li:first-child{border-top:0}
 .msl .dot{width:26px;height:26px;margin:0;font-size:var(--t-xs)}
 .msl label{font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px}
 .msl input[type=checkbox]{width:18px;height:18px;accent-color:var(--good);margin:0}
-.msl input[type=date]{padding:4px 6px;border:1px solid var(--rule);background:var(--paper);font-size:var(--t-sm);max-width:150px}
+.msl input[type=date]{padding:4px 8px;border:1px solid var(--rule);background:var(--paper);font-size:var(--t-sm);max-width:150px}
 .msl li.sub{padding-left:42px;grid-template-columns:22px minmax(0,1fr) auto}
 .msl li.sub .dot{width:18px;height:18px;font-size:var(--t-xs);border-width:2px}
 .msl li.sub label{font-weight:400}
 .msl .grp{font-weight:700}
 .lblwrap{display:grid;gap:4px}
-.closeat{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:var(--t-sm);color:var(--muted);font-weight:600}
-.closeat input{padding:4px 6px;border:1px solid var(--rule);background:var(--paper);font-size:var(--t-sm)}
+.closeat{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:var(--t-sm);color:var(--muted);font-weight:600}
+.closeat input{padding:4px 8px;border:1px solid var(--rule);background:var(--paper);font-size:var(--t-sm)}
 /* Conditions banner and list */
-.cbanner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--rule);border-left:5px solid var(--brass);border-radius:10px;padding:10px 14px;margin-top:12px}
+.cbanner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--rule);border-left:5px solid var(--brass);border-radius:10px;padding:12px 16px;margin-top:12px}
 .cbanner .arrow{color:var(--brass);font-weight:700;font-size:var(--t-lg);line-height:1}
-.cbanner .cnum{background:var(--brass);color:#fff;border-radius:999px;min-width:28px;height:28px;padding:0 6px;display:grid;place-items:center;font-weight:700;font-size:var(--t-sm)}
+.cbanner .cnum{background:var(--brass);color:#fff;border-radius:999px;min-width:28px;height:28px;padding:0 8px;display:grid;place-items:center;font-weight:700;font-size:var(--t-sm)}
 .cbanner b{color:var(--brass)}
 .cbanner .grow{flex:1;min-width:200px;font-size:var(--t-md)}
 .cbanner.clear{border-left-color:var(--good)}
@@ -195,8 +195,8 @@ details.phms[open]>summary{border-bottom:0}
 .cbanner.empty .arrow{color:var(--muted)}
 .tbtn.gold{background:var(--brass);border-color:var(--brass);color:#fff;border-radius:6px}
 .conds{margin-top:8px}
-.chead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.clist{list-style:none;margin:10px 0 0;padding:0}
+.chead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.clist{list-style:none;margin:12px 0 0;padding:0}
 .clist li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:start;padding:8px 0;border-top:1px solid var(--rule)}
 .clist li:first-child{border-top:0}
 .clist .cn{font-weight:700;color:var(--brass);text-align:right}
@@ -205,17 +205,17 @@ details.phms[open]>summary{border-bottom:0}
 .clist .ct{white-space:pre-wrap;overflow-wrap:anywhere}
 .clist li.done .ct{text-decoration:line-through;color:var(--muted)}
 .clist li.done .cn{color:var(--muted)}
-.clist li.csep{display:block;padding:10px 0 2px;font-size:var(--t-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.clist .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:var(--t-lg);line-height:1;padding:2px 6px}
+.clist li.csep{display:block;padding:12px 0 2px;font-size:var(--t-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.clist .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:var(--t-lg);line-height:1;padding:2px 8px}
 .clist .x:hover{color:var(--bad)}
 .clist .cact{display:flex;gap:2px;align-items:center}
-.clist .cmove{background:none;border:1px solid var(--rule);color:var(--muted);cursor:pointer;font-size:var(--t-xs);font-weight:600;padding:1px 6px;white-space:nowrap}
+.clist .cmove{background:none;border:1px solid var(--rule);color:var(--muted);cursor:pointer;font-size:var(--t-xs);font-weight:600;padding:1px 8px;white-space:nowrap}
 .clist .cmove:hover{border-color:var(--ink);color:var(--ink)}
 .cgroup{margin-top:12px}
-.cgroup h4{font-size:var(--t-sm);margin:0;padding:6px 0 2px;border-bottom:2px solid var(--brass);color:var(--brass)}
+.cgroup h4{font-size:var(--t-sm);margin:0;padding:8px 0 2px;border-bottom:2px solid var(--brass);color:var(--brass)}
 .cgroup+.cgroup h4{border-bottom-color:var(--muted);color:var(--muted)}
 .cbanner .csplit{display:inline-block;font-size:var(--t-sm);color:var(--muted);margin-left:4px}
-.upline{margin:4px 0 0 26px;overflow-wrap:anywhere}
+.upline{margin:4px 0 0 24px;overflow-wrap:anywhere}
 /* Fireworks */
 .fw{position:relative;display:inline-block;width:26px;height:26px;vertical-align:middle;pointer-events:none}
 .fw.big{position:absolute;inset:0;width:auto;height:auto}
@@ -230,73 +230,73 @@ details.phms[open]>summary{border-bottom:0}
 .cdtag.due,.cdtag.urgent{color:var(--brass);border-color:var(--brass)}.cdtag.late{color:var(--bad);border-color:var(--bad)}
 /* Clear to close view */
 .ctcpanel{border-top:5px solid var(--good)}
-.ctcban{position:relative;display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px 24px;padding:16px 18px;background:var(--goodbg);border-left:5px solid var(--good);overflow:hidden;min-height:84px}
-.ctcleft{position:relative;flex:0 0 auto;padding:6px 96px 6px 0;align-self:center}
-.ctcal{flex:1 1 280px;min-width:0;border-left:1px solid color-mix(in srgb,var(--good) 35%,transparent);padding-left:18px}
+.ctcban{position:relative;display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px 24px;padding:16px 16px;background:var(--goodbg);border-left:5px solid var(--good);overflow:hidden;min-height:84px}
+.ctcleft{position:relative;flex:0 0 auto;padding:8px 96px 8px 0;align-self:center}
+.ctcal{flex:1 1 280px;min-width:0;border-left:1px solid color-mix(in srgb,var(--good) 35%,transparent);padding-left:16px}
 .ctcal h4{margin:0 0 4px;font-size:var(--t-xs);font-weight:800;letter-spacing:.08em;color:var(--goodtxt);text-transform:uppercase}
-.ctcal ul{list-style:none;margin:0;padding:0;display:grid;gap:3px}
-.ctcal li{display:flex;gap:7px;align-items:flex-start;font-size:var(--t-sm);line-height:1.35}
+.ctcal ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.ctcal li{display:flex;gap:8px;align-items:flex-start;font-size:var(--t-sm);line-height:1.35}
 .ctcal li .ic{flex:none;width:1.1em;text-align:center;font-weight:800}
 .ctcal li.bad{color:var(--bad);font-weight:700}
 .ctcal li.warn .ic{color:var(--brass)}
 .ctcal li.ok .ic{color:var(--good)}
 .ctcal li.info .ic{color:var(--muted)}
-.ctcal li.todo label{display:flex;gap:7px;align-items:flex-start;cursor:pointer}
+.ctcal li.todo label{display:flex;gap:8px;align-items:flex-start;cursor:pointer}
 .ctcal li.todo input{margin:2px 0 0;width:15px;height:15px;accent-color:var(--good);flex:none}
 .ctcal li.todo.done span{text-decoration:line-through;color:var(--muted)}
-.ctcal .sep{border-top:1px dashed color-mix(in srgb,var(--good) 35%,transparent);margin:5px 0 2px}
-@media (max-width:640px){.ctcleft{padding-right:70px}.ctcal{border-left:0;padding-left:0;border-top:1px solid color-mix(in srgb,var(--good) 35%,transparent);padding-top:10px}}
+.ctcal .sep{border-top:1px dashed color-mix(in srgb,var(--good) 35%,transparent);margin:4px 0 2px}
+@media (max-width:640px){.ctcleft{padding-right:70px}.ctcal{border-left:0;padding-left:0;border-top:1px solid color-mix(in srgb,var(--good) 35%,transparent);padding-top:12px}}
 .ctcl{font-size:var(--t-xs);font-weight:800;letter-spacing:.08em;color:var(--goodtxt)}
 .ctct{font-size:var(--t-xl);font-weight:800;letter-spacing:-.01em;color:var(--ink);position:relative}
-.ctcgrid{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:12px 20px;margin-top:14px;align-items:start}
+.ctcgrid{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:12px 24px;margin-top:16px;align-items:start}
 .ctctitle{font-size:var(--t-md);line-height:1.45}
 .ctctitle a{color:var(--ink)}
 @media (max-width:640px){.ctcgrid{grid-template-columns:1fr}}
-.donems{margin-top:14px;border-top:1px solid var(--rule);padding-top:10px}
+.donems{margin-top:16px;border-top:1px solid var(--rule);padding-top:12px}
 .donems>summary{cursor:pointer;font-weight:700;color:var(--muted)}
 .donems>summary:hover{color:var(--ink)}
 /* Closing Disclosure box */
 .cdbox{border-left:5px solid var(--rule)}
 .cdbox.ok{border-left-color:var(--good)}.cdbox.due,.cdbox.urgent{border-left-color:var(--brass)}.cdbox.late{border-left-color:var(--bad)}
-.cdhead{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;justify-content:space-between}
+.cdhead{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between}
 .cdhead h3{margin:0}
-.cdmsg{margin:10px 0 0;font-weight:700}
+.cdmsg{margin:12px 0 0;font-weight:700}
 .cdmsg.ok{color:var(--goodtxt)}.cdmsg.due,.cdmsg.urgent{color:var(--brass)}.cdmsg.late{color:var(--bad)}
 /* Closing email options */
-.closebtnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.closeopts{margin-top:10px;padding:10px 12px;border:1px dashed var(--rule);display:grid;gap:6px}
-.closeopts .ck{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:var(--t-md);cursor:pointer}
-.closeopts .ck label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.closebtnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.closeopts{margin-top:12px;padding:12px 12px;border:1px dashed var(--rule);display:grid;gap:8px}
+.closeopts .ck{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:var(--t-md);cursor:pointer}
+.closeopts .ck label{display:flex;gap:8px;align-items:center;cursor:pointer}
 .closeopts input[type=checkbox],.closeopts input[type=radio]{width:18px;height:18px;accent-color:var(--ink);margin:0}
-.cwho{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:8px;font-size:var(--t-sm)}
-.cwho label{display:flex;gap:6px;align-items:center;cursor:pointer}
-.msl .nexttag{font-size:var(--t-xs);font-weight:700;color:var(--brass);border:1px solid var(--brass);padding:0 6px;margin-left:6px}
+.cwho{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-top:8px;font-size:var(--t-sm)}
+.cwho label{display:flex;gap:8px;align-items:center;cursor:pointer}
+.msl .nexttag{font-size:var(--t-xs);font-weight:700;color:var(--brass);border:1px solid var(--brass);padding:0 8px;margin-left:8px}
 
 /* Forms */
-.field{display:grid;gap:3px;font-size:var(--t-sm);font-weight:700;color:var(--muted)}
-.field input,.field select,.field textarea{padding:8px 10px;border:1px solid var(--rule);background:var(--paper);font-weight:400;color:var(--ink);width:100%}
+.field{display:grid;gap:4px;font-size:var(--t-sm);font-weight:700;color:var(--muted)}
+.field input,.field select,.field textarea{padding:8px 12px;border:1px solid var(--rule);background:var(--paper);font-weight:400;color:var(--ink);width:100%}
 .field textarea{min-height:84px;resize:vertical}
-.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:10px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:12px}
 
 /* Notes */
 .notes{list-style:none;margin:12px 0 0;padding:0}
-.notes li{border-top:1px solid var(--rule);padding:10px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px}
+.notes li{border-top:1px solid var(--rule);padding:12px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
 .notes .when{font-size:var(--t-xs);color:var(--muted)}
 .notes .txt{white-space:pre-wrap;overflow-wrap:anywhere;grid-column:1}
 .notes .auto .txt{color:var(--muted);font-style:italic}
-.notes .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:var(--t-lg);line-height:1;padding:2px 6px;grid-row:1/3;grid-column:2;align-self:start}
+.notes .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:var(--t-lg);line-height:1;padding:2px 8px;grid-row:1/3;grid-column:2;align-self:start}
 .notes .x:hover{color:var(--bad)}
 .tbtn.mic[aria-pressed="true"]{background:var(--bad);border-color:var(--bad);color:#fff}
 .micmsg{align-self:center}
 .alog{margin-top:12px;border-top:1px solid var(--rule);padding-top:8px}
 .alog summary{cursor:pointer;font-size:var(--t-sm);font-weight:600;color:var(--muted)}
 .alog summary:hover{color:var(--ink)}
-.alog .notes{margin-top:6px}
-.alog .notes li{padding:6px 0;font-size:var(--t-sm)}
+.alog .notes{margin-top:8px}
+.alog .notes li{padding:8px 0;font-size:var(--t-sm)}
 
 /* Email preview */
 .mail{margin-top:12px;padding:16px;background:#FFFFFF;color:#222222;border:1px solid var(--rule)}
-.subj{font-size:var(--t-sm);margin:10px 0 0;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.subj{font-size:var(--t-sm);margin:12px 0 0;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
 
 /* Printable desk sheet: only the sheet prints */
 #printSheet{display:none}
@@ -332,15 +332,15 @@ details.phms[open]>summary{border-bottom:0}
 }
 dialog{border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 40px)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
-dialog form{padding:18px;display:grid;gap:12px}
+dialog form{padding:16px;display:grid;gap:12px}
 .coadd{justify-self:start}
-.prospck{display:flex;gap:8px;align-items:center;cursor:pointer;padding:8px 10px;border:1px dashed var(--rule);background:var(--paper)}
+.prospck{display:flex;gap:8px;align-items:center;cursor:pointer;padding:8px 12px;border:1px dashed var(--rule);background:var(--paper)}
 .prospck input{width:18px;height:18px;accent-color:var(--brass)}
-.prosptag{display:inline-block;font-size:var(--t-xs);font-weight:800;letter-spacing:.06em;color:var(--brass);border:1px solid var(--brass);border-radius:999px;padding:1px 9px;vertical-align:4px;margin-left:6px}
+.prosptag{display:inline-block;font-size:var(--t-xs);font-weight:800;letter-spacing:.06em;color:var(--brass);border:1px solid var(--brass);border-radius:999px;padding:1px 8px;vertical-align:4px;margin-left:8px}
 .cleared{margin-top:4px}
 .cleared>summary{cursor:pointer;padding:8px 0 2px;font-size:var(--t-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .cleared>summary:hover{color:var(--ink)}
-.fsub{font-size:var(--t-md);margin:4px 0 -4px;border-top:1px solid var(--rule);padding-top:10px}
+.fsub{font-size:var(--t-md);margin:4px 0 -4px;border-top:1px solid var(--rule);padding-top:12px}
 .dlgbtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 </style>
 <script src="brand.js?v=6" defer></script>
@@ -849,7 +849,7 @@ dialog form{padding:18px;display:grid;gap:12px}
         <label class="field">CD received / e-signed <span class="muted" style="font-weight:400">(if known)</span><input type="date" data-cd="cdRecv" value="${esc(c.cdRecv||"")}"></label>
       </div>
       ${ci.close?`<p class="cdmsg ${ci.level}">${tag} ${esc(ci.text)}</p>
-        <p class="muted small" style="margin:6px 0 0">Receive by ${fmtDay(ci.recvBy)}${ci.sent&&!ci.recv?` · presumed received ${fmtDay(ci.received)}`:""}${ci.earliest?` · earliest allowed closing ${fmtDay(ci.earliest)}`:""}. Business days here are every day except Sundays and federal holidays. Always confirm with your LOS or compliance team.</p>`
+        <p class="muted small" style="margin:8px 0 0">Receive by ${fmtDay(ci.recvBy)}${ci.sent&&!ci.recv?` · presumed received ${fmtDay(ci.received)}`:""}${ci.earliest?` · earliest allowed closing ${fmtDay(ci.earliest)}`:""}. Business days here are every day except Sundays and federal holidays. Always confirm with your LOS or compliance team.</p>`
         :`<p class="muted small" style="margin:8px 0 0">Add a target closing date (Edit) or schedule the closing to see the TRID deadlines.</p>`}
     </div>`;
   }
@@ -993,7 +993,7 @@ dialog form{padding:18px;display:grid;gap:12px}
       </div></div>
       <div data-sec="glance">${glanceHTML(c)}</div>
 
-      ${isCTC(c)?`<div class="panel ctcpanel" data-sec="ms" style="margin-top:14px">
+      ${isCTC(c)?`<div class="panel ctcpanel" data-sec="ms" style="margin-top:16px">
         <div class="ctcban"><div class="ctcleft">${fwHTML(true)}<div class="ctcl">MILESTONE REACHED${c.ms.ctc?" · "+esc(fmt(c.ms.ctc).toUpperCase()):""}</div><div class="ctct">🎉 Clear to close!</div></div>${ctcAlerts(c)}</div>
         <div class="ctcgrid">
           <label class="field">Closing date &amp; time<input type="datetime-local" data-closeat value="${esc(c.closingAt||"")}"></label>
@@ -1001,9 +1001,9 @@ dialog form{padding:18px;display:grid;gap:12px}
             <b>${esc(c.title||"")}</b>${c.titlePhone?`<div><a href="tel:${esc(c.titlePhone)}">${esc(c.titlePhone)}</a></div>`:""}${c.titleAddr?`<div>${esc(c.titleAddr)}</div>`:""}${c.closer?`<div class="muted small">Closer: ${esc(c.closer)}</div>`:""}</div>`
             :`<div class="ctctitle muted small">Add the title company with <b>Edit</b> to show it here and in the closing email.</div>`}
         </div>
-        <label class="field" style="margin-top:10px">Closing notes<textarea id="closingNotes" placeholder="Wire confirmed, both borrowers signing, bring a cashier's check for…">${esc(c.closingNotes||"")}</textarea></label>
+        <label class="field" style="margin-top:12px">Closing notes<textarea id="closingNotes" placeholder="Wire confirmed, both borrowers signing, bring a cashier's check for…">${esc(c.closingNotes||"")}</textarea></label>
         <details class="donems"${msOpen[c.id]?" open":""} data-msopen="${c.id}"><summary>Completed milestones (${n} of ${MAIN.length})</summary>
-        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline">
+        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline">
           <h2>Loan milestones</h2><span class="muted small">${n} of ${MAIN.length} steps complete${nx?" · Next: <b style=\"color:var(--brass)\">"+esc(nx.name)+"</b>":""}</span>
         </div>
         <div class="tracker" aria-hidden="true">${MAIN.map((nd,i)=>{
@@ -1019,8 +1019,8 @@ dialog form{padding:18px;display:grid;gap:12px}
           const head=nd.group?`<li class="${st}"><span class="dot">${st==="done"?"✓":i+1}</span><span class="grp">${esc(nd.name)} <span class="muted small">(check the steps below)</span></span><span></span></li>`:item(nd.k,false);
           return head+(nd.subs||[]).map(k=>item(k,true)).join("");}).join("")}</ul>
         </details>
-      </div>`:`      <div class="panel" data-sec="ms" style="margin-top:14px">
-        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline">
+      </div>`:`      <div class="panel" data-sec="ms" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline">
           <h2>Loan milestones</h2><span class="muted small">${n} of ${MAIN.length} steps complete${nx?" · Next: <b style=\"color:var(--brass)\">"+esc(nx.name)+"</b>":""}</span>
         </div>
         <div class="tracker" aria-hidden="true">${MAIN.map((nd,i)=>{
@@ -1044,7 +1044,7 @@ dialog form{padding:18px;display:grid;gap:12px}
         <div class="stack">
           <div class="panel" data-sec="mail">
             <h2>Send a milestone update</h2>
-            <p class="muted small" style="margin:4px 0 10px">Pick the milestone, adjust the message if you like, then copy the email into Outlook.</p>
+            <p class="muted small" style="margin:4px 0 12px">Pick the milestone, adjust the message if you like, then copy the email into Outlook.</p>
             <div class="fgrid">
               <label class="field">Milestone to announce<select id="annSel">${MS.map(m=>`<option value="${m.k}"${m.k===annKey?" selected":""}>${esc(m.name)}${c.ms[m.k]?"":" (not checked yet)"}</option>`).join("")}</select></label>
               <label class="field">Sign off as<input id="me" value="${esc(me)}" placeholder="Your name and phone" autocomplete="off"></label>
@@ -1052,23 +1052,23 @@ dialog form{padding:18px;display:grid;gap:12px}
             <div class="closebtnrow"><button class="tbtn gold" data-act="closingMail" type="button">🎉 Send customer closing email</button>${closeMode?`<button class="tbtn" data-act="closingOff" type="button">Back to milestone email</button>`:""}</div>
             ${closeMode?`<div class="closeopts">
               <label class="ck"><input type="checkbox" id="fundsKnown"${c.fundsKnown?" checked":""}> Funds needed at closing are known</label>
-              ${c.fundsKnown?`<label class="field" style="margin:4px 0 0 26px;max-width:220px">Amount<input id="closingFunds" value="${esc(c.closingFunds||"")}" placeholder="$45,320.18" inputmode="decimal" autocomplete="off"></label>`:""}
+              ${c.fundsKnown?`<label class="field" style="margin:4px 0 0 24px;max-width:220px">Amount<input id="closingFunds" value="${esc(c.closingFunds||"")}" placeholder="$45,320.18" inputmode="decimal" autocomplete="off"></label>`:""}
               <label class="ck"><input type="checkbox" id="closeAttach"${closeAttach?" checked":""}> I'm attaching the wiring instructions</label>
               <label class="ck"><input type="checkbox" id="cashierOK"${c.cashierOK?" checked":""}> The title company will allow a cashier's check for funds to close</label>
               <div class="ck"><span class="muted small" style="font-weight:700">Closing location:</span>
                 <label><input type="radio" name="closeLoc" value="title"${c.closeLoc!=="other"?" checked":""}> Title company office</label>
                 <label><input type="radio" name="closeLoc" value="other"${c.closeLoc==="other"?" checked":""}> Other</label></div>
-              ${c.closeLoc==="other"?`<label class="field" style="margin:4px 0 0 26px">Where<input id="closeLocOther" value="${esc(c.closeLocOther||"")}" placeholder="Mobile closing at the borrower's home" autocomplete="off"></label>`:""}
-              ${!c.title||!c.titlePhone?`<p class="small" style="color:var(--bad);margin:6px 0 0">Add the title company and phone with <b>Edit</b> so they fill in the email.</p>`:""}
+              ${c.closeLoc==="other"?`<label class="field" style="margin:4px 0 0 24px">Where<input id="closeLocOther" value="${esc(c.closeLocOther||"")}" placeholder="Mobile closing at the borrower's home" autocomplete="off"></label>`:""}
+              ${!c.title||!c.titlePhone?`<p class="small" style="color:var(--bad);margin:8px 0 0">Add the title company and phone with <b>Edit</b> so they fill in the email.</p>`:""}
             </div>`:""}
-            ${!closeMode&&ann.alts?`<label class="field" style="margin-top:10px">Message version<select id="annVar">${ann.alts.map((a,i)=>`<option value="${i}"${(annVar[c.id+ann.k]||0)===i?" selected":""}>${esc(a.label)}</option>`).join("")}</select></label>`:""}
-            <label class="field" style="margin-top:10px">${closeMode?"Opening message":"Message"}<textarea id="annMsg">${esc(closeMode?(annMsg[c.id+"close"]??CLOSE_INTRO):(annMsg[c.id+annKey]??purposeFix(c,ann)))}</textarea></label>
+            ${!closeMode&&ann.alts?`<label class="field" style="margin-top:12px">Message version<select id="annVar">${ann.alts.map((a,i)=>`<option value="${i}"${(annVar[c.id+ann.k]||0)===i?" selected":""}>${esc(a.label)}</option>`).join("")}</select></label>`:""}
+            <label class="field" style="margin-top:12px">${closeMode?"Opening message":"Message"}<textarea id="annMsg">${esc(closeMode?(annMsg[c.id+"close"]??CLOSE_INTRO):(annMsg[c.id+annKey]??purposeFix(c,ann)))}</textarea></label>
             <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:var(--t-sm);cursor:pointer"><input type="checkbox" id="incAll"${includeAll?" checked":""} style="width:18px;height:18px;accent-color:var(--ink)"> Show the progress bar in the email</label>
-            <label style="display:flex;gap:8px;align-items:center;margin:6px 0 0 26px;font-size:var(--t-sm);cursor:pointer"><input type="checkbox" id="incList"${includeList?" checked":""}${includeAll?"":" disabled"} style="width:18px;height:18px;accent-color:var(--ink)"> Also list each step with dates under the bar</label>
-            <label style="display:flex;gap:8px;align-items:center;margin-top:6px;font-size:var(--t-sm);cursor:pointer"><input type="checkbox" id="incConds"${includeConds?" checked":""}${openConds(c,"b").length?"":" disabled"} style="width:18px;height:18px;accent-color:var(--ink)"> Include the borrower's open conditions${openConds(c,"b").length?` (${openConds(c,"b").length})`:" (none open)"}</label>
-            <label style="display:flex;gap:8px;align-items:center;margin-top:6px;font-size:var(--t-sm);cursor:pointer"><input type="checkbox" id="incUp"${upOn()?" checked":""} style="width:18px;height:18px;accent-color:var(--ink)"> Add the "Upload documents" button</label>
+            <label style="display:flex;gap:8px;align-items:center;margin:8px 0 0 24px;font-size:var(--t-sm);cursor:pointer"><input type="checkbox" id="incList"${includeList?" checked":""}${includeAll?"":" disabled"} style="width:18px;height:18px;accent-color:var(--ink)"> Also list each step with dates under the bar</label>
+            <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:var(--t-sm);cursor:pointer"><input type="checkbox" id="incConds"${includeConds?" checked":""}${openConds(c,"b").length?"":" disabled"} style="width:18px;height:18px;accent-color:var(--ink)"> Include the borrower's open conditions${openConds(c,"b").length?` (${openConds(c,"b").length})`:" (none open)"}</label>
+            <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:var(--t-sm);cursor:pointer"><input type="checkbox" id="incUp"${upOn()?" checked":""} style="width:18px;height:18px;accent-color:var(--ink)"> Add the "Upload documents" button</label>
             <div class="upline small">${upOn()?(uploadLink(c)?`Button links to ${isLink(c.uploadLink)?"this client's link":"your saved link"}: <span class="muted">${esc(uploadLink(c))}</span>`:`<span style="color:var(--bad)">No upload link yet.</span> Save one on the document request page, or add one for this client below. Without a link, the button is a picture you can link in Outlook.`):""}
-              ${upOn()?`<label class="field" style="margin-top:6px">Upload link for this client only <span class="muted" style="font-weight:400">(optional)</span><input id="cUp" value="${esc(c.uploadLink||"")}" placeholder="Leave blank to use your saved link" inputmode="url" autocomplete="off"></label>`:""}</div>
+              ${upOn()?`<label class="field" style="margin-top:8px">Upload link for this client only <span class="muted" style="font-weight:400">(optional)</span><input id="cUp" value="${esc(c.uploadLink||"")}" placeholder="Leave blank to use your saved link" inputmode="url" autocomplete="off"></label>`:""}</div>
             <div class="acts" style="margin-top:12px">
               <button class="tbtn primary" data-act="copyMail">Copy email</button>
               <button class="tbtn" data-act="copySubj">Copy subject</button>
@@ -1080,12 +1080,12 @@ dialog form{padding:18px;display:grid;gap:12px}
         <div class="stack">
           <div class="panel" data-sec="docs">
             <h2>Documents</h2>
-            <p class="muted small" style="margin:4px 0 10px">Opens the document request page set up for ${esc(c.first)}'s loan.</p>
+            <p class="muted small" style="margin:4px 0 12px">Opens the document request page set up for ${esc(c.first)}'s loan.</p>
             <a class="tbtn primary" href="${docLink}">Build document request</a>
           </div>
           <div class="panel" data-sec="notes">
             <h2>Notes</h2>
-            <label class="field" style="margin-top:10px"><span class="muted" style="font-weight:600">Add a note</span><textarea id="noteTxt" placeholder="Called about appraisal, waiting on HOA cert…"></textarea></label>
+            <label class="field" style="margin-top:12px"><span class="muted" style="font-weight:600">Add a note</span><textarea id="noteTxt" placeholder="Called about appraisal, waiting on HOA cert…"></textarea></label>
             <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addNote">Add note</button>${SR?`<button class="tbtn mic" type="button" data-act="talk" aria-pressed="false">🎤 Talk</button>`:""}<span class="micmsg small muted" id="micMsg" role="status"></span></div>
             ${(()=>{const all=(c.notes||[]).slice().reverse(), mine=all.filter(nt=>!nt.auto), auto=all.filter(nt=>nt.auto);
               const li=nt=>`<li class="${nt.auto?"auto":""}"><span class="when">${fmtStamp(nt.t)}</span><span class="txt">${esc(nt.text)}</span><button class="x" data-delnote="${nt.t}" aria-label="Delete">×</button></li>`;
@@ -1134,7 +1134,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     const group=(who,title)=>{const list=sortedConds(c,who), op=list.filter(x=>!x.done).length;
       if(!list.length)return "";
       return `<div class="cgroup"><h4>${title} <span class="muted small">${op} open · ${list.length-op} cleared</span></h4>
-        ${op?`<ol class="clist">${list.filter(x=>!x.done).map(item).join("")}</ol>`:`<p class="muted small" style="margin:6px 0">All cleared.</p>`}
+        ${op?`<ol class="clist">${list.filter(x=>!x.done).map(item).join("")}</ol>`:`<p class="muted small" style="margin:8px 0">All cleared.</p>`}
         ${list.length-op?`<details class="cleared" data-clopen="${c.id}-${who}"${clearedOpen[c.id+"-"+who]?" open":""}><summary>Cleared (${list.length-op})</summary>
           <ol class="clist">${list.filter(x=>x.done).map(item).join("")}</ol></details>`:""}</div>`;
       function item(x){return `<li class="${x.done?"done":""}"><span class="cn">${x.n}</span>
@@ -1143,7 +1143,7 @@ dialog form{padding:18px;display:grid;gap:12px}
     return banner+`<div class="panel conds">
         ${all.length?`<div class="chead"><h3>Conditions <span class="muted small">${open.length} open · ${all.length-open.length} cleared</span></h3><button class="tbtn danger" data-act="clearConds">Remove all</button></div>
           ${group("b","Borrower conditions")}${group("lo","Loan officer conditions")}`:""}
-        ${viewMode()==="phone"&&all.length?`<details class="addc"><summary class="small" style="cursor:pointer;margin-top:10px;font-weight:700">+ Add conditions</summary>`:""}
+        ${viewMode()==="phone"&&all.length?`<details class="addc"><summary class="small" style="cursor:pointer;margin-top:12px;font-weight:700">+ Add conditions</summary>`:""}
         <label class="field" style="margin-top:12px">Type conditions (one per line) or paste them from your processor's email<textarea id="condTxt" placeholder="One condition per line, or paste a numbered list:&#10;&#10;Borrower conditions:&#10;1. Updated pay stub covering 30 days&#10;2. Letter of explanation for large deposit on 10/14&#10;LO conditions:&#10;3. Updated title commitment"></textarea></label>
         <div class="cwho" role="radiogroup" aria-label="Who these conditions are for">
           <span class="muted small">These are:</span>

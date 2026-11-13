@@ -22,78 +22,78 @@
 body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
   font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .wrap{max-width:980px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
-.back{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-md);font-weight:700;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:9px 16px;min-height:44px;cursor:pointer;font-family:inherit}
+.back{display:inline-flex;align-items:center;gap:8px;font-size:var(--t-md);font-weight:700;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:8px 16px;min-height:44px;cursor:pointer;font-family:inherit}
 .back:hover{border-color:var(--ink)}
 h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin:8px 0 4px;line-height:1.15}
-.lede{color:var(--muted);margin:0 0 18px;max-width:62ch}
+.lede{color:var(--muted);margin:0 0 16px;max-width:62ch}
 h2{font-size:var(--t-lg);font-weight:700;margin:0}
 button,select,input{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--brass);outline-offset:2px}
 
 /* Setup */
-.pick{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--ink);padding:16px;display:grid;gap:14px}
+.pick{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--ink);padding:16px;display:grid;gap:16px}
 .pick fieldset{border:0;margin:0;padding:0;min-width:0}
-.pick legend{font-size:var(--t-sm);font-weight:700;color:var(--muted);margin-bottom:6px;padding:0}
-.seg{display:flex;flex-wrap:wrap;gap:6px}
+.pick legend{font-size:var(--t-sm);font-weight:700;color:var(--muted);margin-bottom:8px;padding:0}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
 .seg label{position:relative}
 .seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
-.seg span{display:block;padding:7px 12px;border:1px solid var(--rule);font-weight:600;font-size:var(--t-md);background:var(--paper);cursor:pointer}
+.seg span{display:block;padding:8px 12px;border:1px solid var(--rule);font-weight:600;font-size:var(--t-md);background:var(--paper);cursor:pointer}
 .seg input:checked+span{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .seg input:focus-visible+span{outline:3px solid var(--brass);outline-offset:2px}
-.opts{display:flex;flex-wrap:wrap;gap:6px 18px}
+.opts{display:flex;flex-wrap:wrap;gap:8px 16px}
 .opts label{display:flex;gap:8px;align-items:center;font-size:var(--t-md);cursor:pointer}
 .opts input[type=checkbox]{width:18px;height:18px;accent-color:var(--ink)}
-.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:10px}
-.fields label{display:grid;gap:3px;font-size:var(--t-sm);font-weight:700;color:var(--muted)}
-.uplink{display:grid;gap:3px;font-size:var(--t-sm);font-weight:700;color:var(--muted);grid-column:1/-1}
-.uprow{display:flex;gap:6px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px}
+.fields label{display:grid;gap:4px;font-size:var(--t-sm);font-weight:700;color:var(--muted)}
+.uplink{display:grid;gap:4px;font-size:var(--t-sm);font-weight:700;color:var(--muted);grid-column:1/-1}
+.uprow{display:flex;gap:8px}
 .uprow input{flex:1;min-width:0}
 .uprow .tbtn{white-space:nowrap}
 .upnote{margin:0;font-weight:400;font-size:var(--t-sm);overflow-wrap:anywhere}
 .upnote button{background:none;border:0;padding:0;color:var(--bad);font-weight:600;font-size:var(--t-sm);cursor:pointer;text-decoration:underline}
-.fields input{padding:8px 10px;border:1px solid var(--rule);background:var(--paper);font-weight:400;color:var(--ink);width:100%}
+.fields input{padding:8px 12px;border:1px solid var(--rule);background:var(--paper);font-weight:400;color:var(--ink);width:100%}
 
 /* Action bar */
-.bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin:18px 0 6px;
-  position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding:10px 0;border-bottom:2px solid var(--ink)}
+.bar{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;justify-content:space-between;margin:16px 0 8px;
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding:12px 0;border-bottom:2px solid var(--ink)}
 .count{font-weight:700}
-.acts{display:flex;flex-wrap:wrap;gap:6px}
-.tbtn{font-size:var(--t-sm);font-weight:600;background:var(--panel);border:1px solid var(--rule);padding:6px 10px;cursor:pointer}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.tbtn{font-size:var(--t-sm);font-weight:600;background:var(--panel);border:1px solid var(--rule);padding:8px 12px;cursor:pointer}
 .tbtn:hover{border-color:var(--ink)}
 .tbtn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .tbtn:disabled{opacity:.45;cursor:default}
 .toast{font-size:var(--t-sm);color:var(--goodtxt);font-weight:600;min-height:1.3em;margin:0}
 
 /* Checklist */
-.cat{margin-top:22px}
+.cat{margin-top:24px}
 .cathead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.cathead .tbtn{padding:3px 8px;font-size:var(--t-sm)}
+.cathead .tbtn{padding:4px 8px;font-size:var(--t-sm)}
 .items{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--rule)}
-.item{display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 10px;padding:12px 14px;border-top:1px solid var(--rule);cursor:pointer}
+.item{display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 12px;padding:12px 16px;border-top:1px solid var(--rule);cursor:pointer}
 .item:first-child{border-top:0}
 .item.on{background:var(--goodbg)}
 .item input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--goodtxt);cursor:pointer}
 .item label{font-weight:700;cursor:pointer}
 .item .why{grid-column:2;color:var(--muted);font-size:var(--t-md);margin:0}
-.yrs{grid-column:2;display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:6px;font-size:var(--t-sm);font-weight:600}
-.yrs label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.yrs{grid-column:2;display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:8px;font-size:var(--t-sm);font-weight:600}
+.yrs label{display:flex;align-items:center;gap:8px;cursor:pointer}
 .yrs input{width:18px;height:18px;margin:0}
-.item .tip{grid-column:2;font-size:var(--t-sm);margin:6px 0 0;padding:6px 10px;background:var(--tipbg);border-left:3px solid var(--brass)}
+.item .tip{grid-column:2;font-size:var(--t-sm);margin:8px 0 0;padding:8px 12px;background:var(--tipbg);border-left:3px solid var(--brass)}
 .item .tip b{color:var(--brass)}
-.whyadd{grid-column:2;display:flex;align-items:center;gap:6px;margin-top:2px;font-weight:600;font-size:var(--t-sm);color:var(--muted);cursor:pointer;width:fit-content}
+.whyadd{grid-column:2;display:flex;align-items:center;gap:8px;margin-top:2px;font-weight:600;font-size:var(--t-sm);color:var(--muted);cursor:pointer;width:fit-content}
 .whyadd input{width:16px;height:16px;margin:0;accent-color:var(--ink)}
-.tipadd{display:flex;align-items:center;gap:6px;margin-top:4px;font-weight:600;font-size:var(--t-sm);cursor:pointer;width:fit-content}
+.tipadd{display:flex;align-items:center;gap:8px;margin-top:4px;font-weight:600;font-size:var(--t-sm);cursor:pointer;width:fit-content}
 .tipadd input{width:16px;height:16px;margin:0;accent-color:var(--brass)}
-.tag{display:inline-block;font-size:var(--t-xs);font-weight:700;letter-spacing:.02em;color:var(--muted);border:1px solid var(--rule);padding:0 6px;margin-left:6px;vertical-align:2px}
+.tag{display:inline-block;font-size:var(--t-xs);font-weight:700;letter-spacing:.02em;color:var(--muted);border:1px solid var(--rule);padding:0 8px;margin-left:8px;vertical-align:2px}
 .tag.loan{color:var(--brass);border-color:var(--brass)}
 
 /* Email preview */
-.preview{margin-top:32px;background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--goodtxt);padding:16px 18px}
+.preview{margin-top:32px;background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--goodtxt);padding:16px 16px}
 .phead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
 .estyle{border:0;margin:12px 0 0;padding:0;min-width:0}
-.estyle legend{font-size:var(--t-sm);font-weight:700;color:var(--muted);margin-bottom:6px;padding:0}
-.sdesc{font-size:var(--t-sm);color:var(--muted);margin:6px 0 0}
-.subj{margin:12px 0 0;font-size:var(--t-md);display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.estyle legend{font-size:var(--t-sm);font-weight:700;color:var(--muted);margin-bottom:8px;padding:0}
+.sdesc{font-size:var(--t-sm);color:var(--muted);margin:8px 0 0}
+.subj{margin:12px 0 0;font-size:var(--t-md);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
 .subj b{color:var(--muted)}
 .mail{margin-top:12px;padding:16px;background:#FFFFFF;color:#222222;border:1px solid var(--rule)}
 .mail .empty{color:#666666}
@@ -161,7 +161,7 @@ button,select,input{font:inherit;color:inherit}
           <p class="upnote" id="upnote"></p>
         </div>
       </div>
-      <div class="opts" style="margin-top:10px">
+      <div class="opts" style="margin-top:12px">
         <label><input type="checkbox" id="optUp" checked> Add an "Upload documents" button</label>
         <label><input type="checkbox" id="optWhy" checked> Explain why each item is needed (turns all on or off)</label>
       </div>
@@ -424,7 +424,7 @@ button,select,input{font:inherit;color:inherit}
     const gap=`<p style="margin:0;font-size:8pt;line-height:8pt">&nbsp;</p>`;
     const head=(t,col)=>style==="banded"
       ? gap+`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="${col}" style="background:${col};padding:6px 10px;${F};color:#FFFFFF;font-size:12pt;font-weight:bold">${esc(t)}</td></tr></table>`+`<p style="margin:0;font-size:5pt;line-height:5pt">&nbsp;</p>`
-      : `<p style="margin:18px 0 6px 0;padding:0 0 3px 0;border-bottom:2px solid ${col};color:${col};font-size:13pt;font-weight:bold">${esc(t)}</p>`;
+      : `<p style="margin:16px 0 8px 0;padding:0 0 4px 0;border-bottom:2px solid ${col};color:${col};font-size:13pt;font-weight:bold">${esc(t)}</p>`;
     // Each item is a table row (marker cell + text cell): Outlook ignores indents but always respects tables.
     const ul=rows=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`;
     const row=(m,col,body)=>`<tr><td width="30" valign="top" style="width:30px;padding:0 0 8px 8px;${F};color:${col};${m==="☐"?"font-size:13pt;line-height:1.1;":""}${/\d/.test(m)?"font-weight:bold;":""}">${m}</td><td valign="top" style="padding:0 0 8px 0;${F}">${body}</td></tr>`;
@@ -434,12 +434,12 @@ button,select,input{font:inherit;color:inherit}
     const H=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(name||"there")},</p><p style="margin:0 0 10px 0">${esc(intro)}</p>`+
       (upOn?`<p style="margin:0 0 8px 0">${esc(upText)}</p>`+
         upButton(href)+`<p style="margin:0;font-size:8pt;line-height:8pt">&nbsp;</p>`:"")+
-      (style==="numbered"?`<p style="margin:0 0 10px 0">When you reply, you can refer to items by number.</p>`:"")+
+      (style==="numbered"?`<p style="margin:0 0 12px 0">When you reply, you can refer to items by number.</p>`:"")+
       docs.map(c=>{const col=colOf(c);return head(c.name,col)+ul(c.items.map(i=>row(mark(false),style==="numbered"?"#1F4E79":col,body(i))).join(""));}).join("")+
       // Tips: one compact gray box with a short line per tip, so it doesn't take over the email
       (tips?`<p style="margin:0;font-size:10pt;line-height:10pt">&nbsp;</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#F3F4F6" style="background:#F3F4F6;border-left:4px solid #B4412F;padding:8px 12px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:9.5pt;line-height:1.35;color:#444444">`+
         `<b style="color:#B4412F;font-size:10pt">Quick tips to avoid delays</b><br>`+tips.items.map(i=>`&#8226;&nbsp;${esc(i.short)}`).join("<br>")+`</td></tr></table>`:"")+
-      `<p style="margin:16px 0 10px 0">${esc(outro)}</p><p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
+      `<p style="margin:16px 0 12px 0">${esc(outro)}</p><p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     return {subject,text:T.join("\n"),html:H,n,total:cats.reduce((a,c)=>a+c.items.length,0),preview:H};
   }
 
