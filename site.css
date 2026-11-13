@@ -1,0 +1,93 @@
+/* Shared design system for every page: colors, text sizes, spacing and base styles.
+   Pages keep their own component styles but take every color, size and space from here. */
+:root{
+  /* Colors. --brass is the one accent (text on it uses --onbrass); --good and --bad are for status only.
+     Every text color here passes 4.5:1 contrast on --paper and --panel. */
+  --paper:#F3F5F8; --panel:#FFFFFF; --ink:#14233C; --muted:#5B6A80; --rule:#D9DEE6;
+  --brass:#8F6614; --onbrass:#FFFFFF; --tipbg:#FBF4E4;
+  --good:#2C5234; --goodtxt:#1F7A5A; --goodbg:#E5F3EC;
+  --bad:#B4412F; --badbg:#F8E7E3;
+  --line:#14233C; --grid:#E6EAF0;
+  /* Text sizes: six steps, nothing in between. */
+  --t-xs:.75rem; --t-sm:.875rem; --t-md:1rem; --t-lg:1.125rem; --t-xl:1.5rem; --t-2xl:2rem;
+  /* Spacing scale: 4, 8, 12, 16, 24, 32, 48. */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px;
+  /* Content width on large screens, the same on every page so the top bar never shifts. */
+  --wide:1560px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
+    --brass:#E0B455; --onbrass:#1B1404; --tipbg:#2C2717;
+    --good:#3F8A55; --goodtxt:#4CC197; --goodbg:#143329;
+    --bad:#F08A73; --badbg:#3A2020;
+    --line:#E8EDF5; --grid:#22304D;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
+  --brass:#E0B455; --onbrass:#1B1404; --tipbg:#2C2717;
+  --good:#3F8A55; --goodtxt:#4CC197; --goodbg:#143329;
+  --bad:#F08A73; --badbg:#3A2020;
+  --line:#E8EDF5; --grid:#22304D;
+  color-scheme:dark; /* dark date pickers, check boxes and scroll bars to match */
+}
+/* Color schemes picked on the dashboard */
+:root[data-palette="forest"]{--paper:#F2F5F1;--panel:#FFFFFF;--ink:#1D3B2A;--muted:#5C6E62;--rule:#D5DDD6;
+  --brass:#8C5F14;--tipbg:#FAF3E3;--goodtxt:#2C7D4F;--goodbg:#E4F1E8;--bad:#B4412F;--badbg:#F8E7E3;--line:#1D3B2A;--grid:#E5EBE6}
+:root[data-palette="burgundy"]{--paper:#F7F3F2;--panel:#FFFFFF;--ink:#4A1D27;--muted:#7A6266;--rule:#E3D8D8;
+  --brass:#8A6418;--tipbg:#FAF3E3;--goodtxt:#1F7A5A;--goodbg:#E5F3EC;--bad:#C0392B;--badbg:#F9E6E3;--line:#4A1D27;--grid:#EFE7E6}
+:root[data-palette="harbor"]{--paper:#0E1F24;--panel:#15303A;--ink:#E6F1F1;--muted:#94B0B4;--rule:#24454F;
+  --brass:#E8B860;--onbrass:#1B1404;--tipbg:#2F2C1A;--goodtxt:#5CCB9E;--goodbg:#15372E;--bad:#F2907A;--badbg:#3B2424;--line:#E6F1F1;--grid:#1D3C45}
+:root[data-palette="night"]{--paper:#0F1726;--panel:#16213A;--ink:#E8EDF5;--muted:#9AA8BD;--rule:#2A3756;
+  --brass:#E0B455;--onbrass:#1B1404;--tipbg:#2C2717;--goodtxt:#4CC197;--goodbg:#143329;--bad:#F08A73;--badbg:#3A2020;--line:#E8EDF5;--grid:#22304D}
+
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
+  font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:inherit}
+button,select,input,textarea{font:inherit;color:inherit}
+/* Anything marked hidden stays hidden, even when a class gives it a display type. */
+[hidden]{display:none!important}
+/* Check boxes and radio buttons use the ink color everywhere, not the browser's blue. */
+input[type=checkbox],input[type=radio]{accent-color:var(--ink)}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+
+/* Top bar on every page: logo, name and the three page buttons (filled in by brand.js).
+   Its height is reserved here so the page does not jump while it loads. */
+.brandbar{display:flex;align-items:center;justify-content:space-between;gap:12px 24px;flex-wrap:wrap;margin:0 auto;
+  max-width:var(--wide);padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 0;min-height:88px}
+.brandbar .bl{display:flex;align-items:center;gap:16px;min-width:0}
+.brandbar img{display:block;height:72px;width:auto;max-width:min(300px,60vw)}
+.brandbar .bn{display:flex;flex-direction:column;line-height:1.2}
+.brandbar .bn b{font-size:var(--t-lg);font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+.brandbar .bn span{font-size:var(--t-md);color:var(--muted)}
+.brandnav{display:flex;flex-wrap:wrap;gap:8px}
+.brandnav a{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:8px 16px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);font-weight:700;font-size:var(--t-md);text-decoration:none;font-family:inherit}
+.brandnav a:hover{border-color:var(--ink)}
+.brandnav a[aria-current=page]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.brandnav svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.brandnav .short{display:none}
+@media (max-width:640px){.brandbar{min-height:151px}
+  .brandbar img{height:52px}
+  .brandbar .bn b{font-size:var(--t-md)}
+  .brandnav{width:100%;flex-wrap:nowrap}
+  .brandnav a{flex:1 1 0;flex-direction:column;justify-content:center;gap:4px;padding:8px 4px;min-height:58px;font-size:var(--t-sm)}
+  .brandnav svg{width:22px;height:22px}
+  .brandnav .full{display:none}
+  .brandnav .short{display:inline}
+}
+@media print{.brandbar{display:none!important}}
+
+/* Phones: everything you tap is at least 44px tall, the size a thumb needs. */
+@media (max-width:640px){
+  button,select,summary,.tbtn,textarea,input:not([type=checkbox]):not([type=radio]){min-height:44px}
+  button{min-width:44px}
+  a.tbtn{display:inline-flex;align-items:center}
+  summary{padding-block:12px}
+  label:has(> input[type=checkbox]),label:has(> input[type=radio]){display:flex;align-items:center;min-height:44px}
+  input[type=checkbox],input[type=radio]{width:22px;height:22px;flex:none}
+  label:has(> input[type=checkbox]),label:has(> input[type=radio]){gap:8px}
+}

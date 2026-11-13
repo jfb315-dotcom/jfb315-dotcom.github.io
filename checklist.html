@@ -7,7 +7,7 @@
 <meta name="description" content="Check the documents you need from a borrower and copy a ready-to-send email with only those items.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400..800&display=swap" rel="stylesheet">
 <script>
   // Use the same color scheme the visitor picked on the dashboard.
   (function(){
@@ -16,121 +16,108 @@
     if(v!=="auto"){r.dataset.theme=dark[v]?"dark":"light";if(v!=="classic")r.dataset.palette=v;}
   })();
 </script>
+<link rel="stylesheet" href="site.css?v=1">
 <style>
-:root{
-  --paper:#F3F5F8; --panel:#FFFFFF; --ink:#14233C; --muted:#5B6A80; --rule:#D9DEE6;
-  --good:#1F7A5A; --bad:#B4412F; --brass:#A97A1E; --goodbg:#E5F3EC; --tipbg:#FBF4E4;
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
-    --good:#4CC197; --bad:#F08A73; --brass:#E0B455; --goodbg:#143329; --tipbg:#2C2717;
-  }
-}
-:root[data-theme="dark"]{
-  --paper:#0F1726; --panel:#16213A; --ink:#E8EDF5; --muted:#9AA8BD; --rule:#2A3756;
-  --good:#4CC197; --bad:#F08A73; --brass:#E0B455; --goodbg:#143329; --tipbg:#2C2717;
-}
-:root[data-palette="forest"]{--paper:#F2F5F1;--panel:#FFFFFF;--ink:#1D3B2A;--muted:#5C6E62;--rule:#D5DDD6;
-  --good:#2C7D4F;--bad:#B4412F;--brass:#A8731F;--goodbg:#E4F1E8;--tipbg:#FAF3E3}
-:root[data-palette="burgundy"]{--paper:#F7F3F2;--panel:#FFFFFF;--ink:#4A1D27;--muted:#7A6266;--rule:#E3D8D8;
-  --good:#1F7A5A;--bad:#C0392B;--brass:#9A7020;--goodbg:#E5F3EC;--tipbg:#FAF3E3}
-:root[data-palette="harbor"]{--paper:#0E1F24;--panel:#15303A;--ink:#E6F1F1;--muted:#94B0B4;--rule:#24454F;
-  --good:#5CCB9E;--bad:#F2907A;--brass:#E8B860;--goodbg:#15372E;--tipbg:#2F2C1A}
-:root[data-palette="night"]{--paper:#0F1726;--panel:#16213A;--ink:#E8EDF5;--muted:#9AA8BD;--rule:#2A3756;
-  --good:#4CC197;--bad:#F08A73;--brass:#E0B455;--goodbg:#143329;--tipbg:#2C2717}
-
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
   font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.wrap{max-width:860px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
-.back{display:inline-flex;align-items:center;gap:6px;font-size:1rem;font-weight:700;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:9px 16px;min-height:44px;cursor:pointer;font-family:inherit}
+.wrap{max-width:980px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
+.back{display:inline-flex;align-items:center;gap:8px;font-size:var(--t-md);font-weight:700;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--rule);padding:8px 16px;min-height:44px;cursor:pointer;font-family:inherit}
 .back:hover{border-color:var(--ink)}
 h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.02em;margin:8px 0 4px;line-height:1.15}
-.lede{color:var(--muted);margin:0 0 18px;max-width:62ch}
-h2{font-size:1.15rem;font-weight:700;margin:0}
+.lede{color:var(--muted);margin:0 0 16px;max-width:62ch}
+h2{font-size:var(--t-lg);font-weight:700;margin:0}
 button,select,input{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--brass);outline-offset:2px}
 
 /* Setup */
-.pick{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--ink);padding:16px;display:grid;gap:14px}
+.pick{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--ink);padding:16px;display:grid;gap:16px}
 .pick fieldset{border:0;margin:0;padding:0;min-width:0}
-.pick legend{font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:6px;padding:0}
-.seg{display:flex;flex-wrap:wrap;gap:6px}
+.pick legend{font-size:var(--t-sm);font-weight:700;color:var(--muted);margin-bottom:8px;padding:0}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
 .seg label{position:relative}
 .seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
-.seg span{display:block;padding:7px 12px;border:1px solid var(--rule);font-weight:600;font-size:.92rem;background:var(--paper);cursor:pointer}
+.seg span{display:block;padding:8px 12px;border:1px solid var(--rule);font-weight:600;font-size:var(--t-md);background:var(--paper);cursor:pointer}
 .seg input:checked+span{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .seg input:focus-visible+span{outline:3px solid var(--brass);outline-offset:2px}
-.opts{display:flex;flex-wrap:wrap;gap:6px 18px}
-.opts label{display:flex;gap:8px;align-items:center;font-size:.92rem;cursor:pointer}
-.opts input[type=checkbox]{width:18px;height:18px;accent-color:var(--ink)}
-.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:10px}
-.fields label{display:grid;gap:3px;font-size:.85rem;font-weight:700;color:var(--muted)}
-.uplink{display:grid;gap:3px;font-size:.85rem;font-weight:700;color:var(--muted);grid-column:1/-1}
-.uprow{display:flex;gap:6px}
+.opts{display:flex;flex-wrap:wrap;gap:8px 16px}
+.opts label{display:flex;gap:8px;align-items:center;font-size:var(--t-md);cursor:pointer}
+.opts input[type=checkbox]{width:18px;height:18px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px}
+.fields label{display:grid;gap:4px;font-size:var(--t-sm);font-weight:700;color:var(--muted)}
+.uplink{display:grid;gap:4px;font-size:var(--t-sm);font-weight:700;color:var(--muted);grid-column:1/-1}
+.uprow{display:flex;gap:8px}
 .uprow input{flex:1;min-width:0}
 .uprow .tbtn{white-space:nowrap}
-.upnote{margin:0;font-weight:500;font-size:.8rem;overflow-wrap:anywhere}
-.upnote button{background:none;border:0;padding:0;color:var(--bad);font-weight:600;font-size:.8rem;cursor:pointer;text-decoration:underline}
-.fields input{padding:8px 10px;border:1px solid var(--rule);background:var(--paper);font-weight:500;color:var(--ink);width:100%}
+.upnote{margin:0;font-weight:400;font-size:var(--t-sm);overflow-wrap:anywhere}
+.upnote button{background:none;border:0;padding:0;color:var(--bad);font-weight:600;font-size:var(--t-sm);cursor:pointer;text-decoration:underline}
+.fields input{padding:8px 12px;border:1px solid var(--rule);background:var(--paper);font-weight:400;color:var(--ink);width:100%}
 
 /* Action bar */
-.bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin:18px 0 6px;
-  position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding:10px 0;border-bottom:2px solid var(--ink)}
+.bar{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;justify-content:space-between;margin:16px 0 8px;
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding:12px 0;border-bottom:2px solid var(--ink)}
 .count{font-weight:700}
-.acts{display:flex;flex-wrap:wrap;gap:6px}
-.tbtn{font-size:.85rem;font-weight:600;background:var(--panel);border:1px solid var(--rule);padding:6px 10px;cursor:pointer}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.tbtn{font-size:var(--t-sm);font-weight:600;background:var(--panel);border:1px solid var(--rule);padding:8px 12px;cursor:pointer}
 .tbtn:hover{border-color:var(--ink)}
 .tbtn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .tbtn:disabled{opacity:.45;cursor:default}
-.toast{font-size:.85rem;color:var(--good);font-weight:600;min-height:1.3em;margin:0}
+.toast{font-size:var(--t-sm);color:var(--goodtxt);font-weight:600;min-height:1.3em;margin:0}
 
 /* Checklist */
-.cat{margin-top:22px}
+.cat{margin-top:24px}
 .cathead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.cathead .tbtn{padding:3px 8px;font-size:.8rem}
+.cathead .tbtn{padding:4px 8px;font-size:var(--t-sm)}
 .items{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--rule)}
-.item{display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 10px;padding:12px 14px;border-top:1px solid var(--rule);cursor:pointer}
+.item{display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 12px;padding:12px 16px;border-top:1px solid var(--rule);cursor:pointer}
 .item:first-child{border-top:0}
 .item.on{background:var(--goodbg)}
-.item input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--good);cursor:pointer}
+.item input{width:20px;height:20px;margin:2px 0 0;cursor:pointer}
 .item label{font-weight:700;cursor:pointer}
-.item .why{grid-column:2;color:var(--muted);font-size:.92rem;margin:0}
-.yrs{grid-column:2;display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:6px;font-size:.9rem;font-weight:600}
-.yrs label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.item .why{grid-column:2;color:var(--muted);font-size:var(--t-md);margin:0}
+.yrs{grid-column:2;display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:8px;font-size:var(--t-sm);font-weight:600}
+.yrs label{display:flex;align-items:center;gap:8px;cursor:pointer}
 .yrs input{width:18px;height:18px;margin:0}
-.item .tip{grid-column:2;font-size:.88rem;margin:6px 0 0;padding:6px 10px;background:var(--tipbg);border-left:3px solid var(--brass)}
+.item .tip{grid-column:2;font-size:var(--t-sm);margin:8px 0 0;padding:8px 12px;background:var(--tipbg);border-left:3px solid var(--brass)}
 .item .tip b{color:var(--brass)}
-.whyadd{grid-column:2;display:flex;align-items:center;gap:6px;margin-top:2px;font-weight:600;font-size:.82rem;color:var(--muted);cursor:pointer;width:fit-content}
-.whyadd input{width:16px;height:16px;margin:0;accent-color:var(--ink)}
-.tipadd{display:flex;align-items:center;gap:6px;margin-top:4px;font-weight:600;font-size:.85rem;cursor:pointer;width:fit-content}
-.tipadd input{width:16px;height:16px;margin:0;accent-color:var(--brass)}
-.tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.02em;color:var(--muted);border:1px solid var(--rule);padding:0 6px;margin-left:6px;vertical-align:2px}
+.whyadd{grid-column:2;display:flex;align-items:center;gap:8px;margin-top:2px;font-weight:600;font-size:var(--t-sm);color:var(--muted);cursor:pointer;width:fit-content}
+.whyadd input{width:16px;height:16px;margin:0}
+.tipadd{display:flex;align-items:center;gap:8px;margin-top:4px;font-weight:600;font-size:var(--t-sm);cursor:pointer;width:fit-content}
+.tipadd input{width:16px;height:16px;margin:0}
+/* The "add to the email" boxes only matter once a document is checked, so they stay out of the way until then. */
+.item:not(.on) .whyadd,.item:not(.on) .tipadd{display:none}
+.tag{display:inline-block;font-size:var(--t-xs);font-weight:700;letter-spacing:.02em;color:var(--muted);border:1px solid var(--rule);padding:0 8px;margin-left:8px;vertical-align:2px}
 .tag.loan{color:var(--brass);border-color:var(--brass)}
 
 /* Email preview */
-.preview{margin-top:32px;background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--good);padding:16px 18px}
+.preview{margin-top:32px;background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--ink);padding:16px 16px}
 .phead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
 .estyle{border:0;margin:12px 0 0;padding:0;min-width:0}
-.estyle legend{font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:6px;padding:0}
-.sdesc{font-size:.85rem;color:var(--muted);margin:6px 0 0}
-.subj{margin:12px 0 0;font-size:.92rem;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.estyle legend{font-size:var(--t-sm);font-weight:700;color:var(--muted);margin-bottom:8px;padding:0}
+.sdesc{font-size:var(--t-sm);color:var(--muted);margin:8px 0 0}
+.subj{margin:12px 0 0;font-size:var(--t-md);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
 .subj b{color:var(--muted)}
 .mail{margin-top:12px;padding:16px;background:#FFFFFF;color:#222222;border:1px solid var(--rule)}
 .mail .empty{color:#666666}
 .empty{color:var(--muted);font-style:italic}
-.foot{margin-top:24px;font-size:.82rem;color:var(--muted)}
+.foot{margin-top:24px;font-size:var(--t-sm);color:var(--muted)}
 @media (max-width:640px){.bar{position:static}}
+/* Computer: checklist on the left, the email it builds stays in view on the right */
+@media (min-width:1200px){.wrap{max-width:var(--wide)}
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+  .colside{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto}
+  .colside .preview{margin-top:0}}
 </style>
-<script src="brand.js?v=5" defer></script>
+<script src="brand.js?v=7" defer></script>
 </head>
 <body>
+<div id="brandbar" class="brandbar"></div>
 <div class="wrap">
   <a class="back" id="backClient" href="clients.html" hidden style="margin-bottom:8px">← Back to client</a>
   <h1>Borrower document request</h1>
   <p class="lede">Pick the borrower's situation, check the documents you need, then copy a ready-to-send email that lists only those items.</p>
 
+  <div class="cols"><div class="colmain">
   <form class="pick" id="pick" onsubmit="return false">
     <fieldset>
       <legend>Borrower's income</legend>
@@ -177,7 +164,7 @@ button,select,input{font:inherit;color:inherit}
           <p class="upnote" id="upnote"></p>
         </div>
       </div>
-      <div class="opts" style="margin-top:10px">
+      <div class="opts" style="margin-top:12px">
         <label><input type="checkbox" id="optUp" checked> Add an "Upload documents" button</label>
         <label><input type="checkbox" id="optWhy" checked> Explain why each item is needed (turns all on or off)</label>
       </div>
@@ -195,7 +182,8 @@ button,select,input{font:inherit;color:inherit}
   <p class="toast" id="toast" role="status" aria-live="polite"></p>
 
   <div id="list"></div>
-
+  </div>
+  <aside class="colside">
   <section class="preview" aria-labelledby="ph">
     <div class="phead">
       <h2 id="ph">Email preview</h2>
@@ -214,6 +202,7 @@ button,select,input{font:inherit;color:inherit}
     <p class="subj"><b>Subject:</b> <span id="subject"></span> <button class="tbtn" id="copySubj" type="button">Copy subject</button></p>
     <div class="mail" id="mail"></div>
   </section>
+  </aside></div>
 
   <p class="foot">This is a general guide. Requirements vary by lender and loan program. Your selections are kept only until you close this tab; your sign-off is saved in this browser.</p>
 </div>
