@@ -49,6 +49,8 @@ body{margin:0;background:var(--paper);color:var(--ink);line-height:1.5;
   font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 a{color:inherit}
 button,select,input,textarea{font:inherit;color:inherit}
+/* Anything marked hidden stays hidden, even when a class gives it a display type. */
+[hidden]{display:none!important}
 /* Check boxes and radio buttons use the ink color everywhere, not the browser's blue. */
 input[type=checkbox],input[type=radio]{accent-color:var(--ink)}
 :focus-visible{outline:3px solid var(--brass);outline-offset:2px}
@@ -78,3 +80,14 @@ input[type=checkbox],input[type=radio]{accent-color:var(--ink)}
   .brandnav .short{display:inline}
 }
 @media print{.brandbar{display:none!important}}
+
+/* Phones: everything you tap is at least 44px tall, the size a thumb needs. */
+@media (max-width:640px){
+  button,select,summary,.tbtn,textarea,input:not([type=checkbox]):not([type=radio]){min-height:44px}
+  button{min-width:44px}
+  a.tbtn{display:inline-flex;align-items:center}
+  summary{padding-block:12px}
+  label:has(> input[type=checkbox]),label:has(> input[type=radio]){display:flex;align-items:center;min-height:44px}
+  input[type=checkbox],input[type=radio]{width:22px;height:22px;flex:none}
+  label:has(> input[type=checkbox]),label:has(> input[type=radio]){gap:8px}
+}
