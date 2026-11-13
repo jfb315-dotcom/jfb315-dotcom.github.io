@@ -127,7 +127,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 .glance .gok{color:var(--good);font-weight:700}
 .glance .mini{margin:2px 0 4px}
 .gnums{display:grid;grid-template-columns:auto 1fr;gap:0 12px}
-.gnums span{color:var(--muted)}.gnums b{white-space:nowrap}
+.gnums span{color:var(--muted)}.gnums b{white-space:nowrap}.gnums b.glock{color:var(--brass)}.gnums b.gwarn{white-space:normal}
 .glender{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:8px}
 .glance a.lenderbtn{display:inline-block;border:1px solid var(--ink);background:var(--ink);color:var(--panel);font-weight:800;font-size:var(--t-xs);letter-spacing:.06em;padding:4px 12px;text-decoration:none}
 .glance a.lenderbtn:hover{opacity:.85}
@@ -423,6 +423,12 @@ dialog form{padding:16px;display:grid;gap:12px}
       <label class="field">Down payment<input name="down" data-money inputmode="decimal" autocomplete="off" placeholder="Leave blank to figure it"></label>
       <label class="field">Rate<input name="rate" inputmode="decimal" autocomplete="off" placeholder="6.875%"></label>
     </div>
+    <div class="fgrid">
+      <label class="field">Rate locked?<select name="rateLocked"><option value="">Not locked</option><option value="yes">Locked</option></select></label>
+      <label class="field lockf">Lock date<input name="lockDate" type="date"></label>
+      <label class="field lockf">Lock length (days)<input name="lockDays" inputmode="numeric" autocomplete="off" placeholder="30"></label>
+    </div>
+    <p class="small lockf" id="lockExp" role="status" style="margin:-4px 0 0"></p>
     <div class="dlgbtns">
       <button class="tbtn" value="cancel" formnovalidate>Cancel</button>
       <button class="tbtn primary" value="save" id="dlgSave">Save client</button>
@@ -751,9 +757,9 @@ dialog form{padding:16px;display:grid;gap:12px}
     editing=c||null;
     const f=$("cform");f.reset();
     $("dlgTitle").textContent=c?"Edit client":"New client";
-    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
+    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
     showCo(!!(c&&(c.coFirst||c.coLast||c.coEmail||c.coPhone)));
-    fillLists();
+    fillLists();lockForm();
     f.elements.prospect.checked=c?c.status==="prospect":newAsProspect;
     $("dlg").showModal();f.elements.first.focus();
   }
@@ -780,6 +786,22 @@ dialog form{padding:16px;display:grid;gap:12px}
   function fmtRate(v){const n=num(v);return n===null?String(v||"").trim():n+"%";}
   document.addEventListener("blur",e=>{const t=e.target;if(!t.matches)return;
     if(t.matches("input[data-money]"))t.value=fmtMoney(t.value);else if(t.matches('input[name="rate"]'))t.value=fmtRate(t.value);},true);
+  // Rate lock: expiration = lock date + days; if that lands on a weekend or federal holiday it moves back to the business day before.
+  const workday=d=>d.getDay()!==0&&d.getDay()!==6&&!holidays(d.getFullYear()).has(ymd(d));
+  function lockInfo(c){
+    if(c.rateLocked!=="yes")return {locked:false};
+    const start=parseD(c.lockDate), days=parseInt(c.lockDays,10);
+    if(!start||!(days>0))return {locked:true,exp:null};
+    const raw=new Date(start);raw.setDate(raw.getDate()+days);
+    const exp=new Date(raw);while(!workday(exp))exp.setDate(exp.getDate()-1);
+    const t=new Date(), left=Math.round((exp-new Date(t.getFullYear(),t.getMonth(),t.getDate()))/864e5);
+    const close=parseD(closeDateOf(c));
+    return {locked:true,exp,raw,moved:+exp!==+raw,left,beforeClose:!!close&&exp<close};
+  }
+  function lockText(c){const L=lockInfo(c);
+    if(!L.locked)return "Not locked";
+    if(!L.exp)return "Locked (add the lock date and days)";
+    return `Locked, expires ${fmtDay(L.exp)}`+(L.left<0?" (expired)":L.left===0?" (today)":` (${L.left} day${L.left===1?"":"s"})`);}
   // Price, loan, down payment and rate as short lines; the down payment is figured from the other two when left blank.
   function loanNums(c){
     const p=num(c.price), l=num(c.loanAmt), d=num(c.down)??(p!==null&&l!==null&&p>=l?p-l:null), out=[];
@@ -787,6 +809,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(c.loanAmt)out.push(["Loan amount",fmtMoney(c.loanAmt)+(p&&l!==null?` (${Math.round(l/p*1000)/10}% LTV)`:"")]);
     if(d!==null)out.push(["Down payment",fmtMoney(d)+(p?` (${Math.round(d/p*1000)/10}%)`:"")]);
     if(c.rate)out.push(["Rate",fmtRate(c.rate)]);
+    if(c.rate||c.rateLocked)out.push(["Lock",lockText(c)]);
     return out;
   }
 
@@ -818,6 +841,19 @@ dialog form{padding:16px;display:grid;gap:12px}
     const f=$("cform");Object.keys(hit).forEach(k=>{if(k!=="name"&&hit[k])f.elements[k].value=hit[k];});
   });
 
+  // Rate lock fields show only when the rate is locked, with the expiration worked out as you type.
+  function lockForm(){
+    const f=$("cform"), on=f.elements.rateLocked.value==="yes";
+    f.querySelectorAll(".lockf").forEach(e=>e.hidden=!on);
+    if(on&&!f.elements.lockDate.value)f.elements.lockDate.value=today();
+    const L=lockInfo({rateLocked:f.elements.rateLocked.value,lockDate:f.elements.lockDate.value,lockDays:f.elements.lockDays.value,closing:f.elements.closing.value,closingAt:editing&&editing.closingAt});
+    $("lockExp").innerHTML=!on?"":!L.exp?`<span class="muted">Enter the lock length to see when it expires.</span>`:
+      `Lock expires <b>${fmtDay(L.exp)}</b>${L.moved?` <span class="muted">(${fmtDay(L.raw)} falls on a ${workday(L.raw)?"":L.raw.getDay()%6===0?"weekend":"holiday"}, so it moves back)</span>`:""}`+
+      (L.beforeClose?` <b style="color:var(--bad)">· before the closing date</b>`:"");
+  }
+  $("cform").addEventListener("input",e=>{if(["rateLocked","lockDate","lockDays","closing"].includes(e.target.name))lockForm();});
+  $("cform").addEventListener("change",e=>{if(e.target.name==="rateLocked")lockForm();});
+
   // Co-borrower fields stay tucked away until needed.
   function showCo(on){
     $("coBox").hidden=!on;
@@ -833,7 +869,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     if($("dlg").returnValue!=="save")return;
     const f=$("cform"), v=k=>f.elements[k].value.trim();
     if(!v("first"))return;
-    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","loan","purpose","who","closing"].map(k=>[k,/phone$/i.test(k)?fmtPhone(v(k)):["price","loanAmt","down"].includes(k)?fmtMoney(v(k)):k==="rate"?fmtRate(v(k)):v(k)]));
+    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","loan","purpose","who","closing"].map(k=>[k,/phone$/i.test(k)?fmtPhone(v(k)):["price","loanAmt","down"].includes(k)?fmtMoney(v(k)):k==="rate"?fmtRate(v(k)):v(k)]));
     const pros=f.elements.prospect.checked;
     if(editing){Object.assign(editing,data);
       if(pros)editing.status="prospect";else if(editing.status==="prospect")editing.status="active";
@@ -867,6 +903,10 @@ dialog form{padding:16px;display:grid;gap:12px}
     }
     if(!c.title||!c.titlePhone)add("warn","!","Add the title company and phone with Edit.");
     const oc=openConds(c).length;if(oc)add("warn","!",`${oc} condition${oc===1?"":"s"} still open.`);
+    {const L=lockInfo(c);
+      if(!L.locked)add("warn","!","Rate is not locked.");
+      else if(L.exp&&(L.left<0||L.beforeClose))add("bad","!",`Rate lock ${L.left<0?"expired":"expires"} ${fmtDay(L.exp)}, before the closing. Extend the lock.`);
+      else if(L.exp)add("ok","✓",`Rate locked through ${fmtDay(L.exp)}.`);}
     if(!c.fundsKnown)add("warn","$","Final funds-to-close figure not in yet.");
     if(!(c.notes||[]).some(n=>/closing email/.test(n.text)))add("warn","✉","Closing email not sent to the borrower yet.");
     const chk=c.ctcChk||{};
@@ -1019,7 +1059,8 @@ dialog form{padding:16px;display:grid;gap:12px}
       ${cell("Closing",when?`<b>${esc(when)}</b>${cdLine}`:add("Not scheduled")+cdLine)}
       ${cell("Title company",c.title||c.titlePhone?`<b>${esc(c.title||"")}</b>${c.titlePhone?`<div>${tel(c.titlePhone)}</div>`:""}${c.closer?`<div class="muted">Closer: ${esc(c.closer)}</div>`:""}`:add("Add with Edit"))}
       ${cell("Realtor",c.realtor||c.realtorPhone?`<b>${esc(c.realtor||"")}</b>${c.realtorPhone?`<div>${tel(c.realtorPhone)}</div>`:""}${c.realtorEmail?`<div>${mail(c.realtorEmail)}</div>`:""}`:add("Add with Edit"))}
-      ${cell("Loan numbers",(loanNums(c).length?`<div class="gnums">${loanNums(c).map(([k,v])=>`<span>${k.split(" ")[0]==="Purchase"?"Price":k.split(" ")[0]}</span><b>${esc(v)}</b>`).join("")}</div>`:add("Add price, loan amount and rate with Edit"))+
+      ${cell("Loan numbers",(loanNums(c).length?`<div class="gnums">${loanNums(c).map(([k,v])=>{const L=k==="Lock"?lockInfo(c):null, cls=L&&L.exp&&(L.left<0||L.beforeClose)?"gwarn":L&&L.exp&&L.left<=5?"glock":"";
+          return `<span>${k.split(" ")[0]==="Purchase"?"Price":k.split(" ")[0]}</span><b class="${cls}">${esc(v)}${L&&L.beforeClose&&L.left>=0?" · before closing":""}</b>`;}).join("")}</div>`:add("Add price, loan amount and rate with Edit"))+
         `<div class="muted small" style="margin-top:4px">${procOf(c)?"Processing "+fmt(procOf(c))+" · ":""}Last activity ${fmt((c.updated||stamp()).slice(0,10))}</div>`)}
     </div>`;
   }
