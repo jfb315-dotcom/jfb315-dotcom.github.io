@@ -344,6 +344,17 @@ details.phms[open]>summary{border-bottom:0}
 /* Printable desk sheet: only the sheet prints */
 #printSheet{display:none}
 #printSheet .rpt h2{margin-top:10px}
+#printSheet .r-cust{border-top:1.5px solid #000;padding:5px 0 0;margin-top:6px;break-inside:avoid}
+#printSheet .r-h{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+#printSheet .r-nm{font-size:11pt}
+#printSheet .r-line{font-size:9.5pt;margin-top:1px}
+#printSheet .r-cond{font-size:9.5pt;margin-top:3px}
+#printSheet .r-cond ul{margin:2px 0 0;padding:0;list-style:none}
+#printSheet .r-cond ul.two{columns:2;column-gap:20px}
+#printSheet .r-cond li{break-inside:avoid;padding:1px 0}
+#printSheet .r-notes{height:.85in;margin-top:4px;background:repeating-linear-gradient(#fff 0 26px,#999 26px 27px);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#printSheet .r-notes.r-n1{height:.55in}
+#printSheet .r-pro .r-h{display:block}
 #printSheet .r-t{width:100%;border-collapse:collapse;font-size:9pt;line-height:1.25}
 #printSheet .r-t th{text-align:left;font-size:8pt;text-transform:uppercase;letter-spacing:.04em;border-bottom:1.5px solid #000;padding:2px 4px}
 #printSheet .r-t td{border-bottom:1px solid #999;padding:3px 4px;vertical-align:top}
@@ -892,23 +903,43 @@ dialog form{padding:16px;display:grid;gap:12px}
     return {sep,rows};
   }
   // Column names differ between programs, so each field is matched by the words in its heading.
-  const COLS={category:/^(category|type|group)$/i,name:/^(name|contact|contact name|full name)$/i,first:/^first( name)?$/i,last:/^last( name)?$/i,company:/^(company|company name|business|firm)$/i,
-    phone:/^(phone|work phone|business phone|office phone|phone 1|telephone|work)$/i,cell:/^(cell|cell phone|mobile|mobile phone)$/i,email:/^(e-?mail|e-?mail address|email 1)$/i,
-    web:/^(web|website|web site|url|web address)$/i,addr:/^(address|street|address 1|street address)$/i,city:/^city$/i,state:/^(state|st)$/i,zip:/^(zip|zip code|postal code)$/i};
+  // Column headings differ between programs and versions, so each heading is matched loosely; you can change any match in the dialog.
+  const FIELDS=[["category","Category"],["name","Name"],["first","First name"],["last","Last name"],["company","Company"],["phone","Phone"],["cell","Cell"],["email","Email"],["web","Website"],["addr","Address"],["city","City"],["state","State"],["zip","Zip"]];
+  function colKey(h){const t=" "+String(h).toLowerCase().replace(/[^a-z0-9]+/g," ").trim()+" ";
+    if(/ e ?mail /.test(t))return "email";if(/ (web|website|url|homepage) /.test(t)||/web site/.test(t))return "web";if(/ fax /.test(t))return "";
+    if(/ (cell|mobile) /.test(t))return "cell";if(/ (phone|telephone|tel|work|office) /.test(t))return "phone";
+    if(/ (zip|postal) /.test(t))return "zip";if(/ (state|st) /.test(t))return "state";if(/ city /.test(t))return "city";if(/ (address|street|addr) /.test(t))return "addr";
+    if(/ first /.test(t))return "first";if(/ last /.test(t))return "last";if(/ (category|type|group|class) /.test(t))return "category";
+    if(/ (company|business|firm|organization|organisation|agency) /.test(t))return "company";if(/ (name|contact) /.test(t))return "name";return "";}
+  function autoCols(head){const cols={};FIELDS.forEach(([k])=>cols[k]=-1);head.forEach((h,i)=>{const k=colKey(h);if(k&&cols[k]<0)cols[k]=i;});return cols;}
   const KINDS=[["realtors","Realtor"],["titles","Title company"],["lenders","Lender"],["closers","Closer"],["processors","Processor"],["","Skip"]];
   const guessKind=cat=>/realt|agent|broker/i.test(cat)?"realtors":/title|escrow|closing|settlement|attorney/i.test(cat)?"titles":/lend|wholesale|bank|investor/i.test(cat)?"lenders":/process/i.test(cat)?"processors":"";
   let impData=null;
+  const impGet=(r,k)=>impData.cols[k]>=0?String(r[impData.cols[k]]||"").trim():"";
+  // Windows programs often save text as UTF-16 or Windows-1252 rather than UTF-8; work out which before reading it.
+  async function readText(f){const buf=new Uint8Array(await f.arrayBuffer());
+    if(buf[0]===0xFF&&buf[1]===0xFE)return new TextDecoder("utf-16le").decode(buf);
+    if(buf[0]===0xFE&&buf[1]===0xFF)return new TextDecoder("utf-16be").decode(buf);
+    let z=0;for(let i=1;i<Math.min(buf.length,400);i+=2)if(buf[i]===0)z++;if(z>50)return new TextDecoder("utf-16le").decode(buf);
+    try{return new TextDecoder("utf-8",{fatal:true}).decode(buf);}catch(e){return new TextDecoder("windows-1252").decode(buf);}}
   function impRender(){
     const counts=["realtors","titles","lenders","closers","processors"].map(k=>[k,(imported[k]||[]).length]).filter(x=>x[1]);
-    const how=`<ol class="small"><li>In Point, open the Cardex and choose <b>File › Export</b> (Custom ASCII).</li><li>Leave <b>Text Qualifier</b> as <b>"</b>, keep <b>Include Field Names in First Row</b> checked, and click <b>Export</b>. Any field separator works; a comma is the most common.</li><li>Click <b>Choose the export file</b> below and pick the file you saved.</li></ol>`;
+    const how=`<ol class="small"><li>In Point, open the Cardex and choose <b>File › Export</b> (Custom ASCII).</li><li>Leave <b>Text Qualifier</b> as <b>"</b>, keep <b>Include Field Names in First Row</b> checked, and click <b>Export</b>. Any field separator works.</li><li>Click <b>Choose the export file</b> below and pick the file you saved.</li></ol>`;
     let body;
     if(!impData)body=how+`<div class="acts"><button class="tbtn primary" type="button" data-act="impPick">Choose the export file</button></div>`;
-    else{const {cols,cats}=impData, mapped=Object.entries(cols).filter(([,i])=>i>=0).map(([k])=>k);
-      body=`<p class="small" style="margin:0">Found <b>${impData.rows.length}</b> contacts in <b>${esc(impData.file)}</b>. Pick what each category is. Categories set to Skip are left out.</p>
-        <table><thead><tr><th>Category in the file</th><th>Contacts</th><th>Use as</th></tr></thead><tbody>${cats.map(([cat,n],i)=>`<tr><td>${esc(cat||"(no category)")}</td><td>${n}</td>
-          <td><select data-impcat="${i}">${KINDS.map(([k,l])=>`<option value="${k}"${impData.kind[i]===k?" selected":""}>${l}</option>`).join("")}</select></td></tr>`).join("")}</tbody></table>
-        <p class="impmap" style="margin:0">Columns used: ${mapped.map(esc).join(", ")||"none found"}.${cols.category<0?" No Category column was found, so every row is in one group.":""}</p>
-        <div class="acts"><button class="tbtn primary" type="button" data-act="impSave">Import ${impData.kind.reduce((n,k,i)=>n+(k?cats[i][1]:0),0)} contacts</button><button class="tbtn" type="button" data-act="impPick">Choose a different file</button></div>`;}
+    else{const {cols,head,rows,kind}=impData, ok=cols.name>=0||cols.company>=0||cols.first>=0;
+      const byCat=new Map();rows.forEach(r=>{const c=impGet(r,"category");byCat.set(c,(byCat.get(c)||0)+1);});
+      const cats=[...byCat.entries()].sort((a,b)=>b[1]-a[1]);cats.forEach(([c])=>{if(!kind.has(c))kind.set(c,guessKind(c));});impData.cats=cats;
+      const sample=i=>{const r=rows.find(r=>String(r[i]||"").trim());return r?String(r[i]).trim().slice(0,28):"";};
+      const colSel=([k,l])=>`<label class="field">${l}<select data-impcol="${k}"><option value="-1">(none)</option>${head.map((h,i)=>`<option value="${i}"${cols[k]===i?" selected":""}>${i+1}. ${esc(h||"(no heading)")}${sample(i)?" · e.g. "+esc(sample(i)):""}</option>`).join("")}</select></label>`;
+      const n=cats.reduce((t,[c,m])=>t+(kind.get(c)?m:0),0);
+      body=`<p class="small" style="margin:0">Found <b>${rows.length}</b> rows and <b>${head.length}</b> columns in <b>${esc(impData.file)}</b>.</p>
+        ${ok?"":`<p class="small" style="margin:0;color:var(--bad)">The Name and Company columns weren't recognized. Pick them below. The examples show what's in each column.</p>`}
+        <details class="impcols"${ok?"":" open"}><summary class="small" style="cursor:pointer;font-weight:700">Columns${ok?" (matched automatically; check or change)":""}</summary><div class="fgrid" style="margin-top:8px">${FIELDS.map(colSel).join("")}</div></details>
+        ${ok?`<table><thead><tr><th>Category in the file</th><th>Contacts</th><th>Use as</th></tr></thead><tbody>${cats.map(([cat,m],i)=>`<tr><td>${esc(cat||"(no category)")}</td><td>${m}</td>
+          <td><select data-impcat="${i}">${KINDS.map(([k,l])=>`<option value="${k}"${kind.get(cat)===k?" selected":""}>${l}</option>`).join("")}</select></td></tr>`).join("")}</tbody></table>
+        <div class="acts"><button class="tbtn primary" type="button" data-act="impSave"${n?"":" disabled"}>Import ${n} contacts</button><button class="tbtn" type="button" data-act="impPick">Choose a different file</button></div>`
+        :`<div class="acts"><button class="tbtn" type="button" data-act="impPick">Choose a different file</button></div>`}`;}
     $("impBody").innerHTML=`<h2>Import contacts</h2>
       <p class="muted small" style="margin:0">Realtors, title companies, lenders, closers and processors from your Calyx Point Cardex (or any spreadsheet saved as CSV). They show up as suggestions when you type in Edit and in Send to processor. They're saved only in this browser.</p>
       ${counts.length?`<p class="small" style="margin:0">Imported now: ${counts.map(([k,n])=>`${n} ${KINDS.find(x=>x[0]===k)[1].toLowerCase()}${n===1?"":"s"}`).join(", ")}${imported.at?` <span class="muted">(from ${esc(imported.from)}, ${esc(fmt(imported.at.slice(0,10)))})</span>`:""}. A new import replaces these.</p>`:""}
@@ -917,18 +948,16 @@ dialog form{padding:16px;display:grid;gap:12px}
   }
   $("impFile").addEventListener("change",async ev=>{
     const f=ev.target.files[0];ev.target.value="";if(!f)return;
-    const {rows}=parseDelim(await f.text());if(rows.length<2){say("That file doesn't have a header row and contacts.");return;}
-    const head=rows[0].map(h=>h.trim()), cols={};Object.entries(COLS).forEach(([k,re])=>{cols[k]=head.findIndex(h=>re.test(h));});
-    if(cols.name<0&&cols.company<0&&cols.first<0){say("Couldn't find a Name or Company column. Make sure Include Field Names in First Row is checked.");return;}
-    const data=rows.slice(1), get=(r,k)=>cols[k]>=0?String(r[cols[k]]||"").trim():"";
-    const byCat=new Map();data.forEach(r=>{const c=get(r,"category");byCat.set(c,(byCat.get(c)||0)+1);});
-    const cats=[...byCat.entries()].sort((a,b)=>b[1]-a[1]);
-    impData={file:f.name,rows:data,cols,cats,get,kind:cats.map(([c])=>guessKind(c))};impRender();
+    const {rows}=parseDelim(await readText(f));if(rows.length<2){say("That file doesn't have a header row and contacts.");return;}
+    // The headings are the first row with more than one value (a title line above them is skipped).
+    let hi=rows.findIndex(r=>r.filter(x=>String(x).trim()).length>1);if(hi<0)hi=0;
+    const head=rows[hi].map(h=>String(h).trim()), w=Math.max(...rows.map(r=>r.length));while(head.length<w)head.push("");
+    impData={file:f.name,head,rows:rows.slice(hi+1),cols:autoCols(head),kind:new Map()};impRender();
   });
   function impSave(){
-    const {rows,cats,kind,get,file}=impData, kindOf=new Map(cats.map(([c],i)=>[c,kind[i]]));
+    const {rows,kind,file}=impData, get=impGet;
     const out={realtors:[],titles:[],lenders:[],closers:[],processors:[],from:file,at:stamp()};
-    rows.forEach(r=>{const k=kindOf.get(get(r,"category"));if(!k)return;
+    rows.forEach(r=>{const k=kind.get(get(r,"category"));if(!k)return;
       const person=get(r,"name")||[get(r,"first"),get(r,"last")].filter(Boolean).join(" "), co=get(r,"company");
       const phone=fmtPhone(get(r,"phone")||get(r,"cell")), email=get(r,"email");
       const addr=[get(r,"addr"),[get(r,"city"),[get(r,"state"),get(r,"zip")].filter(Boolean).join(" ")].filter(Boolean).join(", ")].filter(Boolean).join(", ");
@@ -938,7 +967,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       else if(k==="closers"&&person)out.closers.push({name:person,company:co});
       else if(k==="processors"&&person)out.processors.push({name:person,email,company:co});});
     imported=out;saveImported();
-    const n=rows.filter(r=>kindOf.get(get(r,"category"))).length;
+    const n=rows.filter(r=>kind.get(get(r,"category"))&&(get(r,"name")||get(r,"first")||get(r,"company"))).length;
     impData=null;$("impDlg").close();say(`Imported ${n} contacts. They'll show up as suggestions when you type in Edit.`);
   }
 
@@ -1531,39 +1560,28 @@ dialog form{padding:16px;display:grid;gap:12px}
       if(ap&&ap.cls!=="ok")A.push(`appraisal ${esc(ap.text)}`);
       if(!lu||days(new Date(lu.t))<-7)A.push(`no update sent ${lu?"since "+fmtShort(new Date(lu.t)):"yet"}`);
       if(A.length)att.push(`<b>${n}</b>: ${A.join(" · ")}`);});
-    const condTxt=c=>{const o=openConds(c);if(!o.length)return `<span class="r-m">None</span>`;
-      return `<b>${o.length} open</b> <span class="r-m">(${openConds(c,"b").length} borrower)</span><br>`+o.slice(0,2).map(x=>`${x.n}. ${esc(x.text.length>40?x.text.slice(0,38)+"…":x.text)}`).join("<br>")+(o.length>2?` <span class="r-m">+${o.length-2} more</span>`:"");};
-    const lockTxt=c=>{const L=lockInfo(c);return !L.locked?`<span class="r-m">Not locked</span>`:!L.exp?"Locked":`${fmtShort(L.exp)}${L.left<0?" (expired)":""}`;};
-    const cdTxt=c=>{const ci=cdInfo(c);if(!ci.close)return `<span class="r-m">—</span>`;return ci.level==="ok"?"OK":ci.level==="late"?"<b>Late</b>":ci.level==="urgent"||ci.sent?"Rcv by "+fmtShort(ci.recvBy):"Send by "+fmtShort(ci.sendBy);};
-    const rowsA=act.map(c=>{const cur=current(c), nx=nextStep(c), lu=lastUpdate(c);
-      return `<tr><td>${nm(c)}${c.phone?`<br><span class="r-m">${esc(c.phone)}</span>`:""}</td>
-        <td>${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.lender||c.loanAmt?`<br><span class="r-m">${esc([c.lender,c.loanAmt&&fmtMoney(c.loanAmt)].filter(Boolean).join(" · "))}</span>`:""}</td>
-        <td>${cur?esc(cur.name):"Not started"}${nx?`<br><span class="r-m">Next: ${esc(nx.name)}</span>`:""}</td>
-        <td>${c.closingAt?esc(fmtWhen(c.closingAt)):c.closing?esc(fmt(c.closing))+` <span class="r-m">(target)</span>`:`<span class="r-m">—</span>`}</td>
-        <td>${cdTxt(c)}</td><td>${lockTxt(c)}</td><td class="r-c">${condTxt(c)}</td>
-        <td>${lu?fmtShort(new Date(lu.t)):`<span class="r-m">None</span>`}</td><td class="r-n"></td></tr>`;}).join("");
-    const rowsP=pros.map(c=>`<tr><td>${nm(c)}</td><td>${esc([c.phone,c.email].filter(Boolean).join(" · "))||`<span class="r-m">—</span>`}</td>
-        <td>${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.price?` <span class="r-m">· ${esc(fmtMoney(c.price))}</span>`:""}</td>
-        <td>${c.updated?fmtShort(new Date(c.updated)):"—"}</td><td class="r-n"></td></tr>`).join("");
+    const lockTxt=c=>{const L=lockInfo(c);return !L.locked?"Not locked":!L.exp?"Locked":`Lock exp ${fmtShort(L.exp)}${L.left<0?" (expired)":""}`;};
+    const cdTxt=c=>{const ci=cdInfo(c);if(!ci.close)return "";return ci.level==="ok"?"CD OK":ci.level==="late"?"CD late":ci.level==="urgent"||ci.sent?"CD receipt by "+fmtShort(ci.recvBy):"Send CD by "+fmtShort(ci.sendBy);};
+    // One block per loan: who and where it stands, every open condition, then lines for handwritten notes.
+    const blockA=c=>{const cur=current(c), nx=nextStep(c), lu=lastUpdate(c), ap=apprStatus(c), o=openConds(c);
+      const close=c.closingAt?fmtWhen(c.closingAt):c.closing?fmt(c.closing)+" (target)":"No closing date";
+      return `<div class="r-cust"><div class="r-h"><div><b class="r-nm">${nm(c)}</b>${c.phone?` <span class="r-m">${esc(c.phone)}</span>`:""}</div><div class="r-cl"><b>${esc(close)}</b></div></div>
+        <div class="r-line">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.lender?" · "+esc(c.lender):""}${c.loanAmt?" · "+esc(fmtMoney(c.loanAmt)):""}
+          · <b>${cur?esc(cur.name):"Not started"}</b>${nx?` → next: ${esc(nx.name)}`:""}</div>
+        <div class="r-line r-m">${[cdTxt(c),lockTxt(c),ap?"Appraisal "+fmtMoney(c.apprValue)+(ap.cls==="ok"?" ✓":" · "+ap.text):"",lu?"Last update "+fmtShort(new Date(lu.t)):"No update sent yet"].filter(Boolean).map(esc).join(" · ")}</div>
+        ${o.length?`<div class="r-cond"><b>Open conditions (${o.length})</b><ul class="${o.length>5?"two":""}">${o.map(x=>`<li>☐ ${x.n}. ${esc(x.text)}${whoOf(x)==="lo"?' <span class="r-m">(LO)</span>':""}</li>`).join("")}</ul></div>`:`<div class="r-line r-m">No open conditions</div>`}
+        <div class="r-notes"></div></div>`;};
+    const blockP=c=>`<div class="r-cust r-pro"><div class="r-h"><div><b class="r-nm">${nm(c)}</b> <span class="r-m">${esc([c.phone,c.email].filter(Boolean).join(" · "))}</span></div>
+        <div class="r-m">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.price?" · "+esc(fmtMoney(c.price)):""} · last activity ${c.updated?fmtShort(new Date(c.updated)):"—"}</div></div><div class="r-notes r-n1"></div></div>`;
     const ps=$("printSheet");
     ps.innerHTML=`<div class="rpt">
       <div class="ph"><div><h1>Daily pipeline report</h1><div>${act.length} active loan${act.length===1?"":"s"} · ${pros.length} prospect${pros.length===1?"":"s"}</div></div>
         <div class="pr">${t0.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</div></div>
       <h2>Needs attention</h2>${att.length?`<ul class="r-att">${att.map(a=>`<li>☐ ${a}</li>`).join("")}</ul>`:`<p class="none">Nothing urgent.</p>`}
-      <h2>Active loans <span>sorted by closing date</span></h2>
-      ${act.length?`<table class="r-t"><thead><tr><th>Borrower</th><th>Loan</th><th>Where it is</th><th>Closing</th><th>CD</th><th>Lock</th><th>Open conditions</th><th>Last update</th><th>Notes</th></tr></thead><tbody>${rowsA}</tbody></table>`:`<p class="none">No active loans.</p>`}
-      <h2>Prospects</h2>
-      ${pros.length?`<table class="r-t"><thead><tr><th>Name</th><th>Contact</th><th>Looking for</th><th>Last activity</th><th>Notes</th></tr></thead><tbody>${rowsP}</tbody></table>`:`<p class="none">No prospects.</p>`}
-      <h2>Notes</h2><div class="lines"></div></div>`;
-    // Landscape for this report only, then shrink to one page if the pipeline is long.
-    const old=$("rptPage");if(old)old.remove();
-    const pg=document.createElement("style");pg.id="rptPage";pg.textContent="@page{size:letter landscape;margin:.4in}";document.head.appendChild(pg);
-    // Shrinking gives each line more room, so rows wrap less: measure at the width the shrunk page will have, a few times.
-    const W=10.2*96, max=7.6*96;let z=1;ps.style.zoom="";ps.classList.add("measure");
-    for(let i=0;i<5;i++){ps.style.width=(W/z)+"px";const nz=Math.min(1,max/ps.scrollHeight);if(Math.abs(nz-z)<.005){z=nz;break;}z=nz;}
-    ps.classList.remove("measure");ps.style.width="";
-    if(z<1)ps.style.zoom=String(Math.max(.45,z*.99));
-    const done=()=>{pg.remove();window.removeEventListener("afterprint",done);};window.addEventListener("afterprint",done);
+      <h2>Active loans <span>sorted by closing date</span></h2>${act.length?act.map(blockA).join(""):`<p class="none">No active loans.</p>`}
+      <h2>Prospects</h2>${pros.length?pros.map(blockP).join(""):`<p class="none">No prospects.</p>`}</div>`;
+    // Portrait, as many pages as it takes; a loan is never split across two pages.
+    const old=$("rptPage");if(old)old.remove();ps.style.zoom="";
     window.print();
   }
 
@@ -1795,7 +1813,9 @@ dialog form{padding:16px;display:grid;gap:12px}
     }
   });
   document.addEventListener("change",ev=>{
-    if(ev.target.dataset&&ev.target.dataset.impcat!==undefined&&impData){impData.kind[+ev.target.dataset.impcat]=ev.target.value;impRender();return;}
+    if(ev.target.dataset&&ev.target.dataset.impcat!==undefined&&impData){impData.kind.set(impData.cats[+ev.target.dataset.impcat][0],ev.target.value);impRender();return;}
+    if(ev.target.dataset&&ev.target.dataset.impcol&&impData){impData.cols[ev.target.dataset.impcol]=+ev.target.value;impRender();
+      const d=document.querySelector("details.impcols");if(d)d.open=true;return;}
     const c=curClient();if(!c)return;
     if(ev.target.dataset.cond){const x=(c.conds||[]).find(y=>y.id===ev.target.dataset.cond);
       if(x){x.done=ev.target.checked;x.doneAt=x.done?stamp():undefined;
