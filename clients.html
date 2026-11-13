@@ -98,6 +98,20 @@ button,select,input,textarea{font:inherit;color:inherit}
 .lay>[data-sec],.lay .stack>[data-sec]{margin-top:0!important}
 .cols3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.08fr);gap:16px;align-items:start}
 .cols3 .stack{gap:16px}
+/* Computer: side bar on the left, one work area on the right */
+.sidelay{display:grid;grid-template-columns:232px minmax(0,1fr);gap:16px;align-items:start}
+.sidenav{position:sticky;top:16px;display:grid;background:var(--panel);border:1px solid var(--rule)}
+.sidenav button{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px;padding:8px 16px;background:none;border:0;border-top:1px solid var(--rule);border-left:4px solid transparent;
+  font-weight:700;font-size:var(--t-md);color:var(--ink);text-align:left;cursor:pointer}
+.sidenav button:first-child{border-top:0}
+.sidenav button:hover{background:var(--paper)}
+.sidenav button[aria-current]{background:var(--ink);color:var(--panel);border-left-color:var(--brass)}
+.sidenav b{font-size:var(--t-xs);font-weight:700;padding:1px 8px;border-radius:999px;border:1px solid currentColor;color:var(--muted);white-space:nowrap}
+.sidenav b.warn{color:var(--brass)}.sidenav b.bad{color:var(--bad)}
+.sidenav button[aria-current] b{color:var(--panel)}
+.cols2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.cols2 .stack,.sidemain{gap:16px}
+.sidemain{max-width:980px}
 .trackbar{padding:8px 16px 12px}
 .trackbar .tracker{margin:12px 0 4px}
 .mode-wide [data-sec="conds"]>.panel{margin-top:8px!important}
@@ -905,7 +919,7 @@ dialog form{padding:16px;display:grid;gap:12px}
   function leaveClose(){if(closeMode&&mileOpts)({includeAll,includeConds,includeUp}=mileOpts);mileOpts=null;closeMode=false;}
   try{includeList=localStorage.getItem("ms-list")==="1";}catch(e){}
   // Lay the client page out for the screen: three columns on a computer, a quick-look order on a phone.
-  let phoneMail=false;
+  let phoneMail=false, sideView={};
   function arrange(c){
     const app=$("app"), S={};
     app.querySelectorAll("[data-sec]").forEach(e=>{if(!S[e.dataset.sec])S[e.dataset.sec]=e;});
@@ -916,7 +930,19 @@ dialog form{padding:16px;display:grid;gap:12px}
       // Full progress bar across the page, above the columns.
       const tr=S.ms&&S.ms.querySelector(".tracker");
       const tb=tr?box("panel trackbar",[tr]):null;
-      lay.append(S.glance,...(tb?[tb]:[]),box("cols3",[box("stack",[S.ms,S.cd]),box("stack",[S.conds,S.notes]),box("stack",[S.mail,S.docs])]));
+      // Left side bar picks what shows in the work area; everything else waits out of sight.
+      const view=sideView[c.id]||"overview", ci=cdInfo(c), oc=openConds(c).length, nn=(c.notes||[]).filter(n=>!n.auto).length;
+      const cdTag=!ci.close?"":ci.level==="ok"?"OK":ci.level==="late"?"Late":ci.level==="wait"?"":"Due";
+      const ITEMS=[["overview","Overview",""],["ms","Milestones",`${doneCount(c)}/${MAIN.length}`],["conds","Conditions",oc?String(oc):""],["notes","Notes",nn?String(nn):""],
+        ["cd","Closing Disclosure",cdTag],["mail","Send an update",""],["docs","Document request",""]];
+      const nav=document.createElement("nav");nav.className="sidenav";nav.setAttribute("aria-label","Client sections");
+      nav.innerHTML=ITEMS.map(([k,l,b])=>`<button type="button" data-side="${k}"${k===view?' aria-current="true"':""}><span>${l}</span>${b?`<b class="${k==="cd"&&(ci.level==="late"||ci.level==="urgent")?"bad":k==="conds"||(k==="cd"&&cdTag==="Due")?"warn":""}">${b}</b>`:""}</button>`).join("");
+      const SEC={ms:[S.ms],conds:[S.conds],notes:[S.notes],cd:[S.cd],mail:[S.mail],docs:[S.docs]};
+      const main=view==="overview"?box("cols2",[box("stack",[S.ms]),box("stack",[S.conds,S.notes])]):box("stack sidemain",SEC[view]);
+      // Sections not on screen stay in the page (hidden) so their controls keep working.
+      const shown=new Set(view==="overview"?["ms","conds","notes"]:[view]);
+      const park=box("",Object.keys(SEC).filter(k=>!shown.has(k)).map(k=>S[k]));park.hidden=true;
+      lay.append(S.glance,...(tb?[tb]:[]),box("sidelay",[nav,main]),park);
     }else if(mode==="phone"){
       const det=document.createElement("details");det.className="phms";if(msOpen[c.id+"ph"])det.open=true;
       det.addEventListener("toggle",()=>{msOpen[c.id+"ph"]=det.open;});
@@ -1317,7 +1343,8 @@ dialog form{padding:16px;display:grid;gap:12px}
   // ---------- Clicks ----------
   const curClient=()=>{const m=location.hash.match(/client=([\w]+)/);return m&&clients.find(x=>x.id===m[1]);};
   document.addEventListener("click",async ev=>{
-    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote],[data-delcond],[data-condwho],[data-sort]");if(!t)return;
+    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote],[data-delcond],[data-condwho],[data-sort],[data-side]");if(!t)return;
+    if(t.dataset.side){const c0=curClient();if(c0){sideView[c0.id]=t.dataset.side;const y=scrollY;renderClient(c0);scrollTo(0,y);}return;}
     if(t.dataset.sort){const k=t.dataset.sort;if(sortKey===k)sortDir=-sortDir;else{sortKey=k;sortDir=["name","loan","next","cd","closing"].includes(k)?1:-1;}renderList();return;}
     const c=curClient();
     if(t.dataset.tab){tab=t.dataset.tab;renderList();return;}
