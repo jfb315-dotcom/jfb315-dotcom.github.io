@@ -1,4 +1,6 @@
-# Mortgage Market Dashboard
+# Pipeline Desk
+
+John Bischof's work site: a mortgage market dashboard, a client tracker and a document request email builder.
 
 A one-page dashboard of mortgage rates, Treasury yields, stock market numbers and housing data, hosted on GitHub Pages.
 
