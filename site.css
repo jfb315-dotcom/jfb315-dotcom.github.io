@@ -63,6 +63,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--ink)}
 .brandbar .bl{display:flex;align-items:center;gap:16px;min-width:0}
 .brandbar img{display:block;height:72px;width:auto;max-width:min(300px,60vw)}
 .brandbar .bn{display:flex;flex-direction:column;line-height:1.2}
+.brandbar .bn small{font-size:var(--t-xs);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
 .brandbar .bn b{font-size:var(--t-lg);font-weight:800;letter-spacing:-.01em;color:var(--ink)}
 .brandbar .bn span{font-size:var(--t-md);color:var(--muted)}
 .brandnav{display:flex;flex-wrap:wrap;gap:8px}
@@ -74,6 +75,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--ink)}
 @media (max-width:640px){.brandbar{min-height:151px}
   .brandbar img{height:52px}
   .brandbar .bn b{font-size:var(--t-md)}
+  .brandbar .bn span{font-size:var(--t-sm);white-space:nowrap}
   .brandnav{width:100%;flex-wrap:nowrap}
   .brandnav a{flex:1 1 0;flex-direction:column;justify-content:center;gap:4px;padding:8px 4px;min-height:58px;font-size:var(--t-sm)}
   .brandnav svg{width:22px;height:22px}

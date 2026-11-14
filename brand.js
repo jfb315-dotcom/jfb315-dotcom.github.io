@@ -7,6 +7,7 @@
 (function(){
   var NAME = "John Bischof";
   var COMPANY = "Home Mortgage Solutions, LLC";
+  var APP = "Pipeline Desk";
   var LOGOS = [
     {h:201, f:"img/logos/everyday-slate.webp", bg:"dark"},
     {h:201, f:"img/logos/everyday-black.webp", bg:"light"},
@@ -84,9 +85,10 @@
       left.appendChild(img);
     }
     var bn = document.createElement("div"); bn.className = "bn";
+    var ap = document.createElement("small"); ap.textContent = APP;
     var b = document.createElement("b"); b.textContent = NAME;
     var sp = document.createElement("span"); sp.textContent = COMPANY;
-    bn.appendChild(b); bn.appendChild(sp); left.appendChild(bn); bar.appendChild(left);
+    bn.appendChild(ap); bn.appendChild(b); bn.appendChild(sp); left.appendChild(bn); bar.appendChild(left);
     var nav = document.createElement("nav"); nav.className = "brandnav"; nav.setAttribute("aria-label","Main");
     var path = location.pathname;
     NAV.forEach(function(n){

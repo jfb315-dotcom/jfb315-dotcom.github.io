@@ -2,7 +2,7 @@
 
 ## What this is
 
-John Bischof's personal work site (loan officer, Home Mortgage Solutions, LLC), live at
+**Pipeline Desk** (John's name for it): John Bischof's work site (loan officer, Home Mortgage Solutions, LLC), live at
 https://jfb315-dotcom.github.io/. It is a static GitHub Pages site: three hand-written HTML
 pages, one shared stylesheet, one shared script, and a Python job that refreshes market data.
 There is no framework, no bundler, no package.json and no server. Each page holds its own
@@ -19,8 +19,8 @@ what changed, where to click, what he will see. No code, file names or git terms
 | `index.html` | Market dashboard. Reads `data/market.json`. Charts, alert level, quick links, "My tools" tiles, color scheme picker. |
 | `checklist.html` | Document request email builder (borrower type, loan type, checked items, tips, upload button). |
 | `clients.html` | Client tracker, the biggest and most-changed file. Client list, client page, milestones, conditions, notes, emails, CD (TRID) dates, print sheet, backup. |
-| `site.css` | The design system: color tokens for every scheme, the text and spacing scales, base styles, the top bar's styles, phone tap sizes. Loaded as `site.css?v=2`. |
-| `brand.js` | Fills the empty `#brandbar` at the top of every page with the logo and the Dashboard / Clients / Document request buttons. Loaded as `brand.js?v=7`. |
+| `site.css` | The design system: color tokens for every scheme, the text and spacing scales, base styles, the top bar's styles, phone tap sizes. Loaded as `site.css?v=3`. |
+| `brand.js` | Fills the empty `#brandbar` at the top of every page with the logo and the Dashboard / Clients / Document request buttons. Loaded as `brand.js?v=8`. |
 | `data/market.json` | Written only by the workflow. Never edit by hand. |
 | `scripts/fetch_fred.py` | Pulls FRED series and release dates (standard library only). Holds the Fed meeting date list. |
 | `.github/workflows/update-data.yml` | Runs the fetch on a weekday schedule and on every push to `main`, then publishes. |
