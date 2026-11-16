@@ -406,6 +406,65 @@ details.phms[open]>summary{border-bottom:0}
 #printSheet tr,#printSheet li{break-inside:avoid}
 #printSheet .team{margin-top:8px;font-size:9.5pt}
 #printSheet .team td{width:50%;padding:4px 8px 4px 0}
+/* File cover (print sheet): black and white; every rule is scoped so the other print styles don't leak in */
+#printSheet .cov{min-height:calc(11in / var(--z,1));padding:.35in .45in .4in;display:flex;flex-direction:column;gap:8px;font-family:Calibri,Carlito,Arial,sans-serif;color:#000;font-size:9.5pt;line-height:1.3;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#printSheet .cov h1{font-size:21pt;line-height:1.1;margin:0;letter-spacing:-.01em}
+#printSheet .cov h2{margin:0 0 3px;padding:0 0 2px;font-size:9pt;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#444;border-bottom:1.5px solid #000}
+#printSheet .cov table{width:100%;border-collapse:collapse}
+#printSheet .cov td,#printSheet .cov th{padding:3px 4px;vertical-align:top}
+#printSheet .cov .tab{display:flex;justify-content:space-between;align-items:center;background:#222;color:#fff;margin:0 -.45in;padding:5px .45in}
+#printSheet .cov .tab b{font-size:20pt;letter-spacing:.12em;font-weight:800}
+#printSheet .cov .tab span{font-size:8.5pt;letter-spacing:.06em;text-transform:uppercase}
+#printSheet .cov .head{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:stretch}
+#printSheet .cov .sub{color:#444;font-size:10pt}
+#printSheet .cov .tags{margin-top:4px}
+#printSheet .cov .pill{display:inline-block;border:1px solid #555;color:#333;font-weight:700;font-size:8pt;padding:0 7px;border-radius:999px;margin-right:4px;text-transform:uppercase;letter-spacing:.04em}
+#printSheet .cov .big{border:2px solid #000;padding:5px 10px;min-width:1.55in;text-align:center}
+#printSheet .cov .big+.big{border-color:#666}
+#printSheet .cov .l,#printSheet .cov .r{font-size:7.5pt;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#555}
+#printSheet .cov .big .v{font-size:15pt;font-weight:800;line-height:1.15}
+#printSheet .cov .big .s{font-size:9pt}
+#printSheet .cov .nums{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid #bbb}
+#printSheet .cov .nums>div{padding:5px 8px;border-right:1px solid #bbb}
+#printSheet .cov .nums>div:last-child{border-right:0}
+#printSheet .cov .nums .v{font-size:12pt;font-weight:800}
+#printSheet .cov .nums .s{font-size:8pt;color:#555}
+#printSheet .cov .trk{display:grid;grid-template-columns:repeat(8,1fr);position:relative;padding-top:2px}
+#printSheet .cov .trk:before{content:"";position:absolute;left:6.25%;right:6.25%;top:11px;height:2px;background:#ccc}
+#printSheet .cov .trk .bar{position:absolute;left:6.25%;top:11px;height:2px;background:#333}
+#printSheet .cov .st{text-align:center;position:relative;font-size:7.5pt;line-height:1.15}
+#printSheet .cov .st b{display:block;font-size:7.5pt}
+#printSheet .cov .st i{font-style:normal;color:#555}
+#printSheet .cov .dot{width:20px;height:20px;border-radius:50%;margin:0 auto 3px;border:2px solid #bbb;background:#fff;display:grid;place-items:center;font-weight:800;font-size:8pt}
+#printSheet .cov .done .dot{background:#333;border-color:#333;color:#fff}
+#printSheet .cov .next .dot{background:#fff;border:3px solid #000;color:#000}
+#printSheet .cov .mid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:14px}
+#printSheet .cov .call{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+#printSheet .cov .card{border:1px solid #bbb;padding:4px 7px;font-size:8.5pt;line-height:1.25;overflow-wrap:anywhere}
+#printSheet .cov .card b{font-size:9.5pt}
+#printSheet .cov .card .x{margin-top:2px;padding-top:2px;border-top:1px dotted #bbb}
+#printSheet .cov .dates{display:table;font-size:8.5pt}
+#printSheet .cov .dates td{padding:3px 0;border-bottom:1px solid #bbb}
+#printSheet .cov .dates td+td{text-align:right;font-weight:700;white-space:nowrap}
+#printSheet .cov .ct{font-size:8.5pt}
+#printSheet .cov .ct th,#printSheet .cov .log th{text-align:left;font-size:7pt;letter-spacing:.06em;text-transform:uppercase;color:#555;border-bottom:1.5px solid #000;padding:2px 4px}
+#printSheet .cov .ct td{border-bottom:1px solid #ccc}
+#printSheet .cov .ct .sec td{background:#eee;font-weight:800;font-size:8pt;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid #000}
+#printSheet .cov .ct .sec .cl{font-weight:400;text-transform:none;letter-spacing:0;color:#555}
+#printSheet .cov .ct .n{width:20px;font-weight:800}
+#printSheet .cov .ct th.bx{font-size:7pt;line-height:1.3}
+#printSheet .cov .ct .q{width:.75in;color:#444}
+#printSheet .cov .ct .bx{width:.5in;text-align:center;font-size:11pt;line-height:1}
+#printSheet .cov .ct .wr td{height:18px}
+#printSheet .cov .uw{color:#777;font-size:7.5pt}
+#printSheet .cov .log{font-size:8pt}
+#printSheet .cov .log td{border-bottom:1px solid #ccc;height:20px}
+#printSheet .cov .log td:first-child{width:.75in;border-right:1px solid #ccc}
+#printSheet .cov .log td:nth-child(2){width:1.1in;border-right:1px solid #ccc}
+#printSheet .cov .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #bbb;padding-top:5px;font-size:8pt;color:#444}
+#printSheet .cov .foot img{height:.32in;display:block}
+#printSheet .cov .foot .me{display:flex;align-items:center;gap:8px}
+#printSheet .cov .foot b{color:#000}
 #printSheet.measure{display:block;position:absolute;left:-10000px;top:0;width:7.5in;background:#fff}
 @media print{
   @page{margin:.5in}
@@ -1599,39 +1658,73 @@ dialog form{padding:16px;display:grid;gap:12px}
   }
 
   // ---------- Printable desk sheet ----------
+  // File cover: one Letter page for the front of the paper file. Black and white, with room to write.
   function printSheet(c){
     const rp=$("rptPage");if(rp)rp.remove(); // the daily report's landscape page setting must not carry over
-    const box=d=>d?"&#9745;":"&#9744;";
-    const info=[LOANS[c.loan]+" "+PURP[c.purpose],WHO[c.who]+" borrower",c.lender&&"Lender: "+c.lender,c.address,c.phone,c.email].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; ")+
-      (coName(c)?"<br>Co-borrower: "+[coName(c),c.coPhone,c.coEmail].filter(Boolean).map(esc).join(" &nbsp;·&nbsp; "):"")+
-      (loanNums(c).length?"<br>"+loanNums(c).map(([k,v])=>k+": "+esc(v)).join(" &nbsp;·&nbsp; "):"")+
-      (procOf(c)?"<br>Submitted to processing "+esc(fmt(procOf(c))):"");
-    const ms=MAIN.map((nd,i)=>{const d=c.ms[nodeKey(nd)];
-      return `<tr><td class="b">${box(d)}</td><td><b>${i+1}. ${esc(nd.name)}</b></td><td class="d">${d?fmt(d):""}</td></tr>`+
-        (nd.subs||[]).map(k=>{const sd=c.ms[k];return `<tr class="sub"><td></td><td>${box(sd)} ${esc(msBy(k).name)}${k==="closingSched"&&c.closingAt?" — <b>"+esc(fmtWhen(c.closingAt))+"</b>":""}</td><td class="d">${sd?fmt(sd):""}</td></tr>`;}).join("");}).join("");
-    const conds=sortedConds(c), open=conds.filter(x=>!x.done), done=conds.filter(x=>x.done);
-    const ctable=who=>{const l=sortedConds(c,who);if(!l.length)return "";
-      return `<h3>${CGROUPS.find(g=>g[0]===who)[1]}</h3><table class="cd">${l.map(x=>`<tr class="${x.done?"done":""}"><td class="b">${x.done?"&#9745;":"&#9744;"}</td><td class="n">${x.done?"":posOf(c,x)+"."}</td><td>${esc(x.text)}${x.req?` <span style="color:#555;font-size:8.5pt">(requested ${fmtShort(parseD(x.req))})</span>`:""}</td></tr>`).join("")}</table>`;};
-    const notes=(c.notes||[]).filter(x=>!x.auto&&!isEmail(x)).slice(-8).reverse();
-    const tl=(label,parts)=>parts.some(Boolean)?`<td><b>${label}</b><br>${parts.filter(Boolean).map(esc).join("<br>")}</td>`:"";
-    const tcells=tl("Title company",[c.title,c.titlePhone,c.titleAddr,c.closer&&"Closer: "+c.closer])+tl("Realtor",[c.realtor,c.realtorPhone,c.realtorEmail,c.tcName&&"TC: "+c.tcName,c.tcPhone,c.tcEmail]);
-    const team=tcells?`<table class="team"><tr>${tcells}</tr></table>`:"";
-    $("printSheet").innerHTML=`
-      <div class="ph"><div><h1>${esc(fullName(c))}</h1><div>${info}</div></div>
-        <div class="pr">Printed ${new Date().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}<br>${doneCount(c)} of ${MAIN.length} steps complete</div></div>
-      ${c.closingAt||c.closing?`<div class="close">Closing: <b>${c.closingAt?esc(fmtWhen(c.closingAt)):"target "+esc(fmt(c.closing))}</b></div>`:""}
-      ${team}
-      <h2>Milestones</h2><table class="ms">${ms}</table>
-      <h2>Conditions ${conds.length?`<span>${open.length} open · ${done.length} cleared</span>`:""}</h2>
-      ${conds.length?ctable("b")+ctable("lo")+ctable("r"):`<p class="none">No conditions yet.</p>`}
-      ${notes.length?`<h2>Recent notes</h2><ul class="nt">${notes.map(x=>`<li><span>${fmtStamp(x.t)}</span> ${esc(x.text)}</li>`).join("")}</ul>`:""}
-      <h2>Notes</h2><div class="lines"></div>`;
-    // Always one page: measure the sheet at letter size and shrink it to fit if needed.
-    const ps=$("printSheet");ps.style.zoom="";ps.classList.add("measure");
-    const h=ps.scrollHeight, max=9.9*96;ps.classList.remove("measure");
-    if(h>max)ps.style.zoom=String(Math.max(.5,max/h));
+    const E=v=>esc(v||""), L=lockInfo(c), ci=cdInfo(c), ap=apprStatus(c), lu=lastUpdate(c);
+    const t0=new Date(), today0=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate());
+    const dShort=v=>v?fmtShort(parseD(String(v).slice(0,10))):"";
+    const last=(c.last||c.first||"").toUpperCase();
+    const names=coName(c)?(c.coLast&&c.coLast===c.last?`${c.first} &amp; ${E(c.coFirst)} ${E(c.last)}`:`${E(fullName(c))} &amp; ${E(coName(c))}`):E(fullName(c));
+    const close=parseD(closeDateOf(c)), days=close?Math.round((close-today0)/864e5):null;
+    const closeBox=close?`<div class="v">${close.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})}</div><div class="s">${c.closingAt?new Date(c.closingAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):"Target date"}${days!==null?` · <b>${days<0?"passed":days===0?"today":days+" day"+(days===1?"":"s")}</b>`:""}</div>`:`<div class="v">Not set</div><div class="s">__________</div>`;
+    const lockBox=!L.locked?`<div class="v">Not locked</div><div class="s">${c.rate?"Rate "+E(fmtRate(c.rate)):"&nbsp;"}</div>`:!L.exp?`<div class="v">Locked</div><div class="s">Exp. __________</div>`:
+      `<div class="v">${fmtShort(L.exp)}</div><div class="s">${L.left<0?"<b>Expired</b>":`Locked · <b>${L.left} day${L.left===1?"":"s"} left</b>`}${L.lender?" (lender)":""}</div>`;
+    const p=num(c.price), la=num(c.loanAmt), dn=num(c.down)??(p!==null&&la!==null&&p>=la?p-la:null);
+    const nb=(l,v,sub)=>`<div><div class="l">${l}</div><div class="v">${v||"—"}</div><div class="s">${sub||"&nbsp;"}</div></div>`;
+    const nums=nb("Price",c.price&&E(fmtMoney(c.price)))+nb("Loan amount",c.loanAmt&&E(fmtMoney(c.loanAmt)),p&&la!==null?Math.round(la/p*1000)/10+"% LTV":"")+
+      nb("Down payment",dn!==null&&E(fmtMoney(dn)),p&&dn!==null?Math.round(dn/p*1000)/10+"%":"")+nb("Rate",c.rate&&E(fmtRate(c.rate)),L.locked?"Locked":"Not locked")+
+      nb("Appraised",c.apprValue&&E(fmtMoney(c.apprValue))+(ap&&ap.cls==="ok"?" ✓":""),ap?(ap.cls==="ok"?(c.ms.apprRecv?"Received "+dShort(c.ms.apprRecv):"&nbsp;"):E(ap.text)):"");
+    const stg=stageOf(c), trk=MAIN.map((nd,i)=>{const d=c.ms[nodeKey(nd)], st=nodeDone(c,nd)?"done":i===stg?"next":"";
+      const sub=!d&&nd.subs?nd.subs.filter(k=>c.ms[k]).map(k=>msBy(k).short.toLowerCase()+" "+dShort(c.ms[k])).join(", "):"";
+      return `<div class="st ${st}"><div class="dot">${st==="done"?"✓":i+1}</div><b>${E(nd.name)}</b><i>${d?dShort(d):sub?E(sub):"&nbsp;"}</i></div>`;}).join("");
+    const done=MAIN.filter(nd=>nodeDone(c,nd)).length, pct=Math.max(0,Math.min(done,MAIN.length)-1)/(MAIN.length-1)*87.5;
+    const blank="______________________";
+    const card=(role,name,lines,extra)=>`<div class="card"><div class="r">${role}</div><b>${name?E(name):blank}</b>${lines.filter(Boolean).length?"<br>"+lines.filter(Boolean).map(E).join(" · "):""}${extra||""}</div>`;
+    const cards=card("Borrower",fullName(c),[c.phone,c.email])+(coName(c)?card("Co-borrower",coName(c),[c.coPhone,c.coEmail]):"")+
+      card("Realtor",c.realtor,[c.realtorPhone,c.realtorEmail],c.tcName||c.tcPhone?`<div class="x"><span class="r">TC</span> ${E([c.tcName,c.tcPhone].filter(Boolean).join(" · "))}</div>`:"")+
+      card("Title company",c.title,[c.titlePhone,c.titleAddr],`<div class="x"><span class="r">Closer</span> ${c.closer?E(c.closer):"______________"}</div>`)+
+      card("Lender",c.lender,[c.lenderUrl])+card("Processor",c.procName,[c.procEmail]);
+    const dl=(l,v)=>`<tr${v?"":' class="blank"'}><td>${l}</td><td>${v||"&nbsp;"}</td></tr>`, two=(a,b)=>a||b?`${a||"____"} / ${b||"____"}`:"";
+    const dates=dl("Contract received",dShort(c.ms.contract))+dl("Disclosures sent / signed",two(dShort(c.ms.discSent),dShort(c.ms.discSigned)))+
+      dl("Appraisal ordered / received",two(dShort(c.ms.apprOrdered),dShort(c.ms.apprRecv)))+dl("Rate locked / expires",L.locked?two(dShort(c.lockDate),L.exp?fmtShort(L.exp):""):"")+
+      dl("CD sent",dShort(c.cdSent))+dl(`CD received${ci.close?` (by ${fmtShort(ci.recvBy)})`:""}`,dShort(c.cdRecv))+dl("Last update to borrower",lu?fmtShort(new Date(lu.t)):"")+
+      dl("Closing",c.closingAt?E(fmtWhen(c.closingAt)):c.closing?dShort(c.closing)+" (target)":"");
+    const open=openConds(c), cleared=(c.conds||[]).filter(x=>x.done).length;
+    const sec=g=>{const l=openConds(c,g[0]), cl=(c.conds||[]).filter(x=>x.done&&whoOf(x)===g[0]).length;
+      return `<tr class="sec"><td colspan="5">${g[2]}${cl?` <span class="cl">· ${cl} cleared</span>`:""}</td></tr>`+
+        l.map(x=>`<tr><td class="n">${posOf(c,x)}</td><td>${E(x.text)}${x.uw?` <span class="uw">#${x.n}</span>`:""}</td><td class="q">${x.req?dShort(x.req):"—"}</td><td class="bx">☐</td><td class="bx">☐</td></tr>`).join("")+
+        [1,2].map(k=>`<tr class="wr"><td class="n">${l.length+k}</td><td></td><td></td><td class="bx">☐</td><td class="bx">☐</td></tr>`).join("");};
+    // Your latest typed notes start the call log; the rest of the lines are for handwriting.
+    const notes=(c.notes||[]).filter(x=>!x.auto&&!isEmail(x)).slice(-3).reverse();
+    const logRows=notes.map(x=>`<tr><td>${fmtShort(new Date(x.t))}</td><td>Note</td><td>${E(x.text.length>110?x.text.slice(0,108)+"…":x.text)}</td></tr>`).join("")+
+      Array.from({length:Math.max(3,5-notes.length)},()=>"<tr><td></td><td></td><td></td></tr>").join("");
+    const ps=$("printSheet");
+    ps.innerHTML=`<div class="cov">
+      <div class="tab"><b>${E(last)}</b><span>${E((LOANS[c.loan]||"")+" "+(PURP[c.purpose]||""))}${close?" · Closing "+fmtShort(close):""} · Pipeline Desk</span></div>
+      <div class="head"><div class="who"><h1>${names}</h1><div class="sub">${c.address?E(c.address):"Property address: "+blank}</div>
+          <div class="tags"><span class="pill">${E(LOANS[c.loan]||"")}</span><span class="pill">${E(PURP[c.purpose]||"")}</span><span class="pill">${E(WHO[c.who]||"")}</span>${c.lender?` <span class="sub">Lender: ${E(c.lender)}</span>`:""}</div></div>
+        <div class="big"><div class="l">Closing</div>${closeBox}</div><div class="big"><div class="l">Rate lock</div>${lockBox}</div></div>
+      <div class="nums">${nums}</div>
+      <div><h2>Progress · ${done} of ${MAIN.length}</h2><div class="trk"><div class="bar" style="width:${pct}%"></div>${trk}</div></div>
+      <div class="mid"><div><h2>Who to call</h2><div class="call">${cards}</div></div><div><h2>Key dates</h2><table class="dates">${dates}</table></div></div>
+      <div><h2>Conditions · ${open.length} open${cleared?` · ${cleared} cleared`:""}</h2><table class="ct"><thead><tr><th class="n">#</th><th>Condition</th><th class="q">Requested</th><th class="bx">Rec'd</th><th class="bx">Cleared</th></tr></thead>
+        <tbody>${CGROUPS.map(sec).join("")}</tbody></table></div>
+      <div><h2>Call log &amp; notes</h2><table class="log"><thead><tr><th>Date</th><th>Who</th><th>Note</th></tr></thead><tbody>${logRows}</tbody></table></div>
+      <div class="foot"><div class="me"><img src="img/logos/everyday-black.webp" alt=""><div><b>John Bischof</b> · Home Mortgage Solutions, LLC</div></div><div>Pipeline Desk · Printed ${t0.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}</div></div>
+    </div>`;
+    // No page margins, so the browser leaves off its date, web address and page number; the cover pads itself.
+    const old=$("sheetPage");if(old)old.remove();
+    const pg=document.createElement("style");pg.id="sheetPage";pg.textContent="@page{size:letter;margin:0}";document.head.appendChild(pg);
+    const done2=()=>{pg.remove();window.removeEventListener("afterprint",done2);};window.addEventListener("afterprint",done2);
+    // Always one page: shrinking gives lines more room, so measure at the shrunk width a few times.
+    const W=8.5*96, max=11*96-2;let z=1;ps.style.zoom="";ps.style.setProperty("--z","100");ps.classList.add("measure");
+    for(let i=0;i<5;i++){ps.style.width=(W/z)+"px";const nz=Math.min(1,max/ps.scrollHeight);if(Math.abs(nz-z)<.004){z=nz;break;}z=nz;}
+    ps.classList.remove("measure");ps.style.width="";if(z<1)z=Math.max(.5,z*.99);
+    ps.style.setProperty("--z",String(z));ps.style.zoom=z<1?String(z):"";
     window.print();
   }
+
 
   // ---------- Daily report: every active loan and prospect on one landscape page, with room for handwritten notes ----------
   function printReport(){
@@ -1672,7 +1765,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       <h2>Active loans <span>sorted by closing date</span></h2>${act.length?act.map(blockA).join(""):`<p class="none">No active loans.</p>`}
       <h2>Prospects</h2>${pros.length?pros.map(blockP).join(""):`<p class="none">No prospects.</p>`}</div>`;
     // Portrait, as many pages as it takes; a loan is never split across two pages.
-    const old=$("rptPage");if(old)old.remove();ps.style.zoom="";
+    const old=$("rptPage");if(old)old.remove();const sp0=$("sheetPage");if(sp0)sp0.remove();ps.style.zoom="";
     window.print();
   }
 
@@ -1684,7 +1777,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
     const BLUE="#1F4E79", GREEN="#2C5234";
     const fc=(col,size,pt,inner)=>`<font color="${col}"${size?` size="${size}"`:""} face="Calibri, Arial, sans-serif" style="color:${col}${pt?`;font-size:${pt}pt`:""}">${inner}</font>`;
-    const sp=h=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td height="${h}" style="height:${h}px;font-size:1px;line-height:1px">&nbsp;</td></tr></table>`;
+    const sp=h=>`<p style="margin:0;padding:0;font-size:1px;line-height:${h}px;mso-line-height-rule:exactly"><font size="1" style="font-size:1px">&nbsp;</font></p>`;
     const head=t=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>"+esc(t)+"</b>")}</td></tr></table>`+sp(6);
     const ph=t=>`[${t}]`;
     const me=($("me")?.value||"").trim(), intro=($("annMsg")?.value??CLOSE_INTRO).trim();
@@ -1746,7 +1839,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     // Outlook can drop inline styles on text when pasting, so colors and sizes are also set with <font> tags,
     // the heading underline sits on a table cell, and spacing comes from spacer rows. Each survives a paste.
     const fc=(col,size,pt,inner)=>`<font color="${col}"${size?` size="${size}"`:""} face="Calibri, Arial, sans-serif" style="color:${col}${pt?`;font-size:${pt}pt`:""}">${inner}</font>`;
-    const sp=h=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td height="${h}" style="height:${h}px;font-size:1px;line-height:1px">&nbsp;</td></tr></table>`;
+    const sp=h=>`<p style="margin:0;padding:0;font-size:1px;line-height:${h}px;mso-line-height-rule:exactly"><font size="1" style="font-size:1px">&nbsp;</font></p>`;
     // Main steps: mark in the first column. Sub-steps: indented one column, with their own small mark.
     const row=(mark,mc,txt,sub)=>sub
       ?`<tr><td width="26" style="width:26px;padding:0;${F}">&nbsp;</td><td valign="top" style="padding:0 0 4px 0;${F}">${fc(mc,"2","10",`<b>${mark}</b>`)}&nbsp;&nbsp;${txt}</td></tr>`
