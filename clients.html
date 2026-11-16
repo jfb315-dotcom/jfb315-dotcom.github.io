@@ -252,6 +252,10 @@ details.phms[open]>summary{border-bottom:0}
 .cmovesel{font-size:var(--t-xs);padding:1px 4px;border:1px solid var(--rule);background:var(--panel);color:var(--muted);max-width:110px}
 .cord{display:none;gap:4px}
 .cmovesel{display:none}
+.cmain{min-width:0}
+.clist .creq{display:inline-flex;align-items:center;gap:6px;margin:4px 0 0 26px;font-size:var(--t-xs);font-weight:600;color:var(--muted);cursor:pointer}
+.clist .creq input{width:14px;height:14px;margin:0}
+.clist .creq.on{color:var(--goodtxt)}
 @media (max-width:640px){.cord{display:inline-flex}.cmovebtn{display:none}.cmovesel{display:inline-block}}
 .cgroup h4{font-size:var(--t-sm);margin:0;padding:8px 0 2px;border-bottom:2px solid var(--brass);color:var(--brass)}
 .cgroup+.cgroup h4{border-bottom-color:var(--muted);color:var(--muted)}
@@ -1573,7 +1577,8 @@ dialog form{padding:16px;display:grid;gap:12px}
         if(condEdit===x.id)return `<li class="cedit"><span class="cn">${pn||"✓"}</span><textarea id="condEditTxt" rows="2" aria-label="Condition ${pn}">${esc(x.text)}</textarea>
           <span class="cact"><button class="tbtn primary" type="button" data-act="condSave" data-id="${x.id}">Save</button><button class="tbtn" type="button" data-act="condCancel">Cancel</button></span></li>`;
         return `<li class="${x.done?"done":""}"${x.done?"":` draggable="true" data-dragcond="${x.id}"`}><span class="cn"${x.done?"":' title="Drag to reorder"'}>${x.done?"✓":pn}</span>
-          <label><input type="checkbox" data-cond="${x.id}"${x.done?" checked":""} aria-label="Cleared"><span class="ct">${esc(x.text)}${x.uw?` <span class="uwn" title="Number on the processor's list">#${x.n}</span>`:""}</span></label>
+          <div class="cmain"><label><input type="checkbox" data-cond="${x.id}"${x.done?" checked":""} aria-label="Cleared"><span class="ct">${esc(x.text)}${x.uw?` <span class="uwn" title="Number on the processor's list">#${x.n}</span>`:""}</span></label>
+            ${x.done?(x.req?`<span class="creq">Requested ${fmtShort(parseD(x.req))}</span>`:""):`<label class="creq${x.req?" on":""}"><input type="checkbox" data-condreq="${x.id}"${x.req?" checked":""}> Requested${x.req?" "+fmtShort(parseD(x.req)):""}</label>`}</div>
           <span class="cact">${x.done?"":`<span class="cord"><button class="cmove" data-condup="${x.id}" aria-label="Move up"${pn===1?" disabled":""}>↑</button><button class="cmove" data-conddown="${x.id}" aria-label="Move down">↓</button></span>`}<button class="cmove" data-condedit="${x.id}" title="Edit the wording">Edit</button>
             ${CGROUPS.filter(g=>g[0]!==who).map(g=>`<button class="cmove cmovebtn" data-condto="${x.id}" data-to="${g[0]}" title="Move to ${g[2]} conditions">→ ${g[0]==="lo"?"LO":g[2][0].toUpperCase()+g[2].slice(1)}</button>`).join("")}
             <select class="cmovesel" data-condmove="${x.id}" aria-label="Move to another section"><option value="">Move to…</option>${CGROUPS.filter(g=>g[0]!==who).map(g=>`<option value="${g[0]}">${g[2][0].toUpperCase()+g[2].slice(1)}</option>`).join("")}</select>
@@ -1606,7 +1611,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         (nd.subs||[]).map(k=>{const sd=c.ms[k];return `<tr class="sub"><td></td><td>${box(sd)} ${esc(msBy(k).name)}${k==="closingSched"&&c.closingAt?" — <b>"+esc(fmtWhen(c.closingAt))+"</b>":""}</td><td class="d">${sd?fmt(sd):""}</td></tr>`;}).join("");}).join("");
     const conds=sortedConds(c), open=conds.filter(x=>!x.done), done=conds.filter(x=>x.done);
     const ctable=who=>{const l=sortedConds(c,who);if(!l.length)return "";
-      return `<h3>${CGROUPS.find(g=>g[0]===who)[1]}</h3><table class="cd">${l.map(x=>`<tr class="${x.done?"done":""}"><td class="b">${x.done?"&#9745;":"&#9744;"}</td><td class="n">${x.done?"":posOf(c,x)+"."}</td><td>${esc(x.text)}</td></tr>`).join("")}</table>`;};
+      return `<h3>${CGROUPS.find(g=>g[0]===who)[1]}</h3><table class="cd">${l.map(x=>`<tr class="${x.done?"done":""}"><td class="b">${x.done?"&#9745;":"&#9744;"}</td><td class="n">${x.done?"":posOf(c,x)+"."}</td><td>${esc(x.text)}${x.req?` <span style="color:#555;font-size:8.5pt">(requested ${fmtShort(parseD(x.req))})</span>`:""}</td></tr>`).join("")}</table>`;};
     const notes=(c.notes||[]).filter(x=>!x.auto&&!isEmail(x)).slice(-8).reverse();
     const tl=(label,parts)=>parts.some(Boolean)?`<td><b>${label}</b><br>${parts.filter(Boolean).map(esc).join("<br>")}</td>`:"";
     const tcells=tl("Title company",[c.title,c.titlePhone,c.titleAddr,c.closer&&"Closer: "+c.closer])+tl("Realtor",[c.realtor,c.realtorPhone,c.realtorEmail,c.tcName&&"TC: "+c.tcName,c.tcPhone,c.tcEmail]);
@@ -1655,7 +1660,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         <div class="r-line">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.lender?" · "+esc(c.lender):""}${c.loanAmt?" · "+esc(fmtMoney(c.loanAmt)):""}
           · <b>${cur?esc(cur.name):"Not started"}</b>${nx?` → next: ${esc(nx.name)}`:""}</div>
         <div class="r-line r-m">${[cdTxt(c),lockTxt(c),ap?"Appraisal "+fmtMoney(c.apprValue)+(ap.cls==="ok"?" ✓":" · "+ap.text):"",lu?"Last update "+fmtShort(new Date(lu.t)):"No update sent yet"].filter(Boolean).map(esc).join(" · ")}</div>
-        ${o.length?`<div class="r-cond"><b>Open conditions (${o.length})</b><ul class="${o.length>5?"two":""}">${o.map(x=>`<li>☐ ${posOf(c,x)}. ${esc(x.text)}${whoOf(x)!=="b"?` <span class="r-m">(${whoOf(x)==="lo"?"LO":"Realtor"})</span>`:""}</li>`).join("")}</ul></div>`:`<div class="r-line r-m">No open conditions</div>`}
+        ${o.length?`<div class="r-cond"><b>Open conditions (${o.length})</b><ul class="${o.length>5?"two":""}">${o.map(x=>`<li>☐ ${posOf(c,x)}. ${esc(x.text)}${x.req?` <span class="r-m">(req ${fmtShort(parseD(x.req))})</span>`:""}${whoOf(x)!=="b"?` <span class="r-m">(${whoOf(x)==="lo"?"LO":"Realtor"})</span>`:""}</li>`).join("")}</ul></div>`:`<div class="r-line r-m">No open conditions</div>`}
         <div class="r-notes"></div></div>`;};
     const blockP=c=>`<div class="r-cust r-pro"><div class="r-h"><div><b class="r-nm">${nm(c)}</b> <span class="r-m">${esc([c.phone,c.email].filter(Boolean).join(" · "))}</span></div>
         <div class="r-m">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.price?" · "+esc(fmtMoney(c.price)):""} · last activity ${c.updated?fmtShort(new Date(c.updated)):"—"}</div></div><div class="r-notes r-n1"></div></div>`;
@@ -1873,8 +1878,11 @@ dialog form{padding:16px;display:grid;gap:12px}
         if(await copyRich(e.html,e.text)){
           // A message you rewrote is kept as a note so you can see later what you sent; the standard wording only goes in the activity log.
           const def=(closeMode?CLOSE_INTRO:purposeFix(c,MS.find(m=>m.k===annKey))).trim(), cur=($("annMsg")?.value||"").trim(), edited=!!cur&&cur!==def;
-          c.notes=c.notes||[];c.notes.push({t:stamp(),kind:"email",auto:true,subj:e.subject,text:`${e.ann.name}${edited?"\nMy message: "+cur:" (standard message)"}`});touch(c);save();renderClient(c);
-          say("Email copied and logged under Emails sent. Paste it into a new Outlook message.");}
+          c.notes=c.notes||[];c.notes.push({t:stamp(),kind:"email",auto:true,subj:e.subject,text:`${e.ann.name}${edited?"\nMy message: "+cur:" (standard message)"}`});
+          // Listing the borrower's open conditions in the email is a request for them, so they're marked Requested today.
+          let marked=0;if(includeConds)openConds(c,"b").forEach(x=>{if(!x.req){x.req=today();marked++;}});
+          touch(c);save();renderClient(c);
+          say(`Email copied and logged under Emails sent.${marked?` ${marked} condition${marked===1?"":"s"} marked Requested.`:""} Paste it into a new Outlook message.`);}
         break;}
       case "copyAddr":{const a=[c.email,c.coEmail].filter(Boolean).join("; ");if(a&&await copyText(a))say("Copied: "+a);break;}
       case "closingMail":if(!closeMode){mileOpts={includeAll,includeConds,includeUp};includeAll=false;includeConds=false;includeUp=false;}closeMode=true;annKey="ctc";renderClient(c);setTimeout(()=>{const m=$("mailPrev");m&&m.scrollIntoView({behavior:"smooth",block:"start"});},50);break;
@@ -1918,6 +1926,8 @@ dialog form{padding:16px;display:grid;gap:12px}
         touch(c);save();renderClient(c);
         if(aprDone)say("Appraisal conditions cleared. Appraisal received is now checked.");else if(!openConds(c).length&&x.done)say("All conditions cleared!");}return;}
     if(ev.target.name==="condWho"){condWho=ev.target.value;return;}
+    if(ev.target.dataset.condreq){const x=(c.conds||[]).find(y=>y.id===ev.target.dataset.condreq);
+      if(x){if(ev.target.checked)x.req=today();else delete x.req;touch(c);save();renderClient(c);}return;}
     if(ev.target.dataset.condmove!==undefined){const x=(c.conds||[]).find(y=>y.id===ev.target.dataset.condmove), to=ev.target.value;
       if(x&&to){x.pos=nextPos(c,to);x.who=to;touch(c);save();renderClient(c);say(`Moved to ${whoName(x)} conditions.`);}return;}
     if(ev.target.dataset.psel){const set=procSel[c.id]=procSel[c.id]||new Set();ev.target.checked?set.add(ev.target.dataset.psel):set.delete(ev.target.dataset.psel);
