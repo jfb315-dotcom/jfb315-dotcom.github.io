@@ -407,7 +407,7 @@ button,select,input{font:inherit;color:inherit}
     const style=$("estyle").querySelector("input:checked")?.value||"classic";
     const stacked=style==="checklist"||style==="banded";   // explanation on its own line: easiest to read on a phone
     // Every section heading uses the upload button's blue; only the tips box is red.
-    const colOf=c=>"#1F4E79";
+    const colOf=c=>"#2E75B6"; // a mid blue that reads on white and on a dark-mode screen
     let num=0;
     const mark=(tipsSec)=>tipsSec?"•":style==="numbered"?`${++num}.`:style==="classic"?"•":"☐";
     // Plain text
@@ -422,7 +422,7 @@ button,select,input{font:inherit;color:inherit}
     if(tips){T.push("Quick tips to avoid delays:");tips.items.forEach(i=>T.push(`• ${i.short}`));T.push("");}
     T.push(outro,"","Thank you,",me||"[Your name]");
     // HTML with inline styles and tables only, so it looks the same pasted into Outlook or Gmail and read on a phone
-    const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
+    const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4";
     const gap=`<p style="margin:0;font-size:8pt;line-height:8pt">&nbsp;</p>`;
     const head=(t,col)=>style==="banded"
       ? gap+`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="${col}" style="background:${col};padding:6px 10px;${F};color:#FFFFFF;font-size:12pt;font-weight:bold">${esc(t)}</td></tr></table>`+`<p style="margin:0;font-size:5pt;line-height:5pt">&nbsp;</p>`
@@ -430,20 +430,20 @@ button,select,input{font:inherit;color:inherit}
     // Each item is a table row (marker cell + text cell): Outlook ignores indents but always respects tables.
     const ul=rows=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`;
     const row=(m,col,body)=>`<tr><td width="30" valign="top" style="width:30px;padding:0 0 8px 8px;${F};color:${col};${m==="☐"?"font-size:13pt;line-height:1.1;":""}${/\d/.test(m)?"font-weight:bold;":""}">${m}</td><td valign="top" style="padding:0 0 8px 0;${F}">${body}</td></tr>`;
-    const body=i=>`<b>${esc(nm(i))}</b>`+(whyFor(i)?(stacked?`<br><span style="color:#555555;font-size:10.5pt">${esc(i.why)}</span>`:` – ${esc(i.why)}`):"")+
+    const body=i=>`<b>${esc(nm(i))}</b>`+(whyFor(i)?(stacked?`<br><span style="color:#6E7681;font-size:10.5pt">${esc(i.why)}</span>`:` – ${esc(i.why)}`):"")+
       (tip(i)?`<br><i style="color:#8A6116;font-size:10pt">Tip: ${esc(i.tip)}</i>`:"");
     num=0;
     const H=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(name||"there")},</p><p style="margin:0 0 10px 0">${esc(intro)}</p>`+
       (upOn?`<p style="margin:0 0 8px 0">${esc(upText)}</p>`+
         upButton(href)+`<p style="margin:0;font-size:8pt;line-height:8pt">&nbsp;</p>`:"")+
       (style==="numbered"?`<p style="margin:0 0 10px 0">When you reply, you can refer to items by number.</p>`:"")+
-      docs.map(c=>{const col=colOf(c);return head(c.name,col)+ul(c.items.map(i=>row(mark(false),style==="numbered"?"#1F4E79":col,body(i))).join(""));}).join("")+
+      docs.map(c=>{const col=colOf(c);return head(c.name,col)+ul(c.items.map(i=>row(mark(false),style==="numbered"?"#2E75B6":col,body(i))).join(""));}).join("")+
       // Tips: one compact gray box with a short line per tip, so it doesn't take over the email
-      (tips?`<p style="margin:0;font-size:10pt;line-height:10pt">&nbsp;</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#F3F4F6" style="background:#F3F4F6;border-left:4px solid #B4412F;padding:8px 12px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:9.5pt;line-height:1.35;color:#444444">`+
+      (tips?`<p style="margin:0;font-size:10pt;line-height:10pt">&nbsp;</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#F3F4F6" style="background:#F3F4F6;border-left:4px solid #B4412F;padding:8px 12px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:9.5pt;line-height:1.35;color:#333333">`+
         `<b style="color:#B4412F;font-size:10pt">Quick tips to avoid delays</b><br>`+tips.items.map(i=>`&#8226;&nbsp;${esc(i.short)}`).join("<br>")+`</td></tr></table>`:"")+
       `<p style="margin:16px 0 10px 0">${esc(outro)}</p><p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
-    // A white table behind the whole email, so phone mail apps in dark mode darken it as one piece.
-    const W=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FFFFFF" style="border-collapse:collapse;background:#FFFFFF"><tr><td bgcolor="#FFFFFF" style="background:#FFFFFF;color:#222222">${H}</td></tr></table>`;
+    // No color or background on the body text: dark mode (reading and replying) then shows it light on dark.
+    const W=H;
     return {subject,text:T.join("\n"),html:W,n,total:cats.reduce((a,c)=>a+c.items.length,0),preview:W};
   }
 

@@ -1591,7 +1591,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     const subject=`${who}: conditions in the share folder`;
     // "Morning," before noon; "Here you go." the rest of the day.
     const hello=new Date().getHours()<12?"Morning,":"Here you go.";
-    const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
+    const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4";
     const p=t=>`<p style="margin:0 0 10px 0">${t}</p>`;
     // The processor's own number when the condition came from their list; a bullet otherwise.
     const no=x=>x.uw?x.n+".":"&#8226;";
@@ -1603,8 +1603,9 @@ dialog form{padding:16px;display:grid;gap:12px}
       "Thank you,",me||"[Your name]"].join("\n");
     return {subject,html:onWhite(html),text,list};
   }
-  // Every email sits on a white table: phone mail apps in dark mode then darken it as one piece, so no text ends up dark on dark.
-  const onWhite=h=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FFFFFF" style="border-collapse:collapse;background:#FFFFFF"><tr><td bgcolor="#FFFFFF" style="background:#FFFFFF;color:#222222">${h}</td></tr></table>`;
+  // Body text carries no color or background of its own, so dark mode (reading and the reply screen) shows it light on dark;
+  // only boxes with their own background (banner, fraud box, button, progress squares) set their text color.
+  const onWhite=h=>h;
   function renderProc(c){const e=buildProc(c);if($("procSubj"))$("procSubj").textContent=e.subject;if($("procPrev"))$("procPrev").innerHTML=e.html;}
   function lastUpdate(c){
     const n=(c.notes||[]).filter(x=>isEmail(x)&&!/^(Document request|To processor)/.test(emailText(x))).sort((a,b)=>String(b.t).localeCompare(String(a.t)))[0];
@@ -1775,8 +1776,8 @@ dialog form{padding:16px;display:grid;gap:12px}
   const CLOSE_INTRO="Underwriting has given final approval, and everything is set for closing.";
   // Clear to close email: closing date and place, title company, realtor, funds, instructions, and a wire fraud warning.
   function buildClosingMail(c,base){
-    const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
-    const BLUE="#1F4E79", GREEN="#2C5234";
+    const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4";
+    const BLUE="#2E75B6", GREEN="#2C5234";
     const fc=(col,size,pt,inner)=>`<font color="${col}"${size?` size="${size}"`:""} face="Calibri, Arial, sans-serif" style="color:${col}${pt?`;font-size:${pt}pt`:""}">${inner}</font>`;
     const sp=h=>`<p style="margin:0;padding:0;font-size:1px;line-height:${h}px;mso-line-height-rule:exactly"><font size="1" style="font-size:1px">&nbsp;</font></p>`;
     const head=t=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>"+esc(t)+"</b>")}</td></tr></table>`+sp(6);
@@ -1797,12 +1798,12 @@ dialog form{padding:16px;display:grid;gap:12px}
       :`Once we have the final figure, you'll need to reach out to ${titleName} at ${titlePhone} to get their wiring instructions.`;
     const cashT=`The title company will allow you to bring a cashier's check for your funds to close. The cashier's check will need to be made out to ${titleName}. Please reach out to them at ${titlePhone} with any questions.`;
     const instr=esc(instrT);
-    const fraud=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#FFF1E6" style="background:#FFF1E6;border-left:5px solid #C2410C;padding:10px 14px;${F}">`+
+    const fraud=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#FFF1E6" style="background:#FFF1E6;border-left:5px solid #C2410C;padding:10px 14px;${F};color:#222222">`+
       fc("#C2410C","","",`<b>&#9888; Protect yourself from wire fraud.</b>`)+` Wiring instructions will never change by email. Before sending any money, call ${esc(titleName)} at <b>${esc(titlePhone)}</b>, the number in this email, not one from a new email or text, to confirm the instructions. If anything looks different or urgent, stop and call me first.</td></tr></table>`;
     const bring=["A valid government photo ID for each person signing","Your cashier's check, if allowed by the title company","Anything else the title company has reached out and asked you for"];
     const bullets=`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${bring.map(b=>`<tr><td width="20" valign="top" style="width:20px;padding:0 0 4px 4px;${F}">&#8226;</td><td valign="top" style="padding:0 0 4px 0;${F}">${esc(b)}</td></tr>`).join("")}</table>`;
     const html=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(greet(c))},</p>`+sp(6)+
-      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#EAF2EC" style="background:#EAF2EC;border-left:5px solid ${GREEN};padding:10px 14px;${F}">`+
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#EAF2EC" style="background:#EAF2EC;border-left:5px solid ${GREEN};padding:10px 14px;${F};color:#222222">`+
       fc(GREEN,"2","9.5","<b>CLEAR TO CLOSE</b>")+`<br>`+fc(BLUE,"4","15","<b>Congratulations, you're clear to close! &#127881;</b>")+`</td></tr></table>`+sp(12)+
       `<p style="margin:0">${esc(intro).replace(/\n/g,"<br>")}</p>`+sp(14)+
       base.condsHTML+
@@ -1830,8 +1831,8 @@ dialog form{padding:16px;display:grid;gap:12px}
     // message, and a reply or forward without attachments then shows them as broken boxes.
     const upBtn=h=>`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#1F4E79" style="background:#1F4E79;padding:12px 28px">${h?`<a href="${esc(h)}" style="color:#FFFFFF;text-decoration:none">`:""}<font color="#FFFFFF" face="Calibri, Arial, sans-serif" style="color:#FFFFFF;font-size:13pt"><b>UPLOAD DOCUMENTS</b></font>${h?"</a>":""}</td></tr></table>`;
     const subject=`Loan update: ${ann.name}`;
-    const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
-    const BLUE="#1F4E79", GREEN="#2C5234", GOLD="#A97A1E", GRAY="#9AA3AE";
+    const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4";
+    const BLUE="#2E75B6", GREEN="#2C5234", GOLD="#A97A1E", GRAY="#8A93A0";
     const date=c.ms[ann.k]?fmt(c.ms[ann.k]):"";
     // Outlook can drop inline styles on text when pasting, so colors and sizes are also set with <font> tags,
     // the heading underline sits on a table cell, and spacing comes from spacer rows. Each survives a paste.
@@ -1844,10 +1845,10 @@ dialog form{padding:16px;display:grid;gap:12px}
       const st=nodeDone(c,nd)?"done":i===stage?"next":"", bg=st==="done"?GREEN:st==="next"?GOLD:"#FFFFFF", col=st?"#FFFFFF":GRAY;
       const d=c.ms[nodeKey(nd)], subs=(nd.subs||[]).filter(k=>c.ms[k]).map(k=>msBy(k).short);
       const box=`<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td width="26" height="26" align="center" valign="middle" bgcolor="${bg}" style="width:26px;height:26px;background:${bg};border:2px solid ${st?bg:"#C5CCD6"}">${fc(col,"2","10","<b>"+(st==="done"?"&#10003;":i+1)+"</b>")}</td></tr></table>`;
-      return `<td width="22%" align="center" valign="top" style="width:22%;padding:0 2px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:8.5pt;line-height:1.25;color:#333333">${box}`+
-        `<font face="Calibri, Arial, sans-serif" color="${st?"#333333":GRAY}" style="font-size:8.5pt;line-height:1.25;color:${st?"#333333":GRAY}">${st?"<b>":""}${esc(nd.name)}${st?"</b>":""}`+
+      return `<td width="22%" align="center" valign="top" style="width:22%;padding:0 2px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:8.5pt;line-height:1.25">${box}`+
+        `<font face="Calibri, Arial, sans-serif"${st?"":` color="${GRAY}"`} style="font-size:8.5pt;line-height:1.25${st?"":";color:"+GRAY}">${st?"<b>":""}${esc(nd.name)}${st?"</b>":""}`+
         `${d?"<br>"+fmt(d):subs.length?"<br>&#10003; "+esc(subs.join(", ")):""}</font></td>`;};
-    const dash=i=>`<td width="4%" align="center" valign="top" style="width:4%;padding:6px 0 0 0;font-family:Calibri,Arial,sans-serif;font-size:10pt;line-height:14px;mso-line-height-rule:exactly">${fc(nodeDone(c,MAIN[i-1])?GREEN:"#C5CCD6","2","10","<b>&#8212;</b>")}</td>`;
+    const dash=i=>`<td width="4%" align="center" valign="top" style="width:4%;padding:6px 0 0 0;font-family:Calibri,Arial,sans-serif;font-size:10pt;line-height:14px;mso-line-height-rule:exactly">${fc(nodeDone(c,MAIN[i-1])?"#3E8E5A":GRAY,"2","10","<b>&#8212;</b>")}</td>`;
     const trow=(from,pad)=>`<tr>${MAIN.slice(from,from+4).map((nd,j)=>(j?dash(from+j):"").replace("padding:6px","padding:"+(6+pad)+"px").replace("<td width=\"22%","<td width=\"22%")+step(nd,from+j).replace("padding:0 2px","padding:"+pad+"px 2px 0 2px")).join("")}</tr>`;
     const tracker=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;max-width:520px">${trow(0,0)}${trow(4,12)}</table>`;
     // Main steps: mark in the first column. Sub-steps: indented one column, with their own small mark.
@@ -1857,30 +1858,30 @@ dialog form{padding:16px;display:grid;gap:12px}
     const rows=MAIN.map((nd,i)=>{
       const d=c.ms[nodeKey(nd)], isNext=i===stage;
       const mark=d?"&#10003;":isNext?"&#9679;":"&#9675;", mc=d?GREEN:isNext?GOLD:GRAY;
-      const txt=d?`<b>${esc(nd.name)}</b> ${fc("#777777","","",fmt(d))}`:isNext?fc(GOLD,"","",`<b>Next: ${esc(nd.name)}</b>`):fc(GRAY,"","",esc(nd.name));
+      const txt=d?`<b>${esc(nd.name)}</b> ${fc("#6E7681","","",fmt(d))}`:isNext?fc(GOLD,"","",`<b>Next: ${esc(nd.name)}</b>`):fc(GRAY,"","",esc(nd.name));
       return row(mark,mc,txt,false)+(nd.subs||[]).map(k=>{const sd=c.ms[k], m=msBy(k);
         const when=k==="closingSched"&&sd&&c.closingAt?" "+fc(BLUE,"2","10",`<b>${esc(fmtWhen(c.closingAt))}</b>`):"";
-        return row(sd?"&#10003;":"&#9675;",sd?GREEN:GRAY,fc(sd?"#333333":GRAY,"2","10",esc(m.name)+(sd&&!when?" "+fc("#777777","2","10",fmt(sd)):"")+when),true);}).join("");
+        return row(sd?"&#10003;":"&#9675;",sd?GREEN:GRAY,fc(sd?"#333333":GRAY,"2","10",esc(m.name)+(sd&&!when?" "+fc("#6E7681","2","10",fmt(sd)):"")+when),true);}).join("");
     }).join("");
     const condsHTML=condsOn?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Items still needed</b>")}</td></tr></table>`+sp(6)+
-        `<p style="margin:0">${fc("#555555","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
+        `<p style="margin:0">${fc("#6E7681","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
         `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${oc.map((x,i)=>row(`${i+1}.`,GOLD,esc(x.text),false)).join("")}</table>`+sp(14):"";
     const upHTML=withUp?`<p style="margin:0">Click the button below to upload your documents securely.</p>`+sp(8)+
         upBtn(upHref)+sp(16):"";
     const condsT=condsOn?["ITEMS STILL NEEDED","The underwriter is asking for the following. Please send them as soon as you can.",...oc.map((x,i)=>`${i+1}. ${x.text}`),""]:[];
     const upT=withUp?[`Upload your documents securely here: ${upHref||"[upload link]"}`,""]:[];
     const html=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(greet(c))},</p>`+sp(6)+
-      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#EAF2EC" style="background:#EAF2EC;border-left:5px solid ${GREEN};padding:10px 14px;${F}">`+
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#EAF2EC" style="background:#EAF2EC;border-left:5px solid ${GREEN};padding:10px 14px;${F};color:#222222">`+
       fc(GREEN,"2","9.5",`<b>MILESTONE REACHED${date?" · "+esc(date.toUpperCase()):""}</b>`)+`<br>`+
       fc(BLUE,"4","15",`<b>${esc(ann.name)}</b>`)+`</td></tr></table>`+sp(12)+
       `<p style="margin:0">${esc(msg).replace(/\n/g,"<br>")}</p>`+sp(14)+
       (condsOn?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Items still needed</b>")}</td></tr></table>`+sp(6)+
-        `<p style="margin:0">${fc("#555555","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
+        `<p style="margin:0">${fc("#6E7681","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
         `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${oc.map((x,i)=>row(`${i+1}.`,GOLD,esc(x.text),false)).join("")}</table>`+sp(14):"")+
       (withUp?`<p style="margin:0">Click the button below to upload your documents securely.</p>`+sp(8)+
         upBtn(upHref)+sp(16):"")+
       (includeAll?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Your loan progress</b>")}</td></tr></table>`+sp(6)+
-        `<p style="margin:0">${fc("#555555","2","10",`${n} of ${T7} steps complete`)}</p>`+sp(10)+tracker+sp(includeList?10:14)+
+        `<p style="margin:0">${fc("#6E7681","2","10",`${n} of ${T7} steps complete`)}</p>`+sp(10)+tracker+sp(includeList?10:14)+
         (includeList?`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`+sp(8):""):"")+
       `<p style="margin:0">If you have any questions, just reply to this email or give me a call.</p>`+sp(10)+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     const T=[`Hi ${greet(c)},`,"",`MILESTONE REACHED${date?" ("+date+")":""}: ${ann.name}`,"",msg,""];
