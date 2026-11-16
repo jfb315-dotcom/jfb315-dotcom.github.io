@@ -119,8 +119,8 @@ John pastes emails into classic Outlook, which strips most CSS. Email markup mus
 - Tables for all layout and for bullets (a narrow cell with the bullet, a cell with the text).
 - Inline styles plus `<font>` tags for color and size (the `fc()` helper); Calibri 11pt body.
 - Spacing via `sp(n)` (a `<p>` with exact line height); no spacer tables or adjacent tables (Outlook pads them on reply).
-- No pictures: Outlook attaches pasted pictures and replies drop them. Buttons and the progress bar are colored
-  table cells; the whole email sits on a white table (`onWhite`) so phone dark modes darken it evenly.
+- No pictures (Outlook attaches them; replies drop them): buttons and progress bar are colored cells. Body text has
+  no color or background (iPhone reply screens go dark but keep set colors); only boxes with a background set text color.
 - A plain-text version built alongside the HTML; copying writes both (`ClipboardItem` with
   `text/html` and `text/plain`). Change the two together, every time.
 - Email colors are fixed hex values (blue `#1F4E79`, green `#2C5234`, gold `#A97A1E`), not the
