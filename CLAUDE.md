@@ -121,7 +121,7 @@ John pastes emails into classic Outlook, which strips most CSS. Email markup mus
 
 - Tables for all layout and for bullets (a narrow cell with the bullet, a cell with the text).
 - Inline styles plus `<font>` tags for color and size (the `fc()` helper); Calibri 11pt body.
-- Spacer rows (`sp(n)`) instead of margins; underlines as a table-cell `border-bottom`.
+- Spacing via `sp(n)` (a `<p>` with exact line height); no spacer tables or adjacent tables (Outlook pads them on reply).
 - Pictures hosted on the site with explicit `width` and `height`; buttons are pictures in a link.
 - A plain-text version built alongside the HTML; copying writes both (`ClipboardItem` with
   `text/html` and `text/plain`). Change the two together, every time.
@@ -154,7 +154,7 @@ John pastes emails into classic Outlook, which strips most CSS. Email markup mus
 - Tap targets at least 44px tall on phones. Folded-away things must stay reachable in one tap.
 - Wording on the page is plain and short, sentence case, no jargon John did not use himself.
   Use his terms: "Clear to close", "conditions", "CD", "prospect", "addendums".
-- Print sheet (`#printSheet`) must stay one Letter page; it measures itself and zooms down.
+- Print sheet = file cover (`printSheet`): black and white, one Letter page, `@page` margin 0; it measures and zooms down.
 
 ## Mistakes to avoid
 
