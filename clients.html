@@ -242,6 +242,16 @@ details.phms[open]>summary{border-bottom:0}
 .clist .cmove{background:none;border:1px solid var(--rule);color:var(--muted);cursor:pointer;font-size:var(--t-xs);font-weight:600;padding:1px 8px;white-space:nowrap}
 .clist .cmove:hover{border-color:var(--ink);color:var(--ink)}
 .cgroup{margin-top:12px}
+.clist li[draggable="true"]{cursor:grab}
+.clist li[draggable="true"] .cn{cursor:grab}
+.clist li.dragging{opacity:.4}
+.clist li.dropbefore{box-shadow:inset 0 3px 0 var(--brass)}
+.clist li.dropafter{box-shadow:inset 0 -3px 0 var(--brass)}
+.cgroup.dropin{outline:2px dashed var(--brass);outline-offset:4px}
+.uwn{font-size:var(--t-xs);color:var(--muted);white-space:nowrap}
+.cmovesel{font-size:var(--t-xs);padding:1px 4px;border:1px solid var(--rule);background:var(--panel);color:var(--muted);max-width:110px}
+.cord{display:none;gap:4px}
+@media (max-width:640px){.cord{display:inline-flex}}
 .cgroup h4{font-size:var(--t-sm);margin:0;padding:8px 0 2px;border-bottom:2px solid var(--brass);color:var(--brass)}
 .cgroup+.cgroup h4{border-bottom-color:var(--muted);color:var(--muted)}
 .cbanner .csplit{display:inline-block;font-size:var(--t-sm);color:var(--muted);margin-left:4px}
@@ -568,6 +578,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     const headingWho=t=>{
       const short=t.length<=60&&(/:\s*$/.test(t)||t.split(/\s+/).length<=5);
       if(!short)return null;
+      if(/\b(realtor|agent|listing agent)s?'?s?\b/i.test(t))return "r";
       if(/\b(borrower|buyer|client)s?'?s?\b/i.test(t))return "b";
       if(/\b(loan officer|lo|lender|internal|processor)s?'?s?\b/i.test(t))return "lo";
       return null;
@@ -592,10 +603,17 @@ dialog form{padding:16px;display:grid;gap:12px}
   }
   // Each condition keeps the number it was given when added, so #3 stays #3 when the list re-sorts.
   function numberConds(c){let max=0;(c.conds||[]).forEach(x=>{if(x.n>max)max=x.n;});(c.conds||[]).forEach(x=>{if(!x.n)x.n=++max;});}
-  const whoOf=x=>x.who==="lo"?"lo":"b";
-  const openConds=(c,who)=>(numberConds(c),(c.conds||[]).filter(x=>!x.done&&(!who||whoOf(x)===who)).sort((a,b)=>a.n-b.n));
+  const whoOf=x=>x.who==="lo"?"lo":x.who==="r"?"r":"b";
+  // Three sections. Each keeps your own order (pos, set by dragging); older conditions fall back to their number.
+  const CGROUPS=[["b","Borrower conditions","borrower"],["lo","Loan officer conditions","loan officer"],["r","Realtor conditions","realtor"]];
+  const gIdx=x=>CGROUPS.findIndex(g=>g[0]===whoOf(x)), ord=x=>x.pos??x.n;
+  const openConds=(c,who)=>(numberConds(c),(c.conds||[]).filter(x=>!x.done&&(!who||whoOf(x)===who)).sort((a,b)=>(gIdx(a)-gIdx(b))||(ord(a)-ord(b))));
+  // A condition's number is its place in its own section's open list, so every section starts at 1.
+  const posOf=(c,x)=>x.done?0:openConds(c,whoOf(x)).indexOf(x)+1;
+  const nextPos=(c,who)=>(c.conds||[]).filter(x=>whoOf(x)===who).reduce((m,x)=>Math.max(m,ord(x)||0),0)+1;
+  const whoName=x=>CGROUPS[gIdx(x)][2];
   // Open conditions first, then cleared ones; each group in number order.
-  const sortedConds=(c,who)=>(numberConds(c),(c.conds||[]).filter(x=>!who||whoOf(x)===who).sort((a,b)=>(a.done-b.done)||(a.n-b.n)));
+  const sortedConds=(c,who)=>(numberConds(c),(c.conds||[]).filter(x=>!who||whoOf(x)===who).sort((a,b)=>(a.done-b.done)||(gIdx(a)-gIdx(b))||(ord(a)-ord(b))));
   let condWho="b";
   let condOpen={}, clearedOpen={}, addOpen={}, condEdit=null;
 
@@ -983,6 +1001,22 @@ dialog form{padding:16px;display:grid;gap:12px}
     impData=null;$("impDlg").close();say(`Imported ${n} contacts. They'll show up as suggestions when you type in Edit.`);
   }
 
+  // ---------- Drag conditions to reorder them, or drop one in another section to move it ----------
+  let dragId=null;
+  const dropMark=()=>document.querySelectorAll(".dropbefore,.dropafter,.dropin").forEach(e=>e.classList.remove("dropbefore","dropafter","dropin"));
+  document.addEventListener("dragstart",e=>{const li=e.target.closest&&e.target.closest("li[data-dragcond]");if(!li)return;
+    dragId=li.dataset.dragcond;li.classList.add("dragging");e.dataTransfer.effectAllowed="move";try{e.dataTransfer.setData("text/plain",dragId);}catch(x){}});
+  document.addEventListener("dragend",()=>{dragId=null;dropMark();document.querySelectorAll("li.dragging").forEach(e=>e.classList.remove("dragging"));});
+  document.addEventListener("dragover",e=>{if(!dragId)return;const g=e.target.closest&&e.target.closest(".cgroup[data-grp]");if(!g)return;
+    e.preventDefault();dropMark();const li=e.target.closest("li[data-dragcond]");
+    if(li&&li.dataset.dragcond!==dragId){const r=li.getBoundingClientRect();li.classList.add(e.clientY<r.top+r.height/2?"dropbefore":"dropafter");}else if(!li)g.classList.add("dropin");});
+  document.addEventListener("drop",e=>{if(!dragId)return;const g=e.target.closest&&e.target.closest(".cgroup[data-grp]"), c=curClient();if(!g||!c)return;e.preventDefault();
+    const x=(c.conds||[]).find(y=>y.id===dragId);if(!x)return;const to=g.dataset.grp, li=e.target.closest("li[data-dragcond]");
+    const list=openConds(c,to).filter(y=>y!==x);let at=list.length;
+    if(li&&li.dataset.dragcond!==dragId){const ref=list.findIndex(y=>y.id===li.dataset.dragcond), r=li.getBoundingClientRect();if(ref>=0)at=ref+(e.clientY<r.top+r.height/2?0:1);}
+    const moved=whoOf(x)!==to;x.who=to;list.splice(at,0,x);list.forEach((y,k)=>y.pos=k+1);
+    dragId=null;dropMark();touch(c);save();renderClient(c);if(moved)say(`Moved to ${whoName(x)} conditions.`);});
+
   // ---------- Saved realtors and title companies (from your other clients, then imported contacts) ----------
   function contactBook(){
     const R=new Map(),T=new Map(),C=new Map(),L=new Map(),P=new Map(),TC=new Map();
@@ -1152,7 +1186,7 @@ dialog form{padding:16px;display:grid;gap:12px}
   }
   function addAprCond(c,kind,text){
     c.conds=c.conds||[];numberConds(c);const max=c.conds.reduce((m,x)=>Math.max(m,x.n||0),0);
-    c.conds.push({id:uid(),n:max+1,text,who:"lo",apr:kind,done:false,added:stamp()});
+    c.conds.push({id:uid(),n:max+1,pos:nextPos(c,"lo"),text,who:"lo",apr:kind,done:false,added:stamp()});
   }
 
   function cdBlock(c){
@@ -1432,7 +1466,7 @@ dialog form{padding:16px;display:grid;gap:12px}
             ${(()=>{const open=openConds(c);if(!open.length)return `<p class="muted" style="margin:12px 0 0">No open conditions right now.</p>`;
               const sel=procSel[c.id]||new Set();
               return `<div class="psel"><div class="pselhead"><b>Conditions in the share folder</b><button type="button" class="linkbtn" data-act="procAll">${open.every(x=>sel.has(x.id))?"Clear all":"Select all"}</button></div>`+
-                open.map(x=>`<label><input type="checkbox" data-psel="${x.id}"${sel.has(x.id)?" checked":""}> <span>${x.n}. ${esc(x.text)} <span class="muted small">(${whoOf(x)==="b"?"borrower":"loan officer"})</span></span></label>`).join("")+`</div>`;})()}
+                open.map(x=>`<label><input type="checkbox" data-psel="${x.id}"${sel.has(x.id)?" checked":""}> <span>${posOf(c,x)}. ${esc(x.text)} <span class="muted small">(${whoName(x)}${x.uw?`, #${x.n} on their list`:""})</span></span></label>`).join("")+`</div>`;})()}
             <label class="field" style="margin-top:12px">Note to add <span class="muted" style="font-weight:400">(optional)</span><textarea id="procMsg" placeholder="The pay stub covers two pay periods.">${esc(procMsgs[c.id]||"")}</textarea></label>
             <div class="acts" style="margin-top:12px">
               <button class="tbtn primary" data-act="copyProc">Copy email</button>
@@ -1496,11 +1530,13 @@ dialog form{padding:16px;display:grid;gap:12px}
     const hello=new Date().getHours()<12?"Morning,":"Here you go.";
     const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
     const p=t=>`<p style="margin:0 0 10px 0">${t}</p>`;
-    const rows=list.map(x=>`<tr><td width="28" valign="top" style="width:28px;padding:0 0 4px 0;${F}">${x.n}.</td><td valign="top" style="padding:0 0 4px 0;${F}">${esc(x.text)}</td></tr>`).join("");
+    // The processor's own number when the condition came from their list; a bullet otherwise.
+    const no=x=>x.uw?x.n+".":"&#8226;";
+    const rows=list.map(x=>`<tr><td width="28" valign="top" style="width:28px;padding:0 0 4px 0;${F}">${no(x)}</td><td valign="top" style="padding:0 0 4px 0;${F}">${esc(x.text)}</td></tr>`).join("");
     const html=`<div style="${F}">`+p(hello)+p(`I've put the following conditions for ${esc(who)}${c.address?" ("+esc(c.address)+")":""} in the share folder:`)+
       (list.length?`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 10px 0">${rows}</table>`:p("<i>[Check the conditions above]</i>"))+
       (note?p(esc(note).replace(/\n/g,"<br>")):"")+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
-    const text=[hello,"",`I've put the following conditions for ${who}${c.address?" ("+c.address+")":""} in the share folder:`,"",...list.map(x=>`${x.n}. ${x.text}`),"",...(note?[note,""]:[]),
+    const text=[hello,"",`I've put the following conditions for ${who}${c.address?" ("+c.address+")":""} in the share folder:`,"",...list.map(x=>`${x.uw?x.n+".":"•"} ${x.text}`),"",...(note?[note,""]:[]),
       "Thank you,",me||"[Your name]"].join("\n");
     return {subject,html,text,list};
   }
@@ -1517,7 +1553,7 @@ dialog form{padding:16px;display:grid;gap:12px}
   const condShown=c=>condOpen[c.id]??(viewMode()!=="mid"&&(c.conds||[]).length>0);
   function condsBlock(c){
     const all=c.conds||[], open=openConds(c), ob=openConds(c,"b").length, ol=openConds(c,"lo").length, show=condShown(c);
-    const split=`<span class="csplit">${ob} borrower · ${ol} loan officer</span>`;
+    const orr=openConds(c,"r").length, split=`<span class="csplit">${ob} borrower · ${ol} loan officer${orr?` · ${orr} realtor`:""}</span>`;
     const banner=all.length
       ?`<div class="cbanner${open.length?"":" clear"}"><span class="arrow" aria-hidden="true">→</span><span class="cnum">${open.length||"✓"}</span>
           <span class="grow">${open.length?`<b>Conditional approval.</b> Underwriting conditions are open for review. ${split}`:`<b>All conditions cleared.</b> ${all.length} of ${all.length} checked off.`}</span>
@@ -1526,28 +1562,32 @@ dialog form{padding:16px;display:grid;gap:12px}
           <button class="tbtn" data-act="toggleConds" aria-expanded="${show}">${show?"Close":"Add conditions"}</button></div>`;
     if(!show)return banner;
     const group=(who,title)=>{const list=sortedConds(c,who), op=list.filter(x=>!x.done).length;
-      if(!list.length)return "";
-      return `<div class="cgroup"><h4>${title} <span class="muted small">${op} open · ${list.length-op} cleared</span></h4>
-        ${op?`<ol class="clist">${list.filter(x=>!x.done).map(item).join("")}</ol>`:`<p class="muted small" style="margin:8px 0">All cleared.</p>`}
+      // Empty sections still show, so a condition can be dragged into them.
+      return `<div class="cgroup" data-grp="${who}"><h4>${title} <span class="muted small">${list.length?`${op} open · ${list.length-op} cleared`:"none"}</span></h4>
+        ${op?`<ol class="clist">${list.filter(x=>!x.done).map(item).join("")}</ol>`:`<p class="muted small cempty" style="margin:8px 0">${list.length?"All cleared.":"Nothing here. Drag a condition here or use Move to."}</p>`}
         ${list.length-op?`<details class="cleared" data-clopen="${c.id}-${who}"${clearedOpen[c.id+"-"+who]?" open":""}><summary>Cleared (${list.length-op})</summary>
           <ol class="clist">${list.filter(x=>x.done).map(item).join("")}</ol></details>`:""}</div>`;
       function item(x){
-        if(condEdit===x.id)return `<li class="cedit"><span class="cn">${x.n}</span><textarea id="condEditTxt" rows="2" aria-label="Condition ${x.n}">${esc(x.text)}</textarea>
+        const pn=posOf(c,x);
+        if(condEdit===x.id)return `<li class="cedit"><span class="cn">${pn||"✓"}</span><textarea id="condEditTxt" rows="2" aria-label="Condition ${pn}">${esc(x.text)}</textarea>
           <span class="cact"><button class="tbtn primary" type="button" data-act="condSave" data-id="${x.id}">Save</button><button class="tbtn" type="button" data-act="condCancel">Cancel</button></span></li>`;
-        return `<li class="${x.done?"done":""}"><span class="cn">${x.n}</span>
-          <label><input type="checkbox" data-cond="${x.id}"${x.done?" checked":""} aria-label="Cleared"><span class="ct">${esc(x.text)}</span></label>
-          <span class="cact"><button class="cmove" data-condedit="${x.id}" title="Edit the wording">Edit</button><button class="cmove" data-condwho="${x.id}" title="Move to ${who==="b"?"loan officer":"borrower"} conditions">${who==="b"?"→ LO":"→ Borrower"}</button><button class="x" data-delcond="${x.id}" aria-label="Remove condition ${x.n}">×</button></span></li>`;}};
+        return `<li class="${x.done?"done":""}"${x.done?"":` draggable="true" data-dragcond="${x.id}"`}><span class="cn"${x.done?"":' title="Drag to reorder"'}>${x.done?"✓":pn}</span>
+          <label><input type="checkbox" data-cond="${x.id}"${x.done?" checked":""} aria-label="Cleared"><span class="ct">${esc(x.text)}${x.uw?` <span class="uwn" title="Number on the processor's list">#${x.n}</span>`:""}</span></label>
+          <span class="cact">${x.done?"":`<span class="cord"><button class="cmove" data-condup="${x.id}" aria-label="Move up"${pn===1?" disabled":""}>↑</button><button class="cmove" data-conddown="${x.id}" aria-label="Move down">↓</button></span>`}<button class="cmove" data-condedit="${x.id}" title="Edit the wording">Edit</button>
+            <select class="cmovesel" data-condmove="${x.id}" aria-label="Move to another section"><option value="">Move to…</option>${CGROUPS.filter(g=>g[0]!==who).map(g=>`<option value="${g[0]}">${g[2][0].toUpperCase()+g[2].slice(1)}</option>`).join("")}</select>
+            <button class="x" data-delcond="${x.id}" aria-label="Remove condition">×</button></span></li>`;}};
     return banner+`<div class="panel conds">
         ${all.length?`<div class="chead"><h3>Conditions <span class="muted small">${open.length} open · ${all.length-open.length} cleared</span></h3><button class="tbtn danger" data-act="clearConds">Remove all</button></div>
-          ${group("b","Borrower conditions")}${group("lo","Loan officer conditions")}`:""}
+          ${CGROUPS.map(g=>group(g[0],g[1])).join("")}`:""}
         ${all.length?`<details class="addc" data-addc="${c.id}"${addOpen[c.id]?" open":""}><summary class="small" style="cursor:pointer;margin-top:12px;font-weight:700">+ Add conditions</summary>`:""}
         <label class="field" style="margin-top:12px">Type conditions (one per line) or paste them from your processor's email<textarea id="condTxt" placeholder="One condition per line, or paste a numbered list:&#10;&#10;Borrower conditions:&#10;1. Updated pay stub covering 30 days&#10;2. Letter of explanation for large deposit on 10/14&#10;LO conditions:&#10;3. Updated title commitment"></textarea></label>
         <div class="cwho" role="radiogroup" aria-label="Who these conditions are for">
           <span class="muted small">These are:</span>
           <label><input type="radio" name="condWho" value="b"${condWho==="b"?" checked":""}> Borrower conditions</label>
           <label><input type="radio" name="condWho" value="lo"${condWho==="lo"?" checked":""}> Loan officer conditions</label>
+          <label><input type="radio" name="condWho" value="r"${condWho==="r"?" checked":""}> Realtor conditions</label>
         </div>
-        <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addConds">Add conditions</button><span class="muted small" style="align-self:center">Typed by hand, each line is its own condition. In a pasted numbered list, each number starts a new condition and keeps its number. Headings like "Borrower conditions" or "LO conditions" in the pasted text sort them automatically.</span></div>${all.length?"</details>":""}
+        <div class="acts" style="margin-top:8px"><button class="tbtn primary" data-act="addConds">Add conditions</button><span class="muted small" style="align-self:center">Typed by hand, each line is its own condition. In a pasted numbered list, each number starts a new condition and keeps its number. Headings like "Borrower conditions", "LO conditions" or "Realtor conditions" in the pasted text sort them automatically. Drag a condition (or use the arrows on a phone) to put them in your order.</span></div>${all.length?"</details>":""}
       </div>`;
   }
 
@@ -1564,7 +1604,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         (nd.subs||[]).map(k=>{const sd=c.ms[k];return `<tr class="sub"><td></td><td>${box(sd)} ${esc(msBy(k).name)}${k==="closingSched"&&c.closingAt?" — <b>"+esc(fmtWhen(c.closingAt))+"</b>":""}</td><td class="d">${sd?fmt(sd):""}</td></tr>`;}).join("");}).join("");
     const conds=sortedConds(c), open=conds.filter(x=>!x.done), done=conds.filter(x=>x.done);
     const ctable=who=>{const l=sortedConds(c,who);if(!l.length)return "";
-      return `<h3>${who==="b"?"Borrower conditions":"Loan officer conditions"}</h3><table class="cd">${l.map(x=>`<tr class="${x.done?"done":""}"><td class="b">${x.done?"&#9745;":"&#9744;"}</td><td class="n">${x.n}.</td><td>${esc(x.text)}</td></tr>`).join("")}</table>`;};
+      return `<h3>${CGROUPS.find(g=>g[0]===who)[1]}</h3><table class="cd">${l.map(x=>`<tr class="${x.done?"done":""}"><td class="b">${x.done?"&#9745;":"&#9744;"}</td><td class="n">${x.done?"":posOf(c,x)+"."}</td><td>${esc(x.text)}</td></tr>`).join("")}</table>`;};
     const notes=(c.notes||[]).filter(x=>!x.auto&&!isEmail(x)).slice(-8).reverse();
     const tl=(label,parts)=>parts.some(Boolean)?`<td><b>${label}</b><br>${parts.filter(Boolean).map(esc).join("<br>")}</td>`:"";
     const tcells=tl("Title company",[c.title,c.titlePhone,c.titleAddr,c.closer&&"Closer: "+c.closer])+tl("Realtor",[c.realtor,c.realtorPhone,c.realtorEmail,c.tcName&&"TC: "+c.tcName,c.tcPhone,c.tcEmail]);
@@ -1576,7 +1616,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       ${team}
       <h2>Milestones</h2><table class="ms">${ms}</table>
       <h2>Conditions ${conds.length?`<span>${open.length} open · ${done.length} cleared</span>`:""}</h2>
-      ${conds.length?ctable("b")+ctable("lo"):`<p class="none">No conditions yet.</p>`}
+      ${conds.length?ctable("b")+ctable("lo")+ctable("r"):`<p class="none">No conditions yet.</p>`}
       ${notes.length?`<h2>Recent notes</h2><ul class="nt">${notes.map(x=>`<li><span>${fmtStamp(x.t)}</span> ${esc(x.text)}</li>`).join("")}</ul>`:""}
       <h2>Notes</h2><div class="lines"></div>`;
     // Always one page: measure the sheet at letter size and shrink it to fit if needed.
@@ -1613,7 +1653,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         <div class="r-line">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.lender?" · "+esc(c.lender):""}${c.loanAmt?" · "+esc(fmtMoney(c.loanAmt)):""}
           · <b>${cur?esc(cur.name):"Not started"}</b>${nx?` → next: ${esc(nx.name)}`:""}</div>
         <div class="r-line r-m">${[cdTxt(c),lockTxt(c),ap?"Appraisal "+fmtMoney(c.apprValue)+(ap.cls==="ok"?" ✓":" · "+ap.text):"",lu?"Last update "+fmtShort(new Date(lu.t)):"No update sent yet"].filter(Boolean).map(esc).join(" · ")}</div>
-        ${o.length?`<div class="r-cond"><b>Open conditions (${o.length})</b><ul class="${o.length>5?"two":""}">${o.map(x=>`<li>☐ ${x.n}. ${esc(x.text)}${whoOf(x)==="lo"?' <span class="r-m">(LO)</span>':""}</li>`).join("")}</ul></div>`:`<div class="r-line r-m">No open conditions</div>`}
+        ${o.length?`<div class="r-cond"><b>Open conditions (${o.length})</b><ul class="${o.length>5?"two":""}">${o.map(x=>`<li>☐ ${posOf(c,x)}. ${esc(x.text)}${whoOf(x)!=="b"?` <span class="r-m">(${whoOf(x)==="lo"?"LO":"Realtor"})</span>`:""}</li>`).join("")}</ul></div>`:`<div class="r-line r-m">No open conditions</div>`}
         <div class="r-notes"></div></div>`;};
     const blockP=c=>`<div class="r-cust r-pro"><div class="r-h"><div><b class="r-nm">${nm(c)}</b> <span class="r-m">${esc([c.phone,c.email].filter(Boolean).join(" · "))}</span></div>
         <div class="r-m">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.price?" · "+esc(fmtMoney(c.price)):""} · last activity ${c.updated?fmtShort(new Date(c.updated)):"—"}</div></div><div class="r-notes r-n1"></div></div>`;
@@ -1757,7 +1797,7 @@ dialog form{padding:16px;display:grid;gap:12px}
   // ---------- Clicks ----------
   const curClient=()=>{const m=location.hash.match(/client=([\w]+)/);return m&&clients.find(x=>x.id===m[1]);};
   document.addEventListener("click",async ev=>{
-    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote],[data-delcond],[data-condwho],[data-sort],[data-side],[data-condedit]");if(!t)return;
+    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote],[data-delcond],[data-condup],[data-conddown],[data-sort],[data-side],[data-condedit]");if(!t)return;
     if(t.dataset.condedit){const c0=curClient();if(c0){condEdit=t.dataset.condedit;renderClient(c0);const e=$("condEditTxt");if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length);}}return;}
     if(t.dataset.side){const c0=curClient();if(c0){sideView[c0.id]=t.dataset.side;const y=scrollY;renderClient(c0);scrollTo(0,y);}return;}
     if(t.dataset.sort){const k=t.dataset.sort;if(sortKey===k)sortDir=-sortDir;else{sortKey=k;sortDir=["name","loan","next","cd","closing"].includes(k)?1:-1;}renderList();return;}
@@ -1765,7 +1805,8 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(t.dataset.tab){tab=t.dataset.tab;renderList();return;}
     if(t.dataset.open){annKey=null;leaveClose();phoneMail=false;go(t.dataset.open);return;}
     if(t.dataset.status&&c){c.status=t.dataset.status;touch(c);save();renderClient(c);say(c.status==="inactive"?"Moved to inactive.":c.status==="prospect"?"Moved to prospects.":"Marked active.");return;}
-    if(t.dataset.condwho&&c){const x=(c.conds||[]).find(y=>y.id===t.dataset.condwho);if(x){x.who=whoOf(x)==="b"?"lo":"b";touch(c);save();renderClient(c);}return;}
+    if((t.dataset.condup||t.dataset.conddown)&&c){const id=t.dataset.condup||t.dataset.conddown, x=(c.conds||[]).find(y=>y.id===id);
+      if(x){const l=openConds(c,whoOf(x)), i=l.indexOf(x), j=i+(t.dataset.condup?-1:1);if(j>=0&&j<l.length){[l[i],l[j]]=[l[j],l[i]];l.forEach((y,k)=>y.pos=k+1);touch(c);save();renderClient(c);}}return;}
     if(t.dataset.delcond&&c){c.conds=(c.conds||[]).filter(x=>x.id!==t.dataset.delcond);touch(c);save();renderClient(c);return;}
     if(t.dataset.delnote&&c){c.notes=c.notes.filter(n=>n.t!==t.dataset.delnote);save();renderClient(c);return;}
     switch(t.dataset.act){
@@ -1779,7 +1820,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         open.forEach(x=>all?set.delete(x.id):set.add(x.id));renderClient(c);break;}
       case "copyProc":{const e=buildProc(c);if(!e.list.length){say("Check the conditions you put in the share folder first.");break;}
         if(await copyRich(e.html,e.text)){c.notes=c.notes||[];
-          c.notes.push({t:stamp(),kind:"email",auto:true,subj:e.subject,text:`To processor: ${e.list.length} condition${e.list.length===1?"":"s"} in the share folder\n${e.list.map(x=>x.n+". "+x.text).join("\n")}`});
+          c.notes.push({t:stamp(),kind:"email",auto:true,subj:e.subject,text:`To processor: ${e.list.length} condition${e.list.length===1?"":"s"} in the share folder\n${e.list.map(x=>(x.uw?x.n+". ":"• ")+x.text).join("\n")}`});
           touch(c);save();procSel[c.id]=new Set();renderClient(c);say("Email copied and logged under Emails sent. Paste it into a new Outlook message.");}
         break;}
       case "copyProcSubj":if(await copyText(buildProc(c).subject))say("Subject copied.");break;
@@ -1845,7 +1886,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         // Free pasted numbers are reserved first, so a taken number can't push another pasted condition off its own number.
         fresh.forEach(it=>{if(it.n>0&&!used.has(it.n)){used.add(it.n);it.keep=true;}});
         const next=()=>{const n=Math.max(max,...used,0)+1;used.add(n);return n;};
-        let added=0;fresh.forEach(it=>{c.conds.push({id:uid(),n:it.keep?it.n:next(),text:it.text,who:it.who,done:false,added:stamp()});added++;});
+        let added=0;fresh.forEach(it=>{c.conds.push({id:uid(),n:it.keep?it.n:next(),...(it.keep?{uw:true}:{}),pos:nextPos(c,it.who),text:it.text,who:it.who,done:false,added:stamp()});added++;});
         if(added&&annKey==="condAppr"&&openConds(c,"b").length)includeConds=true;
         c.notes=c.notes||[];if(added)c.notes.push({t:stamp(),text:`${added} underwriting condition${added===1?"":"s"} added`,auto:true});
         touch(c);save();condOpen[c.id]=true;renderClient(c);say(added?`Added ${added} condition${added===1?"":"s"}.`:"Those conditions are already on the list.");break;}
@@ -1873,6 +1914,8 @@ dialog form{padding:16px;display:grid;gap:12px}
         touch(c);save();renderClient(c);
         if(aprDone)say("Appraisal conditions cleared. Appraisal received is now checked.");else if(!openConds(c).length&&x.done)say("All conditions cleared!");}return;}
     if(ev.target.name==="condWho"){condWho=ev.target.value;return;}
+    if(ev.target.dataset.condmove!==undefined){const x=(c.conds||[]).find(y=>y.id===ev.target.dataset.condmove), to=ev.target.value;
+      if(x&&to){x.pos=nextPos(c,to);x.who=to;touch(c);save();renderClient(c);say(`Moved to ${whoName(x)} conditions.`);}return;}
     if(ev.target.dataset.psel){const set=procSel[c.id]=procSel[c.id]||new Set();ev.target.checked?set.add(ev.target.dataset.psel):set.delete(ev.target.dataset.psel);
       const all=openConds(c).every(x=>set.has(x.id)), b=document.querySelector('[data-act="procAll"]');if(b)b.textContent=all?"Clear all":"Select all";renderProc(c);return;}
     if(ev.target.dataset.ctcchk){c.ctcChk=c.ctcChk||{};c.ctcChk[ev.target.dataset.ctcchk]=ev.target.checked;touch(c);save();renderClient(c);return;}

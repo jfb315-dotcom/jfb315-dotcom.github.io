@@ -102,6 +102,8 @@ Storage keys in use (keep the names; old data must keep loading):
   so changing steps or their names means regenerating all `img/tracker3` pictures (drawn by a
   one-off Playwright script, not kept in the repo). Do not change the chain casually.
 - Statuses are `active`, `prospect`, `inactive`. Records with no status count as active.
+- Conditions: `who` is `b`, `lo` or `r` (realtor); `pos` is John's drag order within a section and the shown
+  number is the place in that section (`posOf`). `n` is the reference number; `uw` marks it as the processor's.
 - Phone inputs are `type="tel"` and format themselves to `555-201-4400` (`fmtPhone`).
 - Realtor, title company, closer, lender and processor suggestions come from `contactBook()`:
   saved clients first, then contacts imported from a Cardex/CSV file (`contacts-v1`). No other store.
