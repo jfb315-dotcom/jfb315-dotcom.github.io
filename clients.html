@@ -453,6 +453,12 @@ dialog form{padding:16px;display:grid;gap:12px}
       <label class="field">Realtor's phone<input name="realtorPhone" type="tel" autocomplete="off"></label>
       <label class="field">Realtor's email<input name="realtorEmail" type="email" autocomplete="off"></label>
     </div>
+    <button type="button" class="tbtn coadd" id="tcToggle" aria-expanded="false" aria-controls="tcBox">+ Add transaction coordinator</button>
+    <div id="tcBox" hidden><div class="fgrid">
+      <label class="field">Transaction coordinator<input name="tcName" list="dlTC" autocomplete="off" placeholder="Name"></label>
+      <label class="field">TC phone<input name="tcPhone" type="tel" autocomplete="off"></label>
+      <label class="field">TC email<input name="tcEmail" inputmode="email" autocomplete="off"></label>
+    </div></div>
     <div class="fgrid">
       <label class="field">Title company<input name="title" list="dlTitle" autocomplete="off"></label>
       <label class="field">Title company phone<input name="titlePhone" type="tel" autocomplete="off"></label>
@@ -462,7 +468,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       <label class="field">Closing agent (closer)<input name="closer" list="dlCloser" autocomplete="off" placeholder="Closers at this title company are listed first"></label>
     </div>
     <p class="muted small" style="margin:-4px 0 0">Realtors and title companies you've used before show up as you type. Pick one to fill in their phone, email or address.</p>
-    <datalist id="dlRealtor"></datalist><datalist id="dlTitle"></datalist><datalist id="dlCloser"></datalist>
+    <datalist id="dlRealtor"></datalist><datalist id="dlTC"></datalist><datalist id="dlTitle"></datalist><datalist id="dlCloser"></datalist>
     <div class="fgrid">
       <label class="field">Loan type<select name="loan">
         <option value="conv">Conventional</option><option value="fha">FHA</option><option value="va">VA</option><option value="usda">USDA</option><option value="jumbo">Jumbo</option></select></label>
@@ -823,8 +829,9 @@ dialog form{padding:16px;display:grid;gap:12px}
     editing=c||null;
     const f=$("cform");f.reset();
     $("dlgTitle").textContent=c?"Edit client":"New client";
-    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","lockExp","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
+    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","tcName","tcPhone","tcEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","lockExp","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
     showCo(!!(c&&(c.coFirst||c.coLast||c.coEmail||c.coPhone)));
+    showTc(!!(c&&(c.tcName||c.tcPhone||c.tcEmail)));
     autoFill={};fillLists();lockForm();
     f.elements.prospect.checked=c?c.status==="prospect":newAsProspect;
     $("dlg").showModal();f.elements.first.focus();
@@ -888,7 +895,7 @@ dialog form{padding:16px;display:grid;gap:12px}
 
   // ---------- Contacts imported from another system (Calyx Point Cardex export); kept only in this browser ----------
   const CKEY="contacts-v1";
-  let imported={realtors:[],titles:[],lenders:[],closers:[],processors:[],from:"",at:""};
+  let imported={realtors:[],titles:[],lenders:[],closers:[],processors:[],tcs:[],from:"",at:""};
   try{const v=JSON.parse(localStorage.getItem(CKEY)||"null");if(v&&typeof v==="object")imported=Object.assign(imported,v);}catch(e){}
   const saveImported=()=>{try{localStorage.setItem(CKEY,JSON.stringify(imported));}catch(e){say("Couldn't save the contacts in this browser.");}};
   // Reads a delimited text export; the separator (comma, tab, pipe or semicolon) is found from the header line.
@@ -916,8 +923,8 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(/ first /.test(t))return "first";if(/ last /.test(t))return "last";if(/ (category|type|group|class) /.test(t))return "category";
     if(/ (company|business|firm|organization|organisation|agency) /.test(t))return "company";if(/ (name|contact) /.test(t))return "name";return "";}
   function autoCols(head){const cols={};FIELDS.forEach(([k])=>cols[k]=-1);head.forEach((h,i)=>{const k=colKey(h);if(k&&cols[k]<0)cols[k]=i;});return cols;}
-  const KINDS=[["realtors","Realtor"],["titles","Title company"],["lenders","Lender"],["closers","Closer"],["processors","Processor"],["","Skip"]];
-  const guessKind=cat=>/realt|agent|broker/i.test(cat)?"realtors":/title|escrow|closing|settlement|attorney/i.test(cat)?"titles":/lend|wholesale|bank|investor/i.test(cat)?"lenders":/process/i.test(cat)?"processors":"";
+  const KINDS=[["realtors","Realtor"],["titles","Title company"],["lenders","Lender"],["closers","Closer"],["processors","Processor"],["tcs","Transaction coordinator"],["","Skip"]];
+  const guessKind=cat=>/realt|agent|broker/i.test(cat)?"realtors":/title|escrow|closing|settlement|attorney/i.test(cat)?"titles":/lend|wholesale|bank|investor/i.test(cat)?"lenders":/process/i.test(cat)?"processors":/coordinat|\btc\b/i.test(cat)?"tcs":"";
   let impData=null;
   const impGet=(r,k)=>impData.cols[k]>=0?String(r[impData.cols[k]]||"").trim():"";
   // Windows programs often save text as UTF-16 or Windows-1252 rather than UTF-8; work out which before reading it.
@@ -927,7 +934,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     let z=0;for(let i=1;i<Math.min(buf.length,400);i+=2)if(buf[i]===0)z++;if(z>50)return new TextDecoder("utf-16le").decode(buf);
     try{return new TextDecoder("utf-8",{fatal:true}).decode(buf);}catch(e){return new TextDecoder("windows-1252").decode(buf);}}
   function impRender(){
-    const counts=["realtors","titles","lenders","closers","processors"].map(k=>[k,(imported[k]||[]).length]).filter(x=>x[1]);
+    const counts=["realtors","titles","lenders","closers","processors","tcs"].map(k=>[k,(imported[k]||[]).length]).filter(x=>x[1]);
     const how=`<ol class="small"><li>In Point, open the Cardex and choose <b>File › Export</b> (Custom ASCII).</li><li>Leave <b>Text Qualifier</b> as <b>"</b>, keep <b>Include Field Names in First Row</b> checked, and click <b>Export</b>. Any field separator works.</li><li>Click <b>Choose the export file</b> below and pick the file you saved.</li></ol>`;
     let body;
     if(!impData)body=how+`<div class="acts"><button class="tbtn primary" type="button" data-act="impPick">Choose the export file</button></div>`;
@@ -945,7 +952,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         <div class="acts"><button class="tbtn primary" type="button" data-act="impSave"${n?"":" disabled"}>Import ${n} contacts</button><button class="tbtn" type="button" data-act="impPick">Choose a different file</button></div>`
         :`<div class="acts"><button class="tbtn" type="button" data-act="impPick">Choose a different file</button></div>`}`;}
     $("impBody").innerHTML=`<h2>Import contacts</h2>
-      <p class="muted small" style="margin:0">Realtors, title companies, lenders, closers and processors from your Calyx Point Cardex (or any spreadsheet saved as CSV). They show up as suggestions when you type in Edit and in Send to processor. They're saved only in this browser.</p>
+      <p class="muted small" style="margin:0">Realtors, transaction coordinators, title companies, lenders, closers and processors from your Calyx Point Cardex (or any spreadsheet saved as CSV). They show up as suggestions when you type in Edit and in Send to processor. They're saved only in this browser.</p>
       ${counts.length?`<p class="small" style="margin:0">Imported now: ${counts.map(([k,n])=>`${n} ${KINDS.find(x=>x[0]===k)[1].toLowerCase()}${n===1?"":"s"}`).join(", ")}${imported.at?` <span class="muted">(from ${esc(imported.from)}, ${esc(fmt(imported.at.slice(0,10)))})</span>`:""}. A new import replaces these.</p>`:""}
       ${body}
       <div class="dlgbtns">${counts.length?`<button class="tbtn danger" type="button" data-act="impClear">Remove imported contacts</button>`:""}<button class="tbtn" type="button" data-act="impClose">Close</button></div>`;
@@ -960,12 +967,13 @@ dialog form{padding:16px;display:grid;gap:12px}
   });
   function impSave(){
     const {rows,kind,file}=impData, get=impGet;
-    const out={realtors:[],titles:[],lenders:[],closers:[],processors:[],from:file,at:stamp()};
+    const out={realtors:[],titles:[],lenders:[],closers:[],processors:[],tcs:[],from:file,at:stamp()};
     rows.forEach(r=>{const k=kind.get(get(r,"category"));if(!k)return;
       const person=get(r,"name")||[get(r,"first"),get(r,"last")].filter(Boolean).join(" "), co=get(r,"company");
       const phone=fmtPhone(get(r,"phone")||get(r,"cell")), email=get(r,"email");
       const addr=[get(r,"addr"),[get(r,"city"),[get(r,"state"),get(r,"zip")].filter(Boolean).join(" ")].filter(Boolean).join(", ")].filter(Boolean).join(", ");
       if(k==="realtors"&&person)out.realtors.push({name:person,phone,email,company:co});
+      else if(k==="tcs"&&person)out.tcs.push({name:person,phone,email,company:co});
       else if(k==="titles"&&(co||person)){out.titles.push({name:co||person,phone,addr,contact:co?person:""});if(co&&person)out.closers.push({name:person,company:co});}
       else if(k==="lenders"&&(co||person))out.lenders.push({name:co||person,url:get(r,"web"),contact:co?person:"",phone});
       else if(k==="closers"&&person)out.closers.push({name:person,company:co});
@@ -977,9 +985,10 @@ dialog form{padding:16px;display:grid;gap:12px}
 
   // ---------- Saved realtors and title companies (from your other clients, then imported contacts) ----------
   function contactBook(){
-    const R=new Map(),T=new Map(),C=new Map(),L=new Map(),P=new Map();
+    const R=new Map(),T=new Map(),C=new Map(),L=new Map(),P=new Map(),TC=new Map();
     [...clients].sort((a,b)=>String(b.updated||"").localeCompare(String(a.updated||""))).forEach(c=>{
-      if(c.realtor){const k=c.realtor.trim().toLowerCase();if(!R.has(k))R.set(k,{name:c.realtor.trim(),realtorPhone:c.realtorPhone||"",realtorEmail:c.realtorEmail||""});}
+      if(c.realtor){const k=c.realtor.trim().toLowerCase();if(!R.has(k))R.set(k,{name:c.realtor.trim(),realtorPhone:c.realtorPhone||"",realtorEmail:c.realtorEmail||"",tcName:c.tcName||"",tcPhone:c.tcPhone||"",tcEmail:c.tcEmail||""});}
+      if(c.tcName){const k=c.tcName.trim().toLowerCase();if(!TC.has(k))TC.set(k,{name:c.tcName.trim(),tcPhone:c.tcPhone||"",tcEmail:c.tcEmail||"",realtor:(c.realtor||"").trim()});}
       if(c.title){const k=c.title.trim().toLowerCase();if(!T.has(k))T.set(k,{name:c.title.trim(),titlePhone:c.titlePhone||"",titleAddr:c.titleAddr||""});}
       if(c.closer){const k=c.closer.trim().toLowerCase();if(!C.has(k))C.set(k,{name:c.closer.trim(),company:(c.title||"").trim()});}
       if(c.lender){const k=c.lender.trim().toLowerCase();if(!L.has(k))L.set(k,{name:c.lender.trim(),lenderUrl:c.lenderUrl||""});}
@@ -991,7 +1000,8 @@ dialog form{padding:16px;display:grid;gap:12px}
     (imported.lenders||[]).forEach(l=>add(L,l.name,{lenderUrl:l.url||""}));
     (imported.processors||[]).forEach(p=>{if(p.email)add(P,p.name,{procEmail:p.email});});
     (imported.closers||[]).forEach(x=>add(C,x.name,{company:x.company||""}));
-    return {R,T,C,L,P};
+    (imported.tcs||[]).forEach(x=>add(TC,x.name,{tcPhone:x.phone||"",tcEmail:x.email||"",realtor:x.company||""}));
+    return {R,T,C,L,P,TC};
   }
   let book=null;
   function fillLists(){
@@ -1000,6 +1010,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     $("dlRealtor").innerHTML=[...book.R.values()].map(r=>opt(r.name,[r.company,r.realtorPhone,r.realtorEmail].filter(Boolean).join(" · "))).join("");
     $("dlTitle").innerHTML=[...book.T.values()].map(t=>opt(t.name,[t.titlePhone,t.titleAddr].filter(Boolean).join(" · "))).join("");
     fillClosers();
+    $("dlTC").innerHTML=[...book.TC.values()].map(t=>opt(t.name,[t.realtor,t.tcPhone,t.tcEmail].filter(Boolean).join(" · "))).join("");
     $("dlLender").innerHTML=[...book.L.values()].map(l=>opt(l.name,l.lenderUrl)).join("");
   }
   // Closers who work at the title company typed above come first; the others follow, each labeled with its company.
@@ -1013,13 +1024,14 @@ dialog form{padding:16px;display:grid;gap:12px}
   }
   // Picking a saved name fills in the rest of that contact's details.
   $("cform").addEventListener("input",e=>{
-    const n=e.target.name;if(!book||!["realtor","title","lender"].includes(n))return;
+    const n=e.target.name;if(!book||!["realtor","title","lender","tcName"].includes(n))return;
     if(n==="title")fillClosers();
-    const hit=({realtor:book.R,title:book.T,lender:book.L})[n].get(e.target.value.trim().toLowerCase());if(!hit)return;
+    const hit=({realtor:book.R,title:book.T,lender:book.L,tcName:book.TC})[n].get(e.target.value.trim().toLowerCase());if(!hit)return;
     if(e.target.value!==hit.name)e.target.value=hit.name;
     // Details filled in from an earlier pick are cleared when a different contact is picked, so nothing stale is left behind.
     const f=$("cform");Object.keys(hit).forEach(k=>{if(k==="name"||!f.elements[k])return;
       if(hit[k]){f.elements[k].value=hit[k];autoFill[k]=hit[k];}else if(autoFill[k]&&f.elements[k].value===autoFill[k]){f.elements[k].value="";delete autoFill[k];}});
+    if(n==="realtor")showTc(!!(f.elements.tcName.value||f.elements.tcPhone.value||f.elements.tcEmail.value)||!$("tcBox").hidden);
     // A title company with just one closer on file fills the closer in too.
     if(n==="title"){const m=fillClosers(), cl=f.elements.closer;
       if(autoFill.closer&&cl.value===autoFill.closer){cl.value="";delete autoFill.closer;}
@@ -1050,11 +1062,22 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(!on)["coFirst","coLast","coEmail","coPhone"].forEach(k=>f.elements[k].value="");
     showCo(on);if(on)f.elements.coFirst.focus();
   });
+  // The realtor's transaction coordinator also stays tucked away until needed.
+  function showTc(on){
+    $("tcBox").hidden=!on;
+    $("tcToggle").textContent=on?"− Remove transaction coordinator":"+ Add transaction coordinator";
+    $("tcToggle").setAttribute("aria-expanded",on);
+  }
+  $("tcToggle").addEventListener("click",()=>{
+    const f=$("cform"), on=$("tcBox").hidden;
+    if(!on)["tcName","tcPhone","tcEmail"].forEach(k=>f.elements[k].value="");
+    showTc(on);if(on)f.elements.tcName.focus();
+  });
   $("dlg").addEventListener("close",()=>{
     if($("dlg").returnValue!=="save")return;
     const f=$("cform"), v=k=>f.elements[k].value.trim();
     if(!v("first"))return;
-    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","lockExp","loan","purpose","who","closing"].map(k=>[k,/phone$/i.test(k)?fmtPhone(v(k)):["price","loanAmt","down"].includes(k)?fmtMoney(v(k)):k==="rate"?fmtRate(v(k)):v(k)]));
+    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","tcName","tcPhone","tcEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","lockExp","loan","purpose","who","closing"].map(k=>[k,/phone$/i.test(k)?fmtPhone(v(k)):["price","loanAmt","down"].includes(k)?fmtMoney(v(k)):k==="rate"?fmtRate(v(k)):v(k)]));
     const pros=f.elements.prospect.checked;
     if(editing){Object.assign(editing,data);
       if(pros)editing.status="prospect";else if(editing.status==="prospect")editing.status="active";
@@ -1255,7 +1278,7 @@ dialog form{padding:16px;display:grid;gap:12px}
           ${loanNums(c).length?`<div class="qs">${loanNums(c).map(([k,v])=>k+" "+esc(v)).join(" · ")}</div>`:""}
           ${c.lenderUrl?`<div class="qb"><a href="${esc(asHref(c.lenderUrl))}" target="_blank" rel="noopener">LENDER ↗${c.lender?" "+esc(c.lender):""}</a></div>`:c.lender?`<div class="qs">Lender: ${esc(c.lender)}</div>`:""}</div>
         ${person("Borrower",fullName(c),c.phone,c.email)}${person("Co-borrower",coName(c),c.coPhone,c.coEmail)}
-        ${person("Title company"+(c.titleAddr?" · "+c.titleAddr:""),c.title+(c.closer?" · "+c.closer:""),c.titlePhone,"")}${person("Realtor",c.realtor,c.realtorPhone,c.realtorEmail)}
+        ${person("Title company"+(c.titleAddr?" · "+c.titleAddr:""),c.title+(c.closer?" · "+c.closer:""),c.titlePhone,"")}${person("Realtor",c.realtor,c.realtorPhone,c.realtorEmail)}${person("Transaction coordinator",c.tcName,c.tcPhone,c.tcEmail)}
       </div>`;
     }
     const cell=(label,body)=>`<div class="gc"><div class="gl">${label}</div>${body}</div>`;
@@ -1270,7 +1293,8 @@ dialog form{padding:16px;display:grid;gap:12px}
         (c.lender||c.lenderUrl?`<div class="glender">${c.lender?`<span>Lender: <b>${esc(c.lender)}</b></span>`:""}${c.lenderUrl?`<a class="lenderbtn" href="${esc(asHref(c.lenderUrl))}" target="_blank" rel="noopener">LENDER ↗</a>`:""}</div>`:add("Add the lender with Edit")))}
       ${cell("Closing",when?`<b>${esc(when)}</b>${cdLine}`:add("Not scheduled")+cdLine)}
       ${cell("Title company",c.title||c.titlePhone?`<b>${esc(c.title||"")}</b>${c.titlePhone?`<div>${tel(c.titlePhone)}</div>`:""}${c.titleAddr?`<div>${esc(c.titleAddr)}</div>`:""}${c.closer?`<div class="muted">Closer: ${esc(c.closer)}</div>`:""}`:add("Add with Edit"))}
-      ${cell("Realtor",c.realtor||c.realtorPhone?`<b>${esc(c.realtor||"")}</b>${c.realtorPhone?`<div>${tel(c.realtorPhone)}</div>`:""}${c.realtorEmail?`<div>${mail(c.realtorEmail)}</div>`:""}`:add("Add with Edit"))}
+      ${cell("Realtor",(c.realtor||c.realtorPhone?`<b>${esc(c.realtor||"")}</b>${c.realtorPhone?`<div>${tel(c.realtorPhone)}</div>`:""}${c.realtorEmail?`<div>${mail(c.realtorEmail)}</div>`:""}`:add("Add with Edit"))+
+        (c.tcName||c.tcPhone||c.tcEmail?`<div style="margin-top:4px"><b>${esc(c.tcName||"")}</b> <span class="muted small">TC</span></div>${c.tcPhone?`<div>${tel(c.tcPhone)}</div>`:""}${c.tcEmail?`<div>${mail(c.tcEmail)}</div>`:""}`:""))}
       ${(()=>{const L=lockInfo(c), nums=loanNums(c).filter(([k])=>k!=="Lock");
         const lk=!L.locked?["Not locked","off"]:!L.exp?["Locked · add date","warn"]:L.left<0?["Lock expired "+fmtShort(L.exp),"bad"]:
           [`Lock exp ${fmtShort(L.exp)}${L.lender?" (lender)":""}`,L.beforeClose?"bad":L.left<=5?"warn":"ok"];
@@ -1543,7 +1567,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       return `<h3>${who==="b"?"Borrower conditions":"Loan officer conditions"}</h3><table class="cd">${l.map(x=>`<tr class="${x.done?"done":""}"><td class="b">${x.done?"&#9745;":"&#9744;"}</td><td class="n">${x.n}.</td><td>${esc(x.text)}</td></tr>`).join("")}</table>`;};
     const notes=(c.notes||[]).filter(x=>!x.auto&&!isEmail(x)).slice(-8).reverse();
     const tl=(label,parts)=>parts.some(Boolean)?`<td><b>${label}</b><br>${parts.filter(Boolean).map(esc).join("<br>")}</td>`:"";
-    const tcells=tl("Title company",[c.title,c.titlePhone,c.titleAddr,c.closer&&"Closer: "+c.closer])+tl("Realtor",[c.realtor,c.realtorPhone,c.realtorEmail]);
+    const tcells=tl("Title company",[c.title,c.titlePhone,c.titleAddr,c.closer&&"Closer: "+c.closer])+tl("Realtor",[c.realtor,c.realtorPhone,c.realtorEmail,c.tcName&&"TC: "+c.tcName,c.tcPhone,c.tcEmail]);
     const team=tcells?`<table class="team"><tr>${tcells}</tr></table>`:"";
     $("printSheet").innerHTML=`
       <div class="ph"><div><h1>${esc(fullName(c))}</h1><div>${info}</div></div>
@@ -1833,7 +1857,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       case "impSave":impSave();break;
       case "impClose":impData=null;$("impDlg").close();break;
       case "impClear":if(confirm("Remove all imported contacts? Contacts saved on your clients stay."))
-        {imported={realtors:[],titles:[],lenders:[],closers:[],processors:[],from:"",at:""};saveImported();impRender();say("Imported contacts removed.");}break;
+        {imported={realtors:[],titles:[],lenders:[],closers:[],processors:[],tcs:[],from:"",at:""};saveImported();impRender();say("Imported contacts removed.");}break;
       case "copySubj":{const e=buildMail(c);if(await copyText(e.subject))say("Subject copied.");break;}
     }
   });
