@@ -607,7 +607,6 @@ dialog form{padding:16px;display:grid;gap:12px}
     {k:"ctc",        name:"Clear to close",                 msg:"You're clear to close! The title company will reach out to schedule your closing. Congratulations!"}
   ];
   const msBy=k=>MS.find(m=>m.k===k);
-  const TRACK_H=90; // display height of the tracker pictures at 600px wide
   // The main chain shown in the tracker. Two steps carry sub-steps listed underneath them.
   // "Appraisal" has no checkbox of its own: it is complete when "Appraisal received" is checked.
   const MAIN=[
@@ -1602,8 +1601,10 @@ dialog form{padding:16px;display:grid;gap:12px}
       (note?p(esc(note).replace(/\n/g,"<br>")):"")+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     const text=[hello,"",`I've put the following conditions for ${who}${c.address?" ("+c.address+")":""} in the share folder:`,"",...list.map(x=>`${x.uw?x.n+".":"•"} ${x.text}`),"",...(note?[note,""]:[]),
       "Thank you,",me||"[Your name]"].join("\n");
-    return {subject,html,text,list};
+    return {subject,html:onWhite(html),text,list};
   }
+  // Every email sits on a white table: phone mail apps in dark mode then darken it as one piece, so no text ends up dark on dark.
+  const onWhite=h=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FFFFFF" style="border-collapse:collapse;background:#FFFFFF"><tr><td bgcolor="#FFFFFF" style="background:#FFFFFF;color:#222222">${h}</td></tr></table>`;
   function renderProc(c){const e=buildProc(c);if($("procSubj"))$("procSubj").textContent=e.subject;if($("procPrev"))$("procPrev").innerHTML=e.html;}
   function lastUpdate(c){
     const n=(c.notes||[]).filter(x=>isEmail(x)&&!/^(Document request|To processor)/.test(emailText(x))).sort((a,b)=>String(b.t).localeCompare(String(a.t)))[0];
@@ -1817,7 +1818,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       "","WIRING INSTRUCTIONS",instrT,"",...(c.cashierOK?[cashT,""]:[]),
       `PROTECT YOURSELF FROM WIRE FRAUD: Wiring instructions will never change by email. Before sending any money, call ${titleName} at ${titlePhone}, the number in this email, not one from a new email or text, to confirm the instructions. If anything looks different or urgent, stop and call me first.`,"",
       "WHAT TO BRING",...bring.map(b=>"• "+b),"",...base.upT,"It's been a pleasure working with you, and I can't wait to see you get your keys!","","Thank you,",me||"[Your name]"];
-    return {subject:"You're clear to close! Your closing details",html,text:T.join("\n"),ann:{name:"Clear to close (closing email)"},tracker:base.tracker,n:base.n,T7:base.T7,nx:base.nx};
+    return {subject:"You're clear to close! Your closing details",html:onWhite(html),text:T.join("\n"),ann:{name:"Clear to close (closing email)"},tracker:base.tracker,n:base.n,T7:base.T7,nx:base.nx};
   }
   function buildMailStd(c){
     const ann=MS.find(m=>m.k===annKey), msg=($("annMsg")?.value??purposeFix(c,ann)).trim(), me=($("me")?.value||"").trim();
@@ -1825,21 +1826,25 @@ dialog form{padding:16px;display:grid;gap:12px}
     const oc=openConds(c,"b"), condsOn=includeConds&&oc.length>0;
     const upHref=asHref(uploadLink(c)), withUp=upOn();
     const SITE0=location.protocol.startsWith("http")&&location.hostname.endsWith("github.io")?location.href:"https://jfb315-dotcom.github.io/";
-    const upImg=`<img src="${new URL("upload-button-v2.png",SITE0).href}" width="300" height="56" alt="UPLOAD DOCUMENTS" style="display:block;border:0;width:100%;max-width:300px;height:auto;font-family:Calibri,Arial,sans-serif;font-size:16pt;font-weight:bold;color:#1F4E79">`;
+    // Buttons and the progress bar are built from colored table cells, not pictures: Outlook attaches pasted pictures to the
+    // message, and a reply or forward without attachments then shows them as broken boxes.
+    const upBtn=h=>`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#1F4E79" style="background:#1F4E79;padding:12px 28px">${h?`<a href="${esc(h)}" style="color:#FFFFFF;text-decoration:none">`:""}<font color="#FFFFFF" face="Calibri, Arial, sans-serif" style="color:#FFFFFF;font-size:13pt"><b>UPLOAD DOCUMENTS</b></font>${h?"</a>":""}</td></tr></table>`;
     const subject=`Loan update: ${ann.name}`;
     const F="font-family:Calibri,Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.4;color:#222222";
     const BLUE="#1F4E79", GREEN="#2C5234", GOLD="#A97A1E", GRAY="#9AA3AE";
     const date=c.ms[ann.k]?fmt(c.ms[ann.k]):"";
-    // Tracker picture (hosted on the site; no client details in it): one per combination of the main stage,
-    // the appraisal sub-steps (none / ordered / received) and the additional documents (none / requested / received).
-    const ap=c.ms.apprRecv?2:c.ms.apprOrdered?1:0, dc=c.ms.addlDocsRecv?2:c.ms.addlDocs?1:0, cs=c.ms.closingSched?1:0;
-    const SITE=location.protocol.startsWith("http")&&location.hostname.endsWith("github.io")?location.href:"https://jfb315-dotcom.github.io/";
-    const trackImg=new URL(`img/tracker3/t-${stage}-${ap}-${dc}-${cs}.png`,SITE).href;
-    const tracker=`<img src="${trackImg}" width="600" height="${TRACK_H}" alt="Loan progress: ${n} of ${T7} steps complete${nx?", next: "+esc(nx.name):""}" style="display:block;border:0;width:100%;max-width:600px;height:auto">`;
     // Outlook can drop inline styles on text when pasting, so colors and sizes are also set with <font> tags,
     // the heading underline sits on a table cell, and spacing comes from spacer rows. Each survives a paste.
     const fc=(col,size,pt,inner)=>`<font color="${col}"${size?` size="${size}"`:""} face="Calibri, Arial, sans-serif" style="color:${col}${pt?`;font-size:${pt}pt`:""}">${inner}</font>`;
     const sp=h=>`<p style="margin:0;padding:0;font-size:1px;line-height:${h}px;mso-line-height-rule:exactly"><font size="1" style="font-size:1px">&nbsp;</font></p>`;
+    // Progress bar: one cell per step, a filled square for done (check) and next (number), an outlined one for later steps.
+    const tracker=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;max-width:600px"><tr>`+MAIN.map((nd,i)=>{
+      const st=nodeDone(c,nd)?"done":i===stage?"next":"", bg=st==="done"?GREEN:st==="next"?GOLD:"#FFFFFF", col=st?"#FFFFFF":GRAY;
+      const d=c.ms[nodeKey(nd)], subs=(nd.subs||[]).filter(k=>c.ms[k]).map(k=>msBy(k).short);
+      const box=`<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td width="26" height="26" align="center" valign="middle" bgcolor="${bg}" style="width:26px;height:26px;background:${bg};border:2px solid ${st?bg:"#C5CCD6"}">${fc(col,"2","10","<b>"+(st==="done"?"&#10003;":i+1)+"</b>")}</td></tr></table>`;
+      return `<td width="12%" align="center" valign="top" style="width:12.5%;padding:0 2px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:8pt;line-height:1.25;color:#333333">${box}`+
+        `<font face="Calibri, Arial, sans-serif" color="${st?"#333333":GRAY}" style="font-size:8pt;line-height:1.2;color:${st?"#333333":GRAY}">${st?"<b>":""}${esc(nd.name)}${st?"</b>":""}`+
+        `${d?"<br>"+fmt(d):subs.length?"<br>&#10003; "+esc(subs.join(", ")):""}</font></td>`;}).join("")+`</tr></table>`;
     // Main steps: mark in the first column. Sub-steps: indented one column, with their own small mark.
     const row=(mark,mc,txt,sub)=>sub
       ?`<tr><td width="26" style="width:26px;padding:0;${F}">&nbsp;</td><td valign="top" style="padding:0 0 4px 0;${F}">${fc(mc,"2","10",`<b>${mark}</b>`)}&nbsp;&nbsp;${txt}</td></tr>`
@@ -1856,7 +1861,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         `<p style="margin:0">${fc("#555555","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
         `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${oc.map((x,i)=>row(`${i+1}.`,GOLD,esc(x.text),false)).join("")}</table>`+sp(14):"";
     const upHTML=withUp?`<p style="margin:0">Click the button below to upload your documents securely.</p>`+sp(8)+
-        (upHref?`<a href="${esc(upHref)}" style="display:inline-block">${upImg}</a>`:upImg)+sp(16):"";
+        upBtn(upHref)+sp(16):"";
     const condsT=condsOn?["ITEMS STILL NEEDED","The underwriter is asking for the following. Please send them as soon as you can.",...oc.map((x,i)=>`${i+1}. ${x.text}`),""]:[];
     const upT=withUp?[`Upload your documents securely here: ${upHref||"[upload link]"}`,""]:[];
     const html=`<div style="${F}"><p style="margin:0 0 10px 0">Hi ${esc(greet(c))},</p>`+sp(6)+
@@ -1868,7 +1873,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         `<p style="margin:0">${fc("#555555","2","10","The underwriter is asking for the following. Please send them as soon as you can.")}</p>`+sp(8)+
         `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${oc.map((x,i)=>row(`${i+1}.`,GOLD,esc(x.text),false)).join("")}</table>`+sp(14):"")+
       (withUp?`<p style="margin:0">Click the button below to upload your documents securely.</p>`+sp(8)+
-        (upHref?`<a href="${esc(upHref)}" style="display:inline-block">${upImg}</a>`:upImg)+sp(16):"")+
+        upBtn(upHref)+sp(16):"")+
       (includeAll?`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>Your loan progress</b>")}</td></tr></table>`+sp(6)+
         `<p style="margin:0">${fc("#555555","2","10",`${n} of ${T7} steps complete`)}</p>`+sp(10)+tracker+sp(includeList?10:14)+
         (includeList?`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows}</table>`+sp(8):""):"")+
@@ -1880,7 +1885,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       MAIN.forEach((nd,i)=>{const d=c.ms[nodeKey(nd)];T.push(d?`✓ ${nd.name} (${fmt(d)})`:i===stage?`➜ Next: ${nd.name}`:`○ ${nd.name}`);
         (nd.subs||[]).forEach(k=>{const sd=c.ms[k];T.push(`     ${sd?"✓":"○"} ${msBy(k).name}${sd?" ("+(k==="closingSched"&&c.closingAt?fmtWhen(c.closingAt):fmt(sd))+")":""}`);});});T.push("");}
     T.push("If you have any questions, just reply to this email or give me a call.","","Thank you,",me||"[Your name]");
-    return {subject,html,text:T.join("\n"),ann,tracker,n,T7,nx,condsHTML,upHTML,condsT,upT};
+    return {subject,html:onWhite(html),text:T.join("\n"),ann,tracker,n,T7,nx,condsHTML,upHTML,condsT,upT};
   }
   function renderMail(c){const e=buildMail(c);$("subjTxt").textContent=e.subject;$("mailPrev").innerHTML=e.html;}
 

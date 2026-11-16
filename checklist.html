@@ -401,11 +401,8 @@ button,select,input{font:inherit;color:inherit}
     const intro=`Thanks for starting your ${loan} ${what} with me! To keep your loan moving, please send the ${n===1?"item":"items"} below. Clear photos or PDFs are fine, and you're welcome to send them as you gather them.`;
     const upOn=$("optUp").checked, ulink=isLink($("ulink").value.trim())?$("ulink").value.trim():"", href=/^https?:\/\//i.test(ulink)?ulink:(ulink?"https://"+ulink:"");
     const upText="Click the button below to upload your documents securely.";
-    // The button is one picture, so the whole thing is clickable in every email program (classic Outlook included).
-    // If pictures are blocked, the words UPLOAD DOCUMENTS show instead and are still the link.
-    const IMG=new URL("upload-button-v2.png",location.href.startsWith("http")&&location.hostname.endsWith("github.io")?location.href:"https://jfb315-dotcom.github.io/").href;
-    const upButton=h=>(h?`<a href="${esc(h)}" style="display:inline-block">`:"")+
-      `<img src="${IMG}" width="300" height="56" alt="UPLOAD DOCUMENTS" style="display:block;border:0;width:100%;max-width:300px;height:auto;font-family:Calibri,Arial,sans-serif;font-size:16pt;font-weight:bold;color:#1F4E79">`+(h?`</a>`:"");
+    // A colored table cell rather than a picture: Outlook attaches pasted pictures, and replies without attachments then lose them.
+    const upButton=h=>`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#1F4E79" style="background:#1F4E79;padding:12px 28px">${h?`<a href="${esc(h)}" style="color:#FFFFFF;text-decoration:none">`:""}<font color="#FFFFFF" face="Calibri, Arial, sans-serif" style="color:#FFFFFF;font-size:13pt"><b>UPLOAD DOCUMENTS</b></font>${h?"</a>":""}</td></tr></table>`;
     const outro="If anything is unclear or doesn't apply to you, just let me know. I'm happy to help.";
     const style=$("estyle").querySelector("input:checked")?.value||"classic";
     const stacked=style==="checklist"||style==="banded";   // explanation on its own line: easiest to read on a phone
@@ -445,7 +442,9 @@ button,select,input{font:inherit;color:inherit}
       (tips?`<p style="margin:0;font-size:10pt;line-height:10pt">&nbsp;</p><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td bgcolor="#F3F4F6" style="background:#F3F4F6;border-left:4px solid #B4412F;padding:8px 12px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:9.5pt;line-height:1.35;color:#444444">`+
         `<b style="color:#B4412F;font-size:10pt">Quick tips to avoid delays</b><br>`+tips.items.map(i=>`&#8226;&nbsp;${esc(i.short)}`).join("<br>")+`</td></tr></table>`:"")+
       `<p style="margin:16px 0 10px 0">${esc(outro)}</p><p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
-    return {subject,text:T.join("\n"),html:H,n,total:cats.reduce((a,c)=>a+c.items.length,0),preview:H};
+    // A white table behind the whole email, so phone mail apps in dark mode darken it as one piece.
+    const W=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FFFFFF" style="border-collapse:collapse;background:#FFFFFF"><tr><td bgcolor="#FFFFFF" style="background:#FFFFFF;color:#222222">${H}</td></tr></table>`;
+    return {subject,text:T.join("\n"),html:W,n,total:cats.reduce((a,c)=>a+c.items.length,0),preview:W};
   }
 
   const SDESC={
