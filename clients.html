@@ -251,7 +251,8 @@ details.phms[open]>summary{border-bottom:0}
 .uwn{font-size:var(--t-xs);color:var(--muted);white-space:nowrap}
 .cmovesel{font-size:var(--t-xs);padding:1px 4px;border:1px solid var(--rule);background:var(--panel);color:var(--muted);max-width:110px}
 .cord{display:none;gap:4px}
-@media (max-width:640px){.cord{display:inline-flex}}
+.cmovesel{display:none}
+@media (max-width:640px){.cord{display:inline-flex}.cmovebtn{display:none}.cmovesel{display:inline-block}}
 .cgroup h4{font-size:var(--t-sm);margin:0;padding:8px 0 2px;border-bottom:2px solid var(--brass);color:var(--brass)}
 .cgroup+.cgroup h4{border-bottom-color:var(--muted);color:var(--muted)}
 .cbanner .csplit{display:inline-block;font-size:var(--t-sm);color:var(--muted);margin-left:4px}
@@ -1574,6 +1575,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         return `<li class="${x.done?"done":""}"${x.done?"":` draggable="true" data-dragcond="${x.id}"`}><span class="cn"${x.done?"":' title="Drag to reorder"'}>${x.done?"✓":pn}</span>
           <label><input type="checkbox" data-cond="${x.id}"${x.done?" checked":""} aria-label="Cleared"><span class="ct">${esc(x.text)}${x.uw?` <span class="uwn" title="Number on the processor's list">#${x.n}</span>`:""}</span></label>
           <span class="cact">${x.done?"":`<span class="cord"><button class="cmove" data-condup="${x.id}" aria-label="Move up"${pn===1?" disabled":""}>↑</button><button class="cmove" data-conddown="${x.id}" aria-label="Move down">↓</button></span>`}<button class="cmove" data-condedit="${x.id}" title="Edit the wording">Edit</button>
+            ${CGROUPS.filter(g=>g[0]!==who).map(g=>`<button class="cmove cmovebtn" data-condto="${x.id}" data-to="${g[0]}" title="Move to ${g[2]} conditions">→ ${g[0]==="lo"?"LO":g[2][0].toUpperCase()+g[2].slice(1)}</button>`).join("")}
             <select class="cmovesel" data-condmove="${x.id}" aria-label="Move to another section"><option value="">Move to…</option>${CGROUPS.filter(g=>g[0]!==who).map(g=>`<option value="${g[0]}">${g[2][0].toUpperCase()+g[2].slice(1)}</option>`).join("")}</select>
             <button class="x" data-delcond="${x.id}" aria-label="Remove condition">×</button></span></li>`;}};
     return banner+`<div class="panel conds">
@@ -1797,7 +1799,7 @@ dialog form{padding:16px;display:grid;gap:12px}
   // ---------- Clicks ----------
   const curClient=()=>{const m=location.hash.match(/client=([\w]+)/);return m&&clients.find(x=>x.id===m[1]);};
   document.addEventListener("click",async ev=>{
-    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote],[data-delcond],[data-condup],[data-conddown],[data-sort],[data-side],[data-condedit]");if(!t)return;
+    const t=ev.target.closest("[data-act],[data-tab],[data-open],[data-status],[data-delnote],[data-delcond],[data-condup],[data-conddown],[data-condto],[data-sort],[data-side],[data-condedit]");if(!t)return;
     if(t.dataset.condedit){const c0=curClient();if(c0){condEdit=t.dataset.condedit;renderClient(c0);const e=$("condEditTxt");if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length);}}return;}
     if(t.dataset.side){const c0=curClient();if(c0){sideView[c0.id]=t.dataset.side;const y=scrollY;renderClient(c0);scrollTo(0,y);}return;}
     if(t.dataset.sort){const k=t.dataset.sort;if(sortKey===k)sortDir=-sortDir;else{sortKey=k;sortDir=["name","loan","next","cd","closing"].includes(k)?1:-1;}renderList();return;}
@@ -1805,6 +1807,8 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(t.dataset.tab){tab=t.dataset.tab;renderList();return;}
     if(t.dataset.open){annKey=null;leaveClose();phoneMail=false;go(t.dataset.open);return;}
     if(t.dataset.status&&c){c.status=t.dataset.status;touch(c);save();renderClient(c);say(c.status==="inactive"?"Moved to inactive.":c.status==="prospect"?"Moved to prospects.":"Marked active.");return;}
+    if(t.dataset.condto&&c){const x=(c.conds||[]).find(y=>y.id===t.dataset.condto), to=t.dataset.to;
+      if(x&&to){x.pos=nextPos(c,to);x.who=to;touch(c);save();renderClient(c);say(`Moved to ${whoName(x)} conditions.`);}return;}
     if((t.dataset.condup||t.dataset.conddown)&&c){const id=t.dataset.condup||t.dataset.conddown, x=(c.conds||[]).find(y=>y.id===id);
       if(x){const l=openConds(c,whoOf(x)), i=l.indexOf(x), j=i+(t.dataset.condup?-1:1);if(j>=0&&j<l.length){[l[i],l[j]]=[l[j],l[i]];l.forEach((y,k)=>y.pos=k+1);touch(c);save();renderClient(c);}}return;}
     if(t.dataset.delcond&&c){c.conds=(c.conds||[]).filter(x=>x.id!==t.dataset.delcond);touch(c);save();renderClient(c);return;}
