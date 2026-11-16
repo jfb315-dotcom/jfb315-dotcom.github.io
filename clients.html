@@ -1838,13 +1838,18 @@ dialog form{padding:16px;display:grid;gap:12px}
     const fc=(col,size,pt,inner)=>`<font color="${col}"${size?` size="${size}"`:""} face="Calibri, Arial, sans-serif" style="color:${col}${pt?`;font-size:${pt}pt`:""}">${inner}</font>`;
     const sp=h=>`<p style="margin:0;padding:0;font-size:1px;line-height:${h}px;mso-line-height-rule:exactly"><font size="1" style="font-size:1px">&nbsp;</font></p>`;
     // Progress bar: one cell per step, a filled square for done (check) and next (number), an outlined one for later steps.
-    const tracker=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;max-width:600px"><tr>`+MAIN.map((nd,i)=>{
+    // Progress bar: steps 1-4 and 5-8 in two rows of one table (names fit on a phone), joined by plain-text dashes.
+    // Filled square with a check for done, gold with the number for next, outlined for later steps.
+    const step=(nd,i)=>{
       const st=nodeDone(c,nd)?"done":i===stage?"next":"", bg=st==="done"?GREEN:st==="next"?GOLD:"#FFFFFF", col=st?"#FFFFFF":GRAY;
       const d=c.ms[nodeKey(nd)], subs=(nd.subs||[]).filter(k=>c.ms[k]).map(k=>msBy(k).short);
       const box=`<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td width="26" height="26" align="center" valign="middle" bgcolor="${bg}" style="width:26px;height:26px;background:${bg};border:2px solid ${st?bg:"#C5CCD6"}">${fc(col,"2","10","<b>"+(st==="done"?"&#10003;":i+1)+"</b>")}</td></tr></table>`;
-      return `<td width="12%" align="center" valign="top" style="width:12.5%;padding:0 2px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:8pt;line-height:1.25;color:#333333">${box}`+
-        `<font face="Calibri, Arial, sans-serif" color="${st?"#333333":GRAY}" style="font-size:8pt;line-height:1.2;color:${st?"#333333":GRAY}">${st?"<b>":""}${esc(nd.name)}${st?"</b>":""}`+
-        `${d?"<br>"+fmt(d):subs.length?"<br>&#10003; "+esc(subs.join(", ")):""}</font></td>`;}).join("")+`</tr></table>`;
+      return `<td width="22%" align="center" valign="top" style="width:22%;padding:0 2px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:8.5pt;line-height:1.25;color:#333333">${box}`+
+        `<font face="Calibri, Arial, sans-serif" color="${st?"#333333":GRAY}" style="font-size:8.5pt;line-height:1.25;color:${st?"#333333":GRAY}">${st?"<b>":""}${esc(nd.name)}${st?"</b>":""}`+
+        `${d?"<br>"+fmt(d):subs.length?"<br>&#10003; "+esc(subs.join(", ")):""}</font></td>`;};
+    const dash=i=>`<td width="4%" align="center" valign="top" style="width:4%;padding:6px 0 0 0;font-family:Calibri,Arial,sans-serif;font-size:10pt;line-height:14px;mso-line-height-rule:exactly">${fc(nodeDone(c,MAIN[i-1])?GREEN:"#C5CCD6","2","10","<b>&#8212;</b>")}</td>`;
+    const trow=(from,pad)=>`<tr>${MAIN.slice(from,from+4).map((nd,j)=>(j?dash(from+j):"").replace("padding:6px","padding:"+(6+pad)+"px").replace("<td width=\"22%","<td width=\"22%")+step(nd,from+j).replace("padding:0 2px","padding:"+pad+"px 2px 0 2px")).join("")}</tr>`;
+    const tracker=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;max-width:520px">${trow(0,0)}${trow(4,12)}</table>`;
     // Main steps: mark in the first column. Sub-steps: indented one column, with their own small mark.
     const row=(mark,mc,txt,sub)=>sub
       ?`<tr><td width="26" style="width:26px;padding:0;${F}">&nbsp;</td><td valign="top" style="padding:0 0 4px 0;${F}">${fc(mc,"2","10",`<b>${mark}</b>`)}&nbsp;&nbsp;${txt}</td></tr>`
