@@ -25,8 +25,7 @@ what changed, where to click, what he will see. No code, file names or git terms
 | `scripts/fetch_fred.py` | Pulls FRED series and release dates (standard library only). Holds the Fed meeting date list. |
 | `.github/workflows/update-data.yml` | Runs the fetch on a weekday schedule and on every push to `main`, then publishes. |
 | `img/logos/*.webp` | 16 company logos, 480px wide, listed in `brand.js` with `bg` and optional `holiday`. |
-| `img/tracker3/t-{stage}-{ap}-{dc}-{cs}.png` | 162 progress-bar pictures used in emails (9 stages x 3 x 3 x 2). `img/tracker`, `img/tracker2` are old sets kept so emails already sent still show a picture. |
-| `upload-button-v2.png` | Upload button picture for emails. `upload-button.png` is the old one, kept for sent emails. |
+| `img/tracker*/`, `upload-button*.png` | Old email pictures, no longer used by new emails; kept so emails already sent still show them. |
 | `docs/PLAN-shared-clients.md` | Plans on hold: Firebase shared tracker with other loan officers, Google address autocomplete. Not started. |
 
 ## Run, test, publish
@@ -98,9 +97,7 @@ Storage keys in use (keep the names; old data must keep loading):
   re-render but not be saved (open/closed panels, sort order) lives in module-level objects
   keyed by client id (`condOpen`, `msOpen`, `clearedOpen`, `earlyOpen`).
 - Milestones are defined once: `MS` (keys), `MAIN` (the 8-step chain with sub-steps) and `PATH`
-  (order for "Next"). The email progress picture is chosen from the stage and sub-step state,
-  so changing steps or their names means regenerating all `img/tracker3` pictures (drawn by a
-  one-off Playwright script, not kept in the repo). Do not change the chain casually.
+  (order for "Next"). Saved clients hold these keys, so do not rename or drop steps casually.
 - Statuses: `active`, `prospect`, `inactive` (none = active). Conditions: `who` is `b`/`lo`/`r`; `pos` is the drag
   order; the shown number is the place in its section (`posOf`); `n` is the reference number, `uw` = processor's.
 - Phone inputs are `type="tel"` and format themselves to `555-201-4400` (`fmtPhone`).
@@ -122,7 +119,8 @@ John pastes emails into classic Outlook, which strips most CSS. Email markup mus
 - Tables for all layout and for bullets (a narrow cell with the bullet, a cell with the text).
 - Inline styles plus `<font>` tags for color and size (the `fc()` helper); Calibri 11pt body.
 - Spacing via `sp(n)` (a `<p>` with exact line height); no spacer tables or adjacent tables (Outlook pads them on reply).
-- Pictures hosted on the site with explicit `width` and `height`; buttons are pictures in a link.
+- No pictures: Outlook attaches pasted pictures and replies drop them. Buttons and the progress bar are colored
+  table cells; the whole email sits on a white table (`onWhite`) so phone dark modes darken it evenly.
 - A plain-text version built alongside the HTML; copying writes both (`ClipboardItem` with
   `text/html` and `text/plain`). Change the two together, every time.
 - Email colors are fixed hex values (blue `#1F4E79`, green `#2C5234`, gold `#A97A1E`), not the
