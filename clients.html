@@ -149,7 +149,8 @@ button,select,input,textarea{font:inherit;color:inherit}
 .qk .qb{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 .qk .qb a{flex:1 1 0;min-width:120px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 12px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);text-decoration:none;font-weight:700;font-size:var(--t-sm)}
 .qk .qclose{font-size:var(--t-md)}
-@media (max-width:640px){.clist li{align-items:center}}
+@media (max-width:640px){.clist li{align-items:center;grid-template-columns:28px minmax(0,1fr)}
+  .clist li>.cact{grid-column:2;flex-wrap:wrap}} /* phone: the buttons go under the condition so its text keeps the full width */
 details.phms>summary{cursor:pointer;list-style:none;background:var(--panel);border:1px solid var(--rule);padding:12px 16px;font-weight:700}
 details.phms>summary::-webkit-details-marker{display:none}
 details.phms>summary::before{content:"▸ ";color:var(--muted)}
@@ -331,6 +332,11 @@ details.phms[open]>summary{border-bottom:0}
 .apprq{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
 .apprq label{display:flex;align-items:center;gap:6px;cursor:pointer}
 .apprsum{font-size:var(--t-sm);margin-top:2px}
+.resc{margin-top:4px;line-height:1.4}
+.fundbox{margin-top:12px;padding:12px 16px;border:1px solid var(--rule);border-left:5px solid var(--brass);background:var(--panel)}
+.fundbox h4{margin:0 0 8px;font-size:var(--t-xs);font-weight:800;letter-spacing:.08em;color:var(--brass);text-transform:uppercase}
+.fundbox .ck{display:flex;gap:8px;align-items:center;font-weight:700;cursor:pointer}
+.fundbox .resc{margin:4px 0 12px 28px}
 .apprsum.ok{color:var(--goodtxt)}.apprsum.warn{color:var(--brass)}.apprsum.bad{color:var(--bad)}
 .apprsum b{color:var(--ink)}
 .linkbtn{background:none;border:0;padding:0 4px;font:inherit;font-weight:700;color:var(--ink);text-decoration:underline;cursor:pointer}
@@ -509,6 +515,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       <label class="field">Last name<input name="last" autocomplete="off"></label>
       <label class="field">Email<input name="email" type="email" autocomplete="off"></label>
       <label class="field">Phone<input name="phone" type="tel" autocomplete="off"></label>
+      <label class="field hecmf">Date of birth<input name="dob" type="date"></label>
     </div>
     <button type="button" class="tbtn coadd" id="coToggle" aria-expanded="false" aria-controls="coBox">+ Add co-borrower</button>
     <div id="coBox" hidden>
@@ -518,10 +525,14 @@ dialog form{padding:16px;display:grid;gap:12px}
       <label class="field">Last name<input name="coLast" autocomplete="off"></label>
       <label class="field">Email<input name="coEmail" type="email" autocomplete="off"></label>
       <label class="field">Phone<input name="coPhone" type="tel" autocomplete="off"></label>
+      <label class="field hecmf">Date of birth<input name="coDob" type="date"></label>
     </div>
     </div>
+    <p class="small hecmf" id="ageHint" role="status" style="margin:0"></p>
     <label class="field">Property address<input name="address" autocomplete="off"></label>
     <h3 class="fsub">Closing team <span class="muted small">(optional, used in the closing email)</span></h3>
+    <button type="button" class="tbtn coadd" id="reToggle" aria-expanded="false" aria-controls="reBox" hidden>+ Add realtor</button>
+    <div id="reBox">
     <div class="fgrid">
       <label class="field">Realtor's name<input name="realtor" list="dlRealtor" autocomplete="off"></label>
       <label class="field">Realtor's phone<input name="realtorPhone" type="tel" autocomplete="off"></label>
@@ -533,6 +544,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       <label class="field">TC phone<input name="tcPhone" type="tel" autocomplete="off"></label>
       <label class="field">TC email<input name="tcEmail" inputmode="email" autocomplete="off"></label>
     </div></div>
+    </div>
     <div class="fgrid">
       <label class="field">Title company<input name="title" list="dlTitle" autocomplete="off"></label>
       <label class="field">Title company phone<input name="titlePhone" type="tel" autocomplete="off"></label>
@@ -545,7 +557,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     <datalist id="dlRealtor"></datalist><datalist id="dlTC"></datalist><datalist id="dlTitle"></datalist><datalist id="dlCloser"></datalist>
     <div class="fgrid">
       <label class="field">Loan type<select name="loan">
-        <option value="conv">Conventional</option><option value="fha">FHA</option><option value="va">VA</option><option value="usda">USDA</option><option value="jumbo">Jumbo</option></select></label>
+        <option value="conv">Conventional</option><option value="fha">FHA</option><option value="va">VA</option><option value="usda">USDA</option><option value="jumbo">Jumbo</option><option value="hecm">HECM / reverse mortgage</option></select></label>
       <label class="field">Purchase or refinance<select name="purpose"><option value="buy">Purchase</option><option value="refi">Refinance</option></select></label>
       <label class="field">Borrower's income<select name="who"><option value="w2">W-2 employee</option><option value="self">Self-employed</option><option value="retired">Retired</option></select></label>
       <label class="field">Target closing date<input name="closing" type="date"></label>
@@ -555,11 +567,22 @@ dialog form{padding:16px;display:grid;gap:12px}
       <label class="field">Lender website<input name="lenderUrl" inputmode="url" autocomplete="off" placeholder="https://"></label>
     </div>
     <datalist id="dlLender"></datalist>
+    <div class="refif">
+    <h3 class="fsub">Current loan <span class="muted small">(being paid off)</span></h3>
+    <div class="fgrid">
+      <label class="field rtf">Refinance type<select name="refiType"><option value="rt">Rate/term</option><option value="cash">Cash-out</option></select></label>
+      <label class="field rtf cashf">Cash-out amount<input name="cashOut" data-money inputmode="decimal" autocomplete="off" placeholder="$50,000"></label>
+      <label class="field">Current lender<input name="curLender" autocomplete="off"></label>
+      <label class="field">Payoff / balance<input name="payoff" data-money inputmode="decimal" autocomplete="off" placeholder="$210,000"></label>
+      <label class="field">Current rate<input name="curRate" inputmode="decimal" autocomplete="off" placeholder="7.25%"></label>
+      <label class="field">Current payment<input name="curPmt" data-money inputmode="decimal" autocomplete="off" placeholder="$1,850"></label>
+    </div>
+    </div>
     <h3 class="fsub">Loan info <span class="muted small">(for your reference)</span></h3>
     <div class="fgrid">
-      <label class="field">Purchase price<input name="price" data-money inputmode="decimal" autocomplete="off" placeholder="$450,000"></label>
+      <label class="field"><span id="lblPrice">Purchase price</span><input name="price" data-money inputmode="decimal" autocomplete="off" placeholder="$450,000"></label>
       <label class="field">Loan amount<input name="loanAmt" data-money inputmode="decimal" autocomplete="off" placeholder="$360,000"></label>
-      <label class="field">Down payment<input name="down" data-money inputmode="decimal" autocomplete="off" placeholder="Leave blank to figure it"></label>
+      <label class="field"><span id="lblDown">Down payment</span><input name="down" data-money inputmode="decimal" autocomplete="off" placeholder="Leave blank to figure it"></label>
       <label class="field">Rate<input name="rate" inputmode="decimal" autocomplete="off" placeholder="6.875%"></label>
     </div>
     <div class="fgrid">
@@ -585,8 +608,10 @@ dialog form{padding:16px;display:grid;gap:12px}
 (function(){
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  const LOANS={conv:"Conventional",fha:"FHA",va:"VA",usda:"USDA",jumbo:"Jumbo"};
+  const LOANS={conv:"Conventional",fha:"FHA",va:"VA",usda:"USDA",jumbo:"Jumbo",hecm:"HECM / reverse mortgage"};
   const PURP={buy:"purchase",refi:"refinance"};
+  // "Conventional refinance"; a reverse mortgage reads on its own.
+  const loanName=c=>c.loan==="hecm"?LOANS.hecm:[LOANS[c.loan],PURP[c.purpose]].filter(Boolean).join(" ");
   const WHO={w2:"W-2",self:"Self-employed",retired:"Retired"};
 
   // Milestones, in order. "msg" is the default line for the update email; it can be edited before copying.
@@ -595,6 +620,9 @@ dialog form{padding:16px;display:grid;gap:12px}
     {k:"discSent",   name:"Disclosures sent",               msg:"Your initial loan disclosures have been sent. Please review and e-sign them as soon as you can so we can keep things moving."},
     {k:"discSigned", name:"Disclosures signed",             msg:"Thank you for signing your disclosures. Next, your file goes to underwriting."},
     {k:"submitted",  name:"Loan submitted to underwriting", msg:"Your loan has been submitted to underwriting for review. Normal turn times are 2 to 3 business days, and I'll let you know as soon as we hear back."},
+    {k:"caseNo",     name:"FHA case number assigned", short:"Case number assigned", only:["hecm"], msg:"Your FHA case number has been assigned, and your file is moving forward."},
+    {k:"payoffOrd",  name:"Payoff ordered",  short:"Payoff ordered",  only:["refi","hecm"], msg:"I've ordered the payoff statement from your current lender."},
+    {k:"payoffRecv", name:"Payoff received", short:"Payoff received", only:["refi","hecm"], msg:"We've received the payoff statement from your current lender."},
     {k:"condAppr",   name:"Conditionally approved",         msg:"Great news: your loan is conditionally approved! The underwriter has a short list of items to finalize, and I'll help you with each one."},
     {k:"addlDocs",   name:"Additional documents requested", short:"Docs requested", msg:"The underwriter has asked for a few more items. I'll send you the list, and please send them as soon as you can."},
     {k:"addlDocsRecv",name:"Additional documents received", short:"Docs received", msg:"Thank you! We received your additional documents and passed them to the underwriter for review."},
@@ -604,7 +632,9 @@ dialog form{padding:16px;display:grid;gap:12px}
     {k:"apprRecv",   name:"Appraisal received",  short:"Received", msg:"The appraisal is back, and we're one step closer to the finish line."},
     {k:"ctcSubmitted",name:"Submitted for clear to close", msg:"Your file has been submitted to the underwriter for final clear to close. We're almost there!"},
     {k:"closingSched",name:"Closing scheduled with title company", short:"Closing scheduled", msg:""},
-    {k:"ctc",        name:"Clear to close",                 msg:"You're clear to close! The title company will reach out to schedule your closing. Congratulations!"}
+    {k:"ctc",        name:"Clear to close",                 msg:"You're clear to close! The title company will reach out to schedule your closing. Congratulations!"},
+    {k:"signed",     name:"Closed / signed", short:"Closed / signed", only:["refi","hecm"], msg:""},
+    {k:"funded",     name:"Funded",          short:"Funded",          only:["refi","hecm"], msg:"Your loan has funded! The cancellation period is over, and the payoff to your previous lender is on its way. Congratulations, and thank you for trusting me with your refinance!"}
   ];
   const msBy=k=>MS.find(m=>m.k===k);
   // The main chain shown in the tracker. Two steps carry sub-steps listed underneath them.
@@ -618,10 +648,29 @@ dialog form{padding:16px;display:grid;gap:12px}
   ].map(n=>({...n,name:n.name||msBy(n.k).name}));
   // Order used for "Next": additional documents are optional, so they are not part of it.
   const PATH=["contract","discSent","discSigned","submitted","condAppr","apprOrdered","apprRecv","ctcSubmitted","ctc"];
+  // Refinances and reverse mortgages (HECM) keep the same 8 steps and keys with their own names, plus payoff, signing and funding steps.
+  const kindOf=c=>c&&c.loan==="hecm"?"hecm":c&&c.purpose==="refi"?"refi":"buy";
+  const isRefi=c=>kindOf(c)!=="buy";
+  const MS_ALT={
+    refi:{contract:{name:"Application received",msg:"We have everything we need to start your refinance, and your loan is officially underway."},
+      ctc:{msg:"You're clear to close! The title company will reach out to schedule your signing. Congratulations!"}},
+    hecm:{contract:{name:"Counseling certificate received",msg:"We have your HECM counseling certificate, and your reverse mortgage is officially underway."},
+      ctc:{msg:"You're clear to close! The title company will reach out to schedule your signing. Congratulations!"},
+      funded:{msg:"Your reverse mortgage has funded! The cancellation period is over, and any payoff to your previous lender is on its way. Congratulations, and thank you for trusting me with your loan!"}}};
+  const msCache={}, mainCache={};
+  const msOf=(c,k)=>{const kd=kindOf(c), ck=kd+"|"+k;if(msCache[ck])return msCache[ck];const m=msBy(k);if(!m)return null;
+    if(kd==="buy")return msCache[ck]=m;
+    const noAgent=t=>t.replace(" or your agent","");
+    return msCache[ck]={...m,msg:noAgent(m.msg),...(m.alts?{alts:m.alts.map(a=>({...a,msg:noAgent(a.msg)}))}:{}),...(MS_ALT[kd][k]||{})};};
+  const msList=c=>MS.filter(m=>!m.only||m.only.includes(kindOf(c))).map(m=>msOf(c,m.k));
+  const mainOf=c=>{const kd=kindOf(c);if(mainCache[kd])return mainCache[kd];if(kd==="buy")return mainCache[kd]=MAIN;
+    const extra={submitted:kd==="hecm"?["caseNo","payoffOrd","payoffRecv"]:["payoffOrd","payoffRecv"],ctc:["signed","funded"]};
+    return mainCache[kd]=MAIN.map(n=>{const subs=[...(n.subs||[]),...(extra[n.k]||[])];return {...n,name:n.group?n.name:msOf(c,n.k).name,...(subs.length?{subs}:{})};});};
+  const pathOf=c=>isRefi(c)?[...PATH,"signed","funded"]:PATH;
   const fmtWhen=v=>v?new Date(v).toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):"";
   // Default email message for a milestone (a few depend on the client's details).
   const purposeFix=(c,m)=>{
-    if(c.purpose==="refi"&&m.k==="contract")return "We have everything we need to start your refinance, and your loan is officially underway.";
+    if(m.k==="signed"){const r=rescInfo(c);return `Congratulations on signing your loan documents! Federal law gives you three business days to change your mind on a refinance${r?`, so your cancellation period ends at midnight on ${fmtDay(r.ends)}. If you don't cancel, your loan funds on ${fmtDay(r.funds)}`:""}, and the payoff goes to your current lender.`;}
     if(m.k==="closingSched")return `Your closing has been scheduled with the title company${c.closingAt?" for "+fmtWhen(c.closingAt):""}. Please bring a valid photo ID, and I'll confirm the final details with you beforehand.`;
     if(m.alts)return m.alts[annVar[c.id+m.k]||0].msg;
     return m.msg;
@@ -752,10 +801,10 @@ dialog form{padding:16px;display:grid;gap:12px}
   const closingOf=c=>c.closingAt?fmt(c.closingAt.slice(0,10)):c.closing?fmt(c.closing):"";
   const nodeKey=n=>n.group?n.doneKey:n.k;
   const nodeDone=(c,n)=>!!(c.ms&&c.ms[nodeKey(n)]);
-  const doneCount=c=>MAIN.filter(n=>nodeDone(c,n)).length;
-  const stageOf=c=>{const i=MAIN.findIndex(n=>!nodeDone(c,n));return i<0?MAIN.length:i;};
-  const current=c=>{let cur=null;MS.forEach(m=>{if(c.ms&&c.ms[m.k])cur=m;});return cur;};
-  const nextStep=c=>{const k=PATH.find(k=>!(c.ms&&c.ms[k]));return k?msBy(k):null;};
+  const doneCount=c=>mainOf(c).filter(n=>nodeDone(c,n)).length;
+  const stageOf=c=>{const i=mainOf(c).findIndex(n=>!nodeDone(c,n));return i<0?mainOf(c).length:i;};
+  const current=c=>{let cur=null;msList(c).forEach(m=>{if(c.ms&&c.ms[m.k])cur=m;});return cur;};
+  const nextStep=c=>{const k=pathOf(c).find(k=>!(c.ms&&c.ms[k]));return k?msOf(c,k):null;};
   const touch=c=>{c.updated=stamp();};
 
   const toastEl=$("toast");let tt;
@@ -843,11 +892,11 @@ dialog form{padding:16px;display:grid;gap:12px}
     const H=[["name","Client"],["loan","Loan"],["stage","Progress"],["next","Next step"],["conds","Open cond."],["proc","Processing"],["closing","Closing"],["cd","CD"],["updated","Last activity"]];
     return `<table class="ctable"><thead><tr>${H.map(([k,l])=>`<th scope="col"><button data-sort="${k}"${sortKey===k?` aria-sort="${sortDir<0?"descending":"ascending"}"`:""}>${l}${sortKey===k?(sortDir<0?" ▼":" ▲"):""}</button></th>`).join("")}</tr></thead><tbody>${list.map(c=>{
       const stg=stageOf(c), cur=current(c), nx=nextStep(c), oc=openConds(c).length;
-      const mini=MAIN.map((nd,i)=>(i?`<i class="${i<=stg&&nodeDone(c,MAIN[i-1])?"on":""}"></i>`:"")+`<b class="${nodeDone(c,nd)?"done":i===stg?"next":""}" title="${esc(nd.name)}"></b>`).join("");
+      const mini=mainOf(c).map((nd,i)=>(i?`<i class="${i<=stg&&nodeDone(c,mainOf(c)[i-1])?"on":""}"></i>`:"")+`<b class="${nodeDone(c,nd)?"done":i===stg?"next":""}" title="${esc(nd.name)}"></b>`).join("");
       return `<tr data-open="${c.id}">
         <td><button class="nmb" data-open="${c.id}">${esc(fullName(c))}${coName(c)?` <span class="co">&amp; ${esc(coName(c))}</span>`:""}</button>${isCTC(c)?` ${fwHTML(false)}<span class="ctcbadge">🎉 Clear to close</span>`:""}${c.address?`<div class="ad">${esc(c.address)}</div>`:""}</td>
-        <td>${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}</td>
-        <td><div class="mini" aria-label="${doneCount(c)} of ${MAIN.length} steps complete">${mini}</div><div class="small">${cur?esc(cur.name):"Not started"}</div></td>
+        <td>${esc(loanName(c))}</td>
+        <td><div class="mini" aria-label="${doneCount(c)} of ${mainOf(c).length} steps complete">${mini}</div><div class="small">${cur?esc(cur.name):"Not started"}</div></td>
         <td class="small">${nx?esc(nx.name):"Done"}</td>
         <td class="num">${oc?`<span class="oc">${oc}</span>`:`<span class="muted">—</span>`}</td>
         <td class="dt">${procOf(c)?fmt(procOf(c)):"—"}</td>
@@ -889,12 +938,12 @@ dialog form{padding:16px;display:grid;gap:12px}
       </div>
       ${shown.length&&viewMode()==="wide"?listTable(shown):shown.length&&viewMode()==="phone"?listPhone(shown):shown.length?`<ul class="rows">${shown.map(c=>{
         const n=doneCount(c), cur=current(c), nx=nextStep(c), stg=stageOf(c), oc=openConds(c).length;
-        const mini=MAIN.map((nd,i)=>(i?`<i class="${i<=stg&&nodeDone(c,MAIN[i-1])?"on":""}"></i>`:"")+`<b class="${nodeDone(c,nd)?"done":i===stg?"next":""}" title="${esc(nd.name)}"></b>`).join("");
+        const mini=mainOf(c).map((nd,i)=>(i?`<i class="${i<=stg&&nodeDone(c,mainOf(c)[i-1])?"on":""}"></i>`:"")+`<b class="${nodeDone(c,nd)?"done":i===stg?"next":""}" title="${esc(nd.name)}"></b>`).join("");
         return `<li><button class="row" data-open="${c.id}">
           <div><div class="nm">${esc(fullName(c))}${coName(c)?` <span class="co">&amp; ${esc(coName(c))}</span>`:""}${isCTC(c)?` ${fwHTML(false)}<span class="ctcbadge">🎉 Clear to close</span>`:""}${(()=>{const ci=cdInfo(c);
               return ci.close&&!c.closedOut&&ci.level!=="ok"&&ci.level!=="wait"?` <span class="cdtag ${ci.level}">${ci.level==="late"?"CD late":ci.level==="urgent"||ci.sent?"CD receipt by "+fmtDay(ci.recvBy):"Send CD by "+fmtDay(ci.sendBy)}</span>`:"";})()}</div>
-            <div class="sub">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.address?" · "+esc(c.address):""}${oc?` · <b style="color:var(--brass)">${oc} condition${oc===1?"":"s"} open</b>`:""}</div></div>
-          <div><div class="mini" aria-label="${n} of ${MAIN.length} steps complete">${mini}</div>
+            <div class="sub">${esc(loanName(c))}${c.address?" · "+esc(c.address):""}${oc?` · <b style="color:var(--brass)">${oc} condition${oc===1?"":"s"} open</b>`:""}</div></div>
+          <div><div class="mini" aria-label="${n} of ${mainOf(c).length} steps complete">${mini}</div>
             <div class="stat"><span><b>${cur?esc(cur.name):"Not started"}</b>${cur?" · "+fmt(c.ms[cur.k]):""}</span>
             <span class="muted">${nx?"Next: "+esc(nx.name):"Done"}</span></div></div>
           <dl class="dates"><div><dt>Processing</dt><dd>${procOf(c)?fmt(procOf(c)):"—"}</dd></div><div><dt>Closing</dt><dd>${closingOf(c)||"—"}</dd></div><div><dt>Last activity</dt><dd>${c.updated?fmt(c.updated.slice(0,10)):"—"}</dd></div></dl>
@@ -910,10 +959,10 @@ dialog form{padding:16px;display:grid;gap:12px}
     editing=c||null;
     const f=$("cform");f.reset();
     $("dlgTitle").textContent=c?"Edit client":"New client";
-    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","tcName","tcPhone","tcEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","lockExp","loan","purpose","who","closing"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
+    if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","tcName","tcPhone","tcEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","lockExp","loan","purpose","who","closing","dob","coDob","refiType","cashOut","curLender","payoff","curRate","curPmt"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
     showCo(!!(c&&(c.coFirst||c.coLast||c.coEmail||c.coPhone)));
     showTc(!!(c&&(c.tcName||c.tcPhone||c.tcEmail)));
-    autoFill={};fillLists();lockForm();
+    autoFill={};fillLists();lockForm();kindForm();
     f.elements.prospect.checked=c?c.status==="prospect":newAsProspect;
     $("dlg").showModal();f.elements.first.focus();
   }
@@ -939,7 +988,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     return "$"+n.toLocaleString("en-US",{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});}
   function fmtRate(v){const n=num(v);return n===null?String(v||"").trim():n+"%";}
   document.addEventListener("blur",e=>{const t=e.target;if(!t.matches)return;
-    if(t.matches("input[data-money]"))t.value=fmtMoney(t.value);else if(t.matches('input[name="rate"]'))t.value=fmtRate(t.value);},true);
+    if(t.matches("input[data-money]"))t.value=fmtMoney(t.value);else if(t.matches('input[name="rate"],input[name="curRate"]'))t.value=fmtRate(t.value);},true);
   // Rate lock: expiration = lock date + days; if that lands on a weekend or federal holiday it moves back to the business day before.
   const workday=d=>d.getDay()!==0&&d.getDay()!==6&&!holidays(d.getFullYear()).has(ymd(d));
   // A date typed from the lender's lock confirmation always wins over the worked-out one.
@@ -958,14 +1007,33 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(!L.locked)return "Not locked";
     if(!L.exp)return "Locked (add the lock date and days)";
     return `Locked, expires ${fmtDay(L.exp)}${L.lender?" (lender)":""}`+(L.left<0?" (expired)":L.left===0?" (today)":` (${L.left} day${L.left===1?"":"s"})`);}
+  // Refinance cancellation (rescission) period: 3 business days after signing, counted like TRID (Saturdays count; Sundays and federal holidays don't).
+  // Funding is the next Monday-to-Friday banking day after it ends. Uses the planned closing date until Closed / signed is checked.
+  function rescInfo(c){const s=parseD(c.ms&&c.ms.signed)||parseD(closeDateOf(c));if(!s)return null;
+    const ends=bizShift(s,3), funds=new Date(ends);do funds.setDate(funds.getDate()+1);while(!workday(funds));
+    return {signed:!!(c.ms&&c.ms.signed),from:s,ends,funds};}
+  function rescLine(c){const r=rescInfo(c);
+    if(!r)return `<div class="resc muted small">Set the closing date to see the cancellation period and funding date.</div>`;
+    return `<div class="resc small">${r.signed?"Signed "+fmtDay(r.from):"If signed "+fmtDay(r.from)}: cancellation period ends midnight <b>${fmtDay(r.ends)}</b> · funds <b>${fmtDay(r.funds)}</b>
+      <div class="muted">Saturdays count; Sundays and federal holidays don't. Confirm these dates with your LOS or compliance.</div></div>`;}
+  // Ages from the dates of birth (reverse mortgages): every HECM borrower must be at least 62.
+  const ageOf=v=>{const d=parseD(v);if(!d)return null;const t=new Date();let a=t.getFullYear()-d.getFullYear();
+    if(t.getMonth()<d.getMonth()||t.getMonth()===d.getMonth()&&t.getDate()<d.getDate())a--;return a;};
+  const agesOf=c=>[[c.first,ageOf(c.dob)],[c.coFirst,ageOf(c.coDob)]].filter(([,a])=>a!==null);
+  const under62=c=>agesOf(c).some(([,a])=>a<62);
+  const agesText=c=>agesOf(c).map(([n,a])=>`${n||"Borrower"} ${a}`).join(", ")+(under62(c)?" · under 62":"");
   // Price, loan, down payment and rate as short lines; the down payment is figured from the other two when left blank.
   function loanNums(c){
-    const p=num(c.price), l=num(c.loanAmt), d=num(c.down)??(p!==null&&l!==null&&p>=l?p-l:null), out=[];
-    if(c.price)out.push(["Purchase price",fmtMoney(c.price)]);
+    const p=num(c.price), l=num(c.loanAmt), d=num(c.down)??(p!==null&&l!==null&&p>=l?p-l:null), out=[], R=isRefi(c), kd=kindOf(c);
+    if(c.price)out.push([R?"Estimated value":"Purchase price",fmtMoney(c.price)]);
     if(c.loanAmt)out.push(["Loan amount",fmtMoney(c.loanAmt)+(p&&l!==null?` (${Math.round(l/p*1000)/10}% LTV)`:"")]);
-    if(d!==null)out.push(["Down payment",fmtMoney(d)+(p?` (${Math.round(d/p*1000)/10}%)`:"")]);
+    if(d!==null)out.push([R?"Equity":"Down payment",fmtMoney(d)+(p?` (${Math.round(d/p*1000)/10}%)`:"")]);
+    if(kd==="refi"&&c.refiType)out.push(["Refi type",c.refiType==="cash"?"Cash-out"+(c.cashOut?" "+fmtMoney(c.cashOut):""):"Rate/term"]);
     if(c.rate)out.push(["Rate",fmtRate(c.rate)]);
-    if(c.apprValue){const st=apprStatus(c);out.push(["Appraised",fmtMoney(c.apprValue)+(st.cls==="ok"?" ✓":" · "+st.text)]);}
+    if(R&&(c.payoff||c.curLender))out.push(["Payoff",[c.payoff&&fmtMoney(c.payoff),c.curLender].filter(Boolean).join(" · ")]);
+    if(R&&(c.curRate||c.curPmt))out.push(["Current loan",[c.curRate&&fmtRate(c.curRate),c.curPmt&&fmtMoney(c.curPmt)+"/mo"].filter(Boolean).join(" · ")]);
+    if(kd==="hecm"&&agesOf(c).length)out.push(["Ages",agesText(c)]);
+    if(c.apprValue){const st=apprStatus(c), v=num(c.apprValue);out.push(["Appraised",fmtMoney(c.apprValue)+(R&&v&&l!==null?` (${Math.round(l/v*1000)/10}% LTV)`:"")+(st.cls==="ok"?" ✓":" · "+st.text)]);}
     if(c.rate||c.rateLocked)out.push(["Lock",lockText(c)]);
     return out;
   }
@@ -1146,7 +1214,28 @@ dialog form{padding:16px;display:grid;gap:12px}
       (L.beforeClose?` <b style="color:var(--bad)">· before the closing date</b>`:"");
   }
   $("cform").addEventListener("input",e=>{if(["rateLocked","lockDate","lockDays","lockExp","closing"].includes(e.target.name))lockForm();});
-  $("cform").addEventListener("change",e=>{if(e.target.name==="rateLocked")lockForm();});
+  $("cform").addEventListener("change",e=>{if(e.target.name==="rateLocked")lockForm();
+    if(e.target.name==="loan"&&e.target.value==="hecm")e.target.form.elements.purpose.value="refi"; // a reverse mortgage here is a refinance
+    if(["loan","purpose","refiType"].includes(e.target.name))kindForm();});
+  $("cform").addEventListener("input",e=>{if(e.target.name==="dob"||e.target.name==="coDob")kindForm();});
+  // Refinance and reverse mortgage fields show only for those loans; the realtor folds away on a refinance.
+  function kindForm(){
+    const f=$("cform"), el=f.elements, kd=kindOf({loan:el.loan.value,purpose:el.purpose.value}), R=kd!=="buy";
+    f.querySelectorAll(".hecmf").forEach(e=>e.hidden=kd!=="hecm");
+    f.querySelectorAll(".refif").forEach(e=>e.hidden=!R);
+    f.querySelectorAll(".rtf").forEach(e=>e.hidden=kd!=="refi"||e.classList.contains("cashf")&&el.refiType.value!=="cash");
+    $("lblPrice").textContent=R?"Estimated value":"Purchase price";
+    $("lblDown").textContent=R?"Equity":"Down payment";
+    el.price.placeholder=R?"$400,000":"$450,000";
+    showRe(!R||["realtor","realtorPhone","realtorEmail","tcName","tcPhone","tcEmail"].some(k=>el[k].value));
+    const ages=agesOf({first:el.first.value,coFirst:el.coFirst.value,dob:el.dob.value,coDob:$("coBox").hidden?"":el.coDob.value}), young=ages.some(([,a])=>a<62);
+    $("ageHint").innerHTML=kd!=="hecm"?"":!ages.length?`<span class="muted">Enter dates of birth to see ages. Every HECM borrower must be at least 62.</span>`:
+      `Age${ages.length>1?"s":""}: <b>${esc(ages.map(([n,a])=>`${n||"Borrower"} ${a}`).join(", "))}</b>`+(young?` <b style="color:var(--bad)">· under 62, check HECM eligibility</b>`:"");
+  }
+  function showRe(on){
+    $("reBox").hidden=!on;$("reToggle").hidden=on;$("reToggle").setAttribute("aria-expanded",on);
+  }
+  $("reToggle").addEventListener("click",()=>{showRe(true);$("cform").elements.realtor.focus();});
 
   // Co-borrower fields stay tucked away until needed.
   function showCo(on){
@@ -1156,7 +1245,7 @@ dialog form{padding:16px;display:grid;gap:12px}
   }
   $("coToggle").addEventListener("click",()=>{
     const f=$("cform"), on=$("coBox").hidden;
-    if(!on)["coFirst","coLast","coEmail","coPhone"].forEach(k=>f.elements[k].value="");
+    if(!on)["coFirst","coLast","coEmail","coPhone","coDob"].forEach(k=>f.elements[k].value="");
     showCo(on);if(on)f.elements.coFirst.focus();
   });
   // The realtor's transaction coordinator also stays tucked away until needed.
@@ -1174,13 +1263,15 @@ dialog form{padding:16px;display:grid;gap:12px}
     if($("dlg").returnValue!=="save")return;
     const f=$("cform"), v=k=>f.elements[k].value.trim();
     if(!v("first"))return;
-    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","tcName","tcPhone","tcEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","lockExp","loan","purpose","who","closing"].map(k=>[k,/phone$/i.test(k)?fmtPhone(v(k)):["price","loanAmt","down"].includes(k)?fmtMoney(v(k)):k==="rate"?fmtRate(v(k)):v(k)]));
+    const data=Object.fromEntries(["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","tcName","tcPhone","tcEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","lockExp","loan","purpose","who","closing","dob","coDob","refiType","cashOut","curLender","payoff","curRate","curPmt"].map(k=>[k,/phone$/i.test(k)?fmtPhone(v(k)):["price","loanAmt","down","cashOut","payoff","curPmt"].includes(k)?fmtMoney(v(k)):k==="rate"||k==="curRate"?fmtRate(v(k)):v(k)]));
     const pros=f.elements.prospect.checked;
-    if(editing){Object.assign(editing,data);
+    const relCond=c=>{if(kindOf(c)!=="hecm"||c.relAdded)return;c.relAdded=true;
+      addCond(c,"b","Nearest relative (someone who doesn't live with you): name, address, phone number, relationship and email address.");};
+    if(editing){Object.assign(editing,data);relCond(editing);
       if(pros)editing.status="prospect";else if(editing.status==="prospect")editing.status="active";
       touch(editing);save();render();say("Client updated.");}
     else{
-      const c={id:uid(),...data,status:pros?"prospect":"active",ms:{},notes:[],created:stamp()};touch(c);
+      const c={id:uid(),...data,status:pros?"prospect":"active",ms:{},notes:[],created:stamp()};relCond(c);touch(c);
       clients.push(c);save();go(c.id);say("Client added.");
     }
   });
@@ -1189,6 +1280,7 @@ dialog form{padding:16px;display:grid;gap:12px}
   let logOpen={}, msOpen={}, closeMode=false, closeAttach=false;
   // Alerts and to-dos shown in the Clear to close banner.
   const CTC_TODO=[["balanced","Final numbers balanced with title"],["wired","Borrower's funds wired and received by title"],["confirmed","Closing time confirmed with realtor and title"]];
+  const CTC_TODO_R=[["balanced","Final numbers and payoff balanced with title"],["wired","Funds due from the borrower (if any) received by title"],["confirmed","Signing time confirmed with the borrower and title"]];
   function ctcAlerts(c){
     const t=new Date(), today=new Date(t.getFullYear(),t.getMonth(),t.getDate());
     const A=[], add=(cls,ic,txt)=>A.push(`<li class="${cls}"><span class="ic">${ic}</span><span>${txt}</span></li>`);
@@ -1212,10 +1304,12 @@ dialog form{padding:16px;display:grid;gap:12px}
       if(!L.locked)add("warn","!","Rate is not locked.");
       else if(L.exp&&(L.left<0||L.beforeClose))add("bad","!",`Rate lock ${L.left<0?"expired":"expires"} ${fmtDay(L.exp)}, before the closing. Extend the lock.`);
       else if(L.exp)add("ok","✓",`Rate locked through ${fmtDay(L.exp)}.`);}
-    if(!c.fundsKnown)add("warn","$","Final funds-to-close figure not in yet.");
+    if(!c.fundsKnown)add("warn","$",isRefi(c)?"Final funds-to-close (or cash back) figure not in yet.":"Final funds-to-close figure not in yet.");
+    if(isRefi(c)&&!c.ms.payoffRecv)add("warn","!","Payoff from the current lender not received yet.");
+    if(kindOf(c)==="hecm"&&under62(c))add("bad","!","A borrower is under 62. Check HECM eligibility.");
     if(!(c.notes||[]).some(n=>/closing email/.test(n.text)))add("warn","✉","Closing email not sent to the borrower yet.");
     const chk=c.ctcChk||{};
-    const todo=CTC_TODO.map(([k,l])=>`<li class="todo${chk[k]?" done":""}"><label><input type="checkbox" data-ctcchk="${k}"${chk[k]?" checked":""}><span>${esc(k==="wired"&&c.fundsKnown&&c.closingFunds?l+" ("+(/^\$/.test(c.closingFunds.trim())?"":"$")+c.closingFunds.trim()+")":l)}</span></label></li>`).join("");
+    const todo=(isRefi(c)?CTC_TODO_R:CTC_TODO).map(([k,l])=>`<li class="todo${chk[k]?" done":""}"><label><input type="checkbox" data-ctcchk="${k}"${chk[k]?" checked":""}><span>${esc(k==="wired"&&c.fundsKnown&&c.closingFunds?l+" ("+(/^\$/.test(c.closingFunds.trim())?"":"$")+c.closingFunds.trim()+")":l)}</span></label></li>`).join("");
     return `<div class="ctcal"><h4>Before closing</h4><ul>${A.join("")}<li class="sep" aria-hidden="true"></li>${todo}</ul></div>`;
   }
   // Once Conditionally approved is checked, steps 1-4 fold away (click to show them).
@@ -1231,7 +1325,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(!c.apprValue)return null;
     const v=num(c.apprValue), p=num(c.price), short=p!==null&&v!==null&&v<p?p-v:0;
     const open=k=>(c.conds||[]).some(x=>x.apr===k&&!x.done);
-    if(open("value"))return {cls:"bad",text:`value low, ${fmtMoney(short||0)} short`};
+    if(open("value"))return {cls:"bad",text:isRefi(c)?`value ${fmtMoney(short||0)} under estimate`:`value low, ${fmtMoney(short||0)} short`};
     if(open("repairs"))return {cls:"warn",text:"subject to repairs"};
     return {cls:"ok",text:short?"low value resolved":c.apprRepairs==="yes"?"repairs done":"all good"};
   }
@@ -1242,15 +1336,16 @@ dialog form{padding:16px;display:grid;gap:12px}
         <label><input type="radio" name="apprRep" value="no"${c.apprRepairs!=="yes"?" checked":""}> No</label>
         <label><input type="radio" name="apprRep" value="yes"${c.apprRepairs==="yes"?" checked":""}> Yes</label></div>
       <label class="field" id="apprRepBox"${c.apprRepairs==="yes"?"":" hidden"}>What repairs? <span class="muted" style="font-weight:400">(optional)</span><input id="apprRepTxt" autocomplete="off" value="${esc(c.apprRepairsText||"")}" placeholder="Handrail on the back steps, peeling paint"></label>
-      ${c.price?`<p class="muted small" style="margin:0">Purchase price: ${esc(fmtMoney(c.price))}</p>`:`<p class="small" style="margin:0;color:var(--bad)">Add the purchase price with Edit so the value can be compared.</p>`}
+      ${c.price?`<p class="muted small" style="margin:0">${isRefi(c)?"Estimated value":"Purchase price"}: ${esc(fmtMoney(c.price))}</p>`:`<p class="small" style="margin:0;color:var(--bad)">Add the ${isRefi(c)?"estimated value":"purchase price"} with Edit so the value can be compared.</p>`}
       <div class="acts"><button class="tbtn primary" type="button" data-act="apprSave">Save appraisal result</button><button class="tbtn" type="button" data-act="apprCancel">Cancel</button>${c.apprValue?`<button class="tbtn danger" type="button" data-act="apprReset">Clear appraisal result</button>`:""}</div></div>`;
     const st=apprStatus(c);if(!st)return "";
     return `<div class="apprsum ${st.cls}">Appraised at <b>${esc(fmtMoney(c.apprValue))}</b> · ${st.cls==="ok"?"✓ ":""}${esc(st.text)} <button type="button" class="linkbtn" data-act="apprEdit">Edit</button><button type="button" class="linkbtn" data-act="apprReset">Reset</button></div>`;
   }
-  function addAprCond(c,kind,text){
+  function addCond(c,who,text,extra){
     c.conds=c.conds||[];numberConds(c);const max=c.conds.reduce((m,x)=>Math.max(m,x.n||0),0);
-    c.conds.push({id:uid(),n:max+1,pos:nextPos(c,"lo"),text,who:"lo",apr:kind,done:false,added:stamp()});
+    c.conds.push({id:uid(),n:max+1,pos:nextPos(c,who),text,who,done:false,added:stamp(),...(extra||{})});
   }
+  const addAprCond=(c,kind,text)=>addCond(c,"lo",text,{apr:kind});
 
   function cdBlock(c){
     const ci=cdInfo(c);
@@ -1331,7 +1426,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       // Left side bar picks what shows in the work area; everything else waits out of sight.
       const view=sideView[c.id]||"overview", ci=cdInfo(c), oc=openConds(c).length, nn=(c.notes||[]).filter(n=>!n.auto&&!isEmail(n)).length;
       const cdTag=!ci.close?"":ci.level==="ok"?"OK":ci.level==="late"?"Late":ci.level==="wait"?"":"Due";
-      const ITEMS=[["overview","Overview",""],["ms","Milestones",`${doneCount(c)}/${MAIN.length}`],["conds","Conditions",oc?String(oc):""],["notes","Notes / Emails",nn?String(nn):""],
+      const ITEMS=[["overview","Overview",""],["ms","Milestones",`${doneCount(c)}/${mainOf(c).length}`],["conds","Conditions",oc?String(oc):""],["notes","Notes / Emails",nn?String(nn):""],
         ["cd","Closing Disclosure",cdTag],["docs","Document request",""],["mail","Send an update",lastUpdate(c)?fmtShort(new Date(lastUpdate(c).t)):""],["proc","Send to processor",lastProc(c)?fmtShort(new Date(lastProc(c).t)):""]];
       const nav=document.createElement("nav");nav.className="sidenav";nav.setAttribute("aria-label","Client sections");
       nav.innerHTML=ITEMS.map(([k,l,b])=>`<button type="button" data-side="${k}"${k===view?' aria-current="true"':""}><span>${l}</span>${b?`<b class="${k==="cd"&&(ci.level==="late"||ci.level==="urgent")?"bad":k==="conds"||(k==="cd"&&cdTag==="Due")?"warn":""}">${b}</b>`:""}</button>`).join("");
@@ -1345,7 +1440,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       const det=document.createElement("details");det.className="phms";if(msOpen[c.id+"ph"])det.open=true;
       det.addEventListener("toggle",()=>{msOpen[c.id+"ph"]=det.open;});
       const cur=current(c);
-      det.innerHTML=`<summary>Milestones <span class="muted small" style="font-weight:400">· ${doneCount(c)} of ${MAIN.length}${cur?" · "+esc(cur.name):""}</span></summary>`;
+      det.innerHTML=`<summary>Milestones <span class="muted small" style="font-weight:400">· ${doneCount(c)} of ${mainOf(c).length}${cur?" · "+esc(cur.name):""}</span></summary>`;
       det.appendChild(S.ms);
       const mb=document.createElement("button");mb.className="tbtn phmail";mb.type="button";mb.textContent=phoneMail?"Hide emails":"✉ Send an update or email the processor";
       mb.addEventListener("click",()=>{phoneMail=!phoneMail;renderClient(c);});
@@ -1380,31 +1475,31 @@ dialog form{padding:16px;display:grid;gap:12px}
     }
     const cell=(label,body)=>`<div class="gc"><div class="gl">${label}</div>${body}</div>`;
     const add=t=>`<div class="gadd">${t}</div>`;
-    const mini=MAIN.map((nd,i)=>(i?`<i class="${i<=stg&&nodeDone(c,MAIN[i-1])?"on":""}"></i>`:"")+`<b class="${nodeDone(c,nd)?"done":i===stg?"next":""}" title="${esc(nd.name)}"></b>`).join("");
+    const mini=mainOf(c).map((nd,i)=>(i?`<i class="${i<=stg&&nodeDone(c,mainOf(c)[i-1])?"on":""}"></i>`:"")+`<b class="${nodeDone(c,nd)?"done":i===stg?"next":""}" title="${esc(nd.name)}"></b>`).join("");
     const cdLine=ci.close?(ci.level==="ok"?`<div class="gok">CD ✓ timing OK</div>`:ci.level==="wait"?`<div>CD: send by ${fmtDay(ci.sendBy)}</div>`
       :`<div class="gwarn">${ci.level==="late"?"CD late":ci.level==="urgent"||ci.sent?"CD receipt by "+fmtDay(ci.recvBy):"Send CD by "+fmtDay(ci.sendBy)}</div>`):"";
     return `<div class="glance">
       ${cell("Borrower",`<b>${esc(fullName(c))}</b>${c.phone?`<div>${tel(c.phone)}</div>`:""}${c.email?`<div>${mail(c.email)}</div>`:""}`+
         (coName(c)?`<div style="margin-top:4px"><b>${esc(coName(c))}</b> <span class="muted small">co-borrower</span></div>${c.coPhone?`<div>${tel(c.coPhone)}</div>`:""}${c.coEmail?`<div>${mail(c.coEmail)}</div>`:""}`:""))}
-      ${cell("Loan",`<b>${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}</b><div>${esc(WHO[c.who]||"")} borrower</div>${c.address?`<div>${esc(c.address)}</div>`:add("No property address")}`+
+      ${cell("Loan",`<b>${esc(loanName(c))}</b><div>${esc(WHO[c.who]||"")} borrower</div>${c.address?`<div>${esc(c.address)}</div>`:add("No property address")}`+
         (c.lender||c.lenderUrl?`<div class="glender">${c.lender?`<span>Lender: <b>${esc(c.lender)}</b></span>`:""}${c.lenderUrl?`<a class="lenderbtn" href="${esc(asHref(c.lenderUrl))}" target="_blank" rel="noopener">LENDER ↗</a>`:""}</div>`:add("Add the lender with Edit")))}
       ${cell("Closing",when?`<b>${esc(when)}</b>${cdLine}`:add("Not scheduled")+cdLine)}
       ${cell("Title company",c.title||c.titlePhone?`<b>${esc(c.title||"")}</b>${c.titlePhone?`<div>${tel(c.titlePhone)}</div>`:""}${c.titleAddr?`<div>${esc(c.titleAddr)}</div>`:""}${c.closer?`<div class="muted">Closer: ${esc(c.closer)}</div>`:""}`:add("Add with Edit"))}
-      ${cell("Realtor",(c.realtor||c.realtorPhone?`<b>${esc(c.realtor||"")}</b>${c.realtorPhone?`<div>${tel(c.realtorPhone)}</div>`:""}${c.realtorEmail?`<div>${mail(c.realtorEmail)}</div>`:""}`:add("Add with Edit"))+
+      ${isRefi(c)&&!c.realtor&&!c.realtorPhone&&!c.tcName?cell("Current lender",c.curLender||c.payoff?`<b>${esc(c.curLender||"")}</b>${c.payoff?`<div>Payoff ${esc(fmtMoney(c.payoff))}</div>`:""}${c.ms.payoffRecv?`<div class="gok">Payoff received</div>`:c.ms.payoffOrd?`<div>Payoff ordered ${esc(fmt(c.ms.payoffOrd))}</div>`:""}`:add("Add with Edit")):cell("Realtor",(c.realtor||c.realtorPhone?`<b>${esc(c.realtor||"")}</b>${c.realtorPhone?`<div>${tel(c.realtorPhone)}</div>`:""}${c.realtorEmail?`<div>${mail(c.realtorEmail)}</div>`:""}`:add("Add with Edit"))+
         (c.tcName||c.tcPhone||c.tcEmail?`<div style="margin-top:4px"><b>${esc(c.tcName||"")}</b> <span class="muted small">TC</span></div>${c.tcPhone?`<div>${tel(c.tcPhone)}</div>`:""}${c.tcEmail?`<div>${mail(c.tcEmail)}</div>`:""}`:""))}
       ${(()=>{const L=lockInfo(c), nums=loanNums(c).filter(([k])=>k!=="Lock");
         const lk=!L.locked?["Not locked","off"]:!L.exp?["Locked · add date","warn"]:L.left<0?["Lock expired "+fmtShort(L.exp),"bad"]:
           [`Lock exp ${fmtShort(L.exp)}${L.lender?" (lender)":""}`,L.beforeClose?"bad":L.left<=5?"warn":"ok"];
         return `<div class="gc"><div class="gl ghead"><span>Loan info</span><button type="button" class="lockpill ${lk[1]}" data-act="editLock" title="${L.locked&&L.exp?esc(lockText(c))+(L.beforeClose?", before the closing date":""):"Set the rate lock"}">${esc(lk[0])}</button></div>`+
-          (nums.length?`<div class="gnums">${nums.map(([k,v])=>`<span>${k==="Purchase price"?"Price":k==="Appraised"?"Value":k.split(" ")[0]}</span><b class="${k==="Appraised"?apprStatus(c).cls:""}">${esc(v)}</b>`).join("")}</div>`:add("Add price, loan amount and rate with Edit"))+
+          (nums.length?`<div class="gnums">${nums.map(([k,v])=>`<span>${k==="Purchase price"?"Price":k==="Estimated value"?"Est. value":k==="Appraised"?"Value":k.split(" ")[0]}</span><b class="${k==="Appraised"?apprStatus(c).cls:k==="Ages"&&under62(c)?"bad":""}">${esc(v)}</b>`).join("")}</div>`:add("Add price, loan amount and rate with Edit"))+
           (L.locked&&L.exp&&L.beforeClose&&L.left>=0?`<div class="gwarn small">Lock ends before the closing date</div>`:"")+
           `<div class="muted small" style="margin-top:4px">${procOf(c)?"Processing "+fmt(procOf(c))+" · ":""}Last activity ${fmt((c.updated||stamp()).slice(0,10))}</div></div>`;})()}
     </div>`;
   }
   function renderClient(c){
     const n=doneCount(c), nx=nextStep(c), cur=current(c), stg=stageOf(c);
-    if(!annKey||!MS.some(m=>m.k===annKey))annKey=cur?cur.k:"contract";
-    const ann=MS.find(m=>m.k===annKey);
+    if(!annKey||!msList(c).some(m=>m.k===annKey))annKey=cur?cur.k:"contract";
+    const ann=msOf(c,annKey);
     const docLink=`checklist.html?${new URLSearchParams({who:c.who||"w2",loan:c.loan||"conv",purpose:c.purpose||"buy",name:greet(c)==="there"?"":greet(c),client:c.id,...(isLink(c.uploadLink)?{ulink:c.uploadLink}:{})})}`;
     let me="";try{me=localStorage.getItem("req-me")||"";}catch(e){}
     $("app").innerHTML=`<div data-sec="head">
@@ -1434,36 +1529,39 @@ dialog form{padding:16px;display:grid;gap:12px}
             :`<div class="ctctitle muted small">Add the title company with <b>Edit</b> to show it here and in the closing email.</div>`}
         </div>
         <label class="field" style="margin-top:12px">Closing notes<textarea id="closingNotes" placeholder="Wire confirmed, both borrowers signing, bring a cashier's check for…">${esc(c.closingNotes||"")}</textarea></label>
-        <details class="donems"${msOpen[c.id]?" open":""} data-msopen="${c.id}"><summary>Completed milestones (${n} of ${MAIN.length})</summary>
+        ${isRefi(c)?`<div class="fundbox"><h4>Signing and funding</h4>
+          <label class="ck"><input type="checkbox" data-ms="signed"${c.ms.signed?" checked":""}> Closed / signed${c.ms.signed?` <span class="muted">${esc(fmt(c.ms.signed))}</span>`:""}</label>${rescLine(c)}
+          <label class="ck"><input type="checkbox" data-ms="funded"${c.ms.funded?" checked":""}> Funded${c.ms.funded?` <span class="muted">${esc(fmt(c.ms.funded))}</span>`:""}</label></div>`:""}
+        <details class="donems"${msOpen[c.id]?" open":""} data-msopen="${c.id}"><summary>Completed milestones (${n} of ${mainOf(c).length})</summary>
         <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline">
-          <h2>Loan milestones</h2><span class="muted small">${n} of ${MAIN.length} steps complete${nx?" · Next: <b style=\"color:var(--brass)\">"+esc(nx.name)+"</b>":""}</span>
+          <h2>Loan milestones</h2><span class="muted small">${n} of ${mainOf(c).length} steps complete${nx?" · Next: <b style=\"color:var(--brass)\">"+esc(nx.name)+"</b>":""}</span>
         </div>
-        <div class="tracker" aria-hidden="true">${MAIN.map((nd,i)=>{
+        <div class="tracker" aria-hidden="true">${mainOf(c).map((nd,i)=>{
           const st=nodeDone(c,nd)?"done":(i===stg?"next":""), d=c.ms[nodeKey(nd)];
           return `<div class="st ${st}"><div class="dot">${st==="done"?"✓":i+1}</div><div class="lbl">${esc(nd.name)}</div><div class="dt">${d?fmt(d):""}</div>`+
-            (nd.subs?`<div class="subs">${nd.subs.map(k=>`<div class="sb${c.ms[k]?" done":""}">${c.ms[k]?"✓":"○"} ${esc(msBy(k).short)}</div>`).join("")}</div>`:"")+`</div>`;}).join("")}</div>
-        <ul class="msl">${MAIN.map((nd,i)=>{
+            (nd.subs?`<div class="subs">${nd.subs.map(k=>`<div class="sb${c.ms[k]?" done":""}">${c.ms[k]?"✓":"○"} ${esc(msOf(c,k).short)}</div>`).join("")}</div>`:"")+`</div>`;}).join("")}</div>
+        <ul class="msl">${mainOf(c).map((nd,i)=>{
           const st=nodeDone(c,nd)?"done":(i===stg?"next":"");
-          const item=(k,sub)=>{const m=msBy(k), d=c.ms[k], isNx=nx&&nx.k===k;
+          const item=(k,sub)=>{const m=msOf(c,k), d=c.ms[k], isNx=nx&&nx.k===k;
             return `<li class="${sub?"sub ":""}${d?"done":isNx?"next":""}"><span class="dot">${d?"✓":sub?"":i+1}</span>
-            <div class="lblwrap"><label><input type="checkbox" data-ms="${k}"${d?" checked":""}>${esc(sub?m.short:m.name)}${isNx?'<span class="nexttag">NEXT</span>':""}</label>${k==="apprRecv"?apprBlock(c):""}${k==="closingSched"?`<label class="closeat">Closing date &amp; time <input type="datetime-local" data-closeat value="${esc(c.closingAt||"")}"></label>`:""}</div>
+            <div class="lblwrap"><label><input type="checkbox" data-ms="${k}"${d?" checked":""}>${esc(sub?m.short:m.name)}${isNx?'<span class="nexttag">NEXT</span>':""}</label>${k==="apprRecv"?apprBlock(c):""}${k==="signed"?rescLine(c):""}${k==="closingSched"?`<label class="closeat">Closing date &amp; time <input type="datetime-local" data-closeat value="${esc(c.closingAt||"")}"></label>`:""}</div>
             ${d?`<input type="date" data-msdate="${k}" value="${d}" aria-label="Date for ${esc(m.name)}">`:`<span class="muted small">—</span>`}</li>`;};
           const head=nd.group?`<li class="${st}"><span class="dot">${st==="done"?"✓":i+1}</span><span class="grp">${esc(nd.name)} <span class="muted small">(check the steps below)</span></span><span></span></li>`:item(nd.k,false);
           return head+(nd.subs||[]).map(k=>item(k,true)).join("");}).join("")}</ul>
         </details>
       </div>`:`      <div class="panel" data-sec="ms" style="margin-top:16px">
         <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline">
-          <h2>Loan milestones</h2><span class="muted small">${n} of ${MAIN.length} steps complete${nx?" · Next: <b style=\"color:var(--brass)\">"+esc(nx.name)+"</b>":""}</span>
+          <h2>Loan milestones</h2><span class="muted small">${n} of ${mainOf(c).length} steps complete${nx?" · Next: <b style=\"color:var(--brass)\">"+esc(nx.name)+"</b>":""}</span>
         </div>
-        <div class="tracker" aria-hidden="true">${MAIN.map((nd,i)=>{
+        <div class="tracker" aria-hidden="true">${mainOf(c).map((nd,i)=>{
           const st=nodeDone(c,nd)?"done":(i===stg?"next":""), d=c.ms[nodeKey(nd)];
           return `<div class="st ${st}"><div class="dot">${st==="done"?"✓":i+1}</div><div class="lbl">${esc(nd.name)}</div><div class="dt">${d?fmt(d):""}</div>`+
-            (nd.subs?`<div class="subs">${nd.subs.map(k=>`<div class="sb${c.ms[k]?" done":""}">${c.ms[k]?"✓":"○"} ${esc(msBy(k).short)}</div>`).join("")}</div>`:"")+`</div>`;}).join("")}</div>
-        <ul class="msl">${hideEarly(c,MAIN.map((nd,i)=>{
+            (nd.subs?`<div class="subs">${nd.subs.map(k=>`<div class="sb${c.ms[k]?" done":""}">${c.ms[k]?"✓":"○"} ${esc(msOf(c,k).short)}</div>`).join("")}</div>`:"")+`</div>`;}).join("")}</div>
+        <ul class="msl">${hideEarly(c,mainOf(c).map((nd,i)=>{
           const st=nodeDone(c,nd)?"done":(i===stg?"next":"");
-          const item=(k,sub)=>{const m=msBy(k), d=c.ms[k], isNx=nx&&nx.k===k;
+          const item=(k,sub)=>{const m=msOf(c,k), d=c.ms[k], isNx=nx&&nx.k===k;
             return `<li class="${sub?"sub ":""}${d?"done":isNx?"next":""}"><span class="dot">${d?"✓":sub?"":i+1}</span>
-            <div class="lblwrap"><label><input type="checkbox" data-ms="${k}"${d?" checked":""}>${esc(sub?m.short:m.name)}${isNx?'<span class="nexttag">NEXT</span>':""}</label>${k==="apprRecv"?apprBlock(c):""}${k==="closingSched"?`<label class="closeat">Closing date &amp; time <input type="datetime-local" data-closeat value="${esc(c.closingAt||"")}"></label>`:""}</div>
+            <div class="lblwrap"><label><input type="checkbox" data-ms="${k}"${d?" checked":""}>${esc(sub?m.short:m.name)}${isNx?'<span class="nexttag">NEXT</span>':""}</label>${k==="apprRecv"?apprBlock(c):""}${k==="signed"?rescLine(c):""}${k==="closingSched"?`<label class="closeat">Closing date &amp; time <input type="datetime-local" data-closeat value="${esc(c.closingAt||"")}"></label>`:""}</div>
             ${d?`<input type="date" data-msdate="${k}" value="${d}" aria-label="Date for ${esc(m.name)}">`:`<span class="muted small">—</span>`}</li>`;};
           const head=nd.group?`<li class="${st}"><span class="dot">${st==="done"?"✓":i+1}</span><span class="grp">${esc(nd.name)} <span class="muted small">(check the steps below)</span></span><span></span></li>`:item(nd.k,false);
           return head+(nd.subs||[]).map(k=>item(k,true)).join("");}))}</ul>
@@ -1479,12 +1577,12 @@ dialog form{padding:16px;display:grid;gap:12px}
             ${(()=>{const L=lastUpdate(c);return L?`<p class="lastsent">Last update sent <b>${fmtStamp(L.t)}</b><br><span class="muted">Subject:</span> ${esc(L.subj)}</p>`:`<p class="lastsent muted">No updates sent yet.</p>`;})()}
             <p class="muted small" style="margin:4px 0 12px">Pick the milestone, adjust the message if you like, then copy the email into Outlook.</p>
             <div class="fgrid">
-              <label class="field">Milestone to announce<select id="annSel">${MS.map(m=>`<option value="${m.k}"${m.k===annKey?" selected":""}>${esc(m.name)}${c.ms[m.k]?"":" (not checked yet)"}</option>`).join("")}</select></label>
+              <label class="field">Milestone to announce<select id="annSel">${msList(c).map(m=>`<option value="${m.k}"${m.k===annKey?" selected":""}>${esc(m.name)}${c.ms[m.k]?"":" (not checked yet)"}</option>`).join("")}</select></label>
               <label class="field">Sign off as<input id="me" value="${esc(me)}" placeholder="Your name and phone" autocomplete="off"></label>
             </div>
             <div class="closebtnrow"><button class="tbtn gold" data-act="closingMail" type="button">🎉 Send customer closing email</button>${closeMode?`<button class="tbtn" data-act="closingOff" type="button">Back to milestone email</button>`:""}</div>
             ${closeMode?`<div class="closeopts">
-              <label class="ck"><input type="checkbox" id="fundsKnown"${c.fundsKnown?" checked":""}> Funds needed at closing are known</label>
+              <label class="ck"><input type="checkbox" id="fundsKnown"${c.fundsKnown?" checked":""}> Funds needed at closing${isRefi(c)?" (or cash back)":""} are known</label>
               ${c.fundsKnown?`<label class="field" style="margin:4px 0 0 24px;max-width:220px">Amount<input id="closingFunds" value="${esc(c.closingFunds||"")}" placeholder="$45,320.18" inputmode="decimal" autocomplete="off"></label>`:""}
               <label class="ck"><input type="checkbox" id="closeAttach"${closeAttach?" checked":""}> I'm attaching the wiring instructions</label>
               <label class="ck"><input type="checkbox" id="cashierOK"${c.cashierOK?" checked":""}> The title company will allow a cashier's check for funds to close</label>
@@ -1674,24 +1772,26 @@ dialog form{padding:16px;display:grid;gap:12px}
       `<div class="v">${fmtShort(L.exp)}</div><div class="s">${L.left<0?"<b>Expired</b>":`Locked · <b>${L.left} day${L.left===1?"":"s"} left</b>`}${L.lender?" (lender)":""}</div>`;
     const p=num(c.price), la=num(c.loanAmt), dn=num(c.down)??(p!==null&&la!==null&&p>=la?p-la:null);
     const nb=(l,v,sub)=>`<div><div class="l">${l}</div><div class="v">${v||"—"}</div><div class="s">${sub||"&nbsp;"}</div></div>`;
-    const nums=nb("Price",c.price&&E(fmtMoney(c.price)))+nb("Loan amount",c.loanAmt&&E(fmtMoney(c.loanAmt)),p&&la!==null?Math.round(la/p*1000)/10+"% LTV":"")+
-      nb("Down payment",dn!==null&&E(fmtMoney(dn)),p&&dn!==null?Math.round(dn/p*1000)/10+"%":"")+nb("Rate",c.rate&&E(fmtRate(c.rate)),L.locked?"Locked":"Not locked")+
-      nb("Appraised",c.apprValue&&E(fmtMoney(c.apprValue))+(ap&&ap.cls==="ok"?" ✓":""),ap?(ap.cls==="ok"?(c.ms.apprRecv?"Received "+dShort(c.ms.apprRecv):"&nbsp;"):E(ap.text)):"");
-    const stg=stageOf(c), trk=MAIN.map((nd,i)=>{const d=c.ms[nodeKey(nd)], st=nodeDone(c,nd)?"done":i===stg?"next":"";
-      const sub=!d&&nd.subs?nd.subs.filter(k=>c.ms[k]).map(k=>msBy(k).short.toLowerCase()+" "+dShort(c.ms[k])).join(", "):"";
+    const R=isRefi(c), av=num(c.apprValue), rs=R?rescInfo(c):null;
+    const nums=nb(R?"Est. value":"Price",c.price&&E(fmtMoney(c.price)))+nb("Loan amount",c.loanAmt&&E(fmtMoney(c.loanAmt)),p&&la!==null?Math.round(la/p*1000)/10+"% LTV":"")+
+      nb(R?"Equity":"Down payment",dn!==null&&E(fmtMoney(dn)),p&&dn!==null?Math.round(dn/p*1000)/10+"%":"")+nb("Rate",c.rate&&E(fmtRate(c.rate)),L.locked?"Locked":"Not locked")+
+      nb("Appraised",c.apprValue&&E(fmtMoney(c.apprValue))+(ap&&ap.cls==="ok"?" ✓":""),ap?(ap.cls==="ok"?(R&&av&&la!==null?Math.round(la/av*1000)/10+"% LTV":c.ms.apprRecv?"Received "+dShort(c.ms.apprRecv):"&nbsp;"):E(ap.text)):"");
+    const stg=stageOf(c), trk=mainOf(c).map((nd,i)=>{const d=c.ms[nodeKey(nd)], st=nodeDone(c,nd)?"done":i===stg?"next":"";
+      const sub=!d&&nd.subs?nd.subs.filter(k=>c.ms[k]).map(k=>msOf(c,k).short.toLowerCase()+" "+dShort(c.ms[k])).join(", "):"";
       return `<div class="st ${st}"><div class="dot">${st==="done"?"✓":i+1}</div><b>${E(nd.name)}</b><i>${d?dShort(d):sub?E(sub):"&nbsp;"}</i></div>`;}).join("");
-    const done=MAIN.filter(nd=>nodeDone(c,nd)).length, pct=Math.max(0,Math.min(done,MAIN.length)-1)/(MAIN.length-1)*87.5;
+    const done=mainOf(c).filter(nd=>nodeDone(c,nd)).length, pct=Math.max(0,Math.min(done,mainOf(c).length)-1)/(mainOf(c).length-1)*87.5;
     const blank="______________________";
     const card=(role,name,lines,extra)=>`<div class="card"><div class="r">${role}</div><b>${name?E(name):blank}</b>${lines.filter(Boolean).length?"<br>"+lines.filter(Boolean).map(E).join(" · "):""}${extra||""}</div>`;
     const cards=card("Borrower",fullName(c),[c.phone,c.email])+(coName(c)?card("Co-borrower",coName(c),[c.coPhone,c.coEmail]):"")+
-      card("Realtor",c.realtor,[c.realtorPhone,c.realtorEmail],c.tcName||c.tcPhone?`<div class="x"><span class="r">TC</span> ${E([c.tcName,c.tcPhone].filter(Boolean).join(" · "))}</div>`:"")+
+      (R&&!c.realtor&&!c.tcName?card("Current lender",c.curLender,[c.payoff&&"Payoff "+fmtMoney(c.payoff),c.curRate&&fmtRate(c.curRate),c.curPmt&&fmtMoney(c.curPmt)+"/mo"]):card("Realtor",c.realtor,[c.realtorPhone,c.realtorEmail],c.tcName||c.tcPhone?`<div class="x"><span class="r">TC</span> ${E([c.tcName,c.tcPhone].filter(Boolean).join(" · "))}</div>`:""))+
       card("Title company",c.title,[c.titlePhone,c.titleAddr],`<div class="x"><span class="r">Closer</span> ${c.closer?E(c.closer):"______________"}</div>`)+
       card("Lender",c.lender,[c.lenderUrl])+card("Processor",c.procName,[c.procEmail]);
     const dl=(l,v)=>`<tr${v?"":' class="blank"'}><td>${l}</td><td>${v||"&nbsp;"}</td></tr>`, two=(a,b)=>a||b?`${a||"____"} / ${b||"____"}`:"";
-    const dates=dl("Contract received",dShort(c.ms.contract))+dl("Disclosures sent / signed",two(dShort(c.ms.discSent),dShort(c.ms.discSigned)))+
+    const dates=dl(E(msOf(c,"contract").name),dShort(c.ms.contract))+(R?dl("Payoff ordered / received",two(dShort(c.ms.payoffOrd),dShort(c.ms.payoffRecv))):"")+dl("Disclosures sent / signed",two(dShort(c.ms.discSent),dShort(c.ms.discSigned)))+
       dl("Appraisal ordered / received",two(dShort(c.ms.apprOrdered),dShort(c.ms.apprRecv)))+dl("Rate locked / expires",L.locked?two(dShort(c.lockDate),L.exp?fmtShort(L.exp):""):"")+
       dl("CD sent",dShort(c.cdSent))+dl(`CD received${ci.close?` (by ${fmtShort(ci.recvBy)})`:""}`,dShort(c.cdRecv))+dl("Last update to borrower",lu?fmtShort(new Date(lu.t)):"")+
-      dl("Closing",c.closingAt?E(fmtWhen(c.closingAt)):c.closing?dShort(c.closing)+" (target)":"");
+      dl("Closing",c.closingAt?E(fmtWhen(c.closingAt)):c.closing?dShort(c.closing)+" (target)":"")+
+      (R?dl(`Cancel period ends / funds${rs&&!rs.signed?" (if signed on time)":""}`,rs?two(fmtShort(rs.ends),fmtShort(rs.funds)):""):"");
     const open=openConds(c), cleared=(c.conds||[]).filter(x=>x.done).length;
     const sec=g=>{const l=openConds(c,g[0]), cl=(c.conds||[]).filter(x=>x.done&&whoOf(x)===g[0]).length;
       return `<tr class="sec"><td colspan="5">${g[2]}${cl?` <span class="cl">· ${cl} cleared</span>`:""}</td></tr>`+
@@ -1703,12 +1803,12 @@ dialog form{padding:16px;display:grid;gap:12px}
       Array.from({length:Math.max(3,5-notes.length)},()=>"<tr><td></td><td></td><td></td></tr>").join("");
     const ps=$("printSheet");
     ps.innerHTML=`<div class="cov">
-      <div class="tab"><b>${E(last)}</b><span>${E((LOANS[c.loan]||"")+" "+(PURP[c.purpose]||""))}${close?" · Closing "+fmtShort(close):""} · Pipeline Desk</span></div>
+      <div class="tab"><b>${E(last)}</b><span>${E(loanName(c))}${close?" · Closing "+fmtShort(close):""} · Pipeline Desk</span></div>
       <div class="head"><div class="who"><h1>${names}</h1><div class="sub">${c.address?E(c.address):"Property address: "+blank}</div>
-          <div class="tags"><span class="pill">${E(LOANS[c.loan]||"")}</span><span class="pill">${E(PURP[c.purpose]||"")}</span><span class="pill">${E(WHO[c.who]||"")}</span>${c.lender?` <span class="sub">Lender: ${E(c.lender)}</span>`:""}</div></div>
+          <div class="tags"><span class="pill">${E(LOANS[c.loan]||"")}</span><span class="pill">${E(PURP[c.purpose]||"")}</span><span class="pill">${E(WHO[c.who]||"")}</span>${kindOf(c)==="hecm"&&agesOf(c).length?`<span class="pill">Ages ${E(agesOf(c).map(([,a])=>a).join(" / "))}</span>`:""}${c.lender?` <span class="sub">Lender: ${E(c.lender)}</span>`:""}</div></div>
         <div class="big"><div class="l">Closing</div>${closeBox}</div><div class="big"><div class="l">Rate lock</div>${lockBox}</div></div>
       <div class="nums">${nums}</div>
-      <div><h2>Progress · ${done} of ${MAIN.length}</h2><div class="trk"><div class="bar" style="width:${pct}%"></div>${trk}</div></div>
+      <div><h2>Progress · ${done} of ${mainOf(c).length}</h2><div class="trk"><div class="bar" style="width:${pct}%"></div>${trk}</div></div>
       <div class="mid"><div><h2>Who to call</h2><div class="call">${cards}</div></div><div><h2>Key dates</h2><table class="dates">${dates}</table></div></div>
       <div><h2>Conditions · ${open.length} open${cleared?` · ${cleared} cleared`:""}</h2><table class="ct"><thead><tr><th class="n">#</th><th>Condition</th><th class="q">Requested</th><th class="bx">Rec'd</th><th class="bx">Cleared</th></tr></thead>
         <tbody>${CGROUPS.map(sec).join("")}</tbody></table></div>
@@ -1744,6 +1844,8 @@ dialog form{padding:16px;display:grid;gap:12px}
       if(L.locked&&L.exp&&(L.left<0||L.beforeClose||L.left<=5))A.push(`rate lock ${L.left<0?"expired":"expires"} ${fmtDay(L.exp)}${L.beforeClose&&L.left>=0?" (before closing)":""}`);
       if(!L.locked&&close&&days(close)<=21)A.push(`rate not locked, closing ${fmtDay(close)}`);
       if(ap&&ap.cls!=="ok")A.push(`appraisal ${esc(ap.text)}`);
+      if(isRefi(c)&&c.ms.signed&&!c.ms.funded){const r=rescInfo(c);A.push(`signed ${fmtShort(r.from)}, cancel period ends ${fmtDay(r.ends)}, funds ${fmtDay(r.funds)}`);}
+      if(kindOf(c)==="hecm"&&under62(c))A.push("borrower under 62");
       if(!lu||days(new Date(lu.t))<-7)A.push(`no update sent ${lu?"since "+fmtShort(new Date(lu.t)):"yet"}`);
       if(A.length)att.push(`<b>${n}</b>: ${A.join(" · ")}`);});
     const lockTxt=c=>{const L=lockInfo(c);return !L.locked?"Not locked":!L.exp?"Locked":`Lock exp ${fmtShort(L.exp)}${L.left<0?" (expired)":""}`;};
@@ -1752,13 +1854,13 @@ dialog form{padding:16px;display:grid;gap:12px}
     const blockA=c=>{const cur=current(c), nx=nextStep(c), lu=lastUpdate(c), ap=apprStatus(c), o=openConds(c);
       const close=c.closingAt?fmtWhen(c.closingAt):c.closing?fmt(c.closing)+" (target)":"No closing date";
       return `<div class="r-cust"><div class="r-h"><div><b class="r-nm">${nm(c)}</b>${c.phone?` <span class="r-m">${esc(c.phone)}</span>`:""}</div><div class="r-cl"><b>${esc(close)}</b></div></div>
-        <div class="r-line">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.lender?" · "+esc(c.lender):""}${c.loanAmt?" · "+esc(fmtMoney(c.loanAmt)):""}
+        <div class="r-line">${esc(loanName(c))}${c.lender?" · "+esc(c.lender):""}${c.loanAmt?" · "+esc(fmtMoney(c.loanAmt)):""}
           · <b>${cur?esc(cur.name):"Not started"}</b>${nx?` → next: ${esc(nx.name)}`:""}</div>
-        <div class="r-line r-m">${[cdTxt(c),lockTxt(c),ap?"Appraisal "+fmtMoney(c.apprValue)+(ap.cls==="ok"?" ✓":" · "+ap.text):"",lu?"Last update "+fmtShort(new Date(lu.t)):"No update sent yet"].filter(Boolean).map(esc).join(" · ")}</div>
+        <div class="r-line r-m">${[cdTxt(c),lockTxt(c),isRefi(c)&&c.price?"Est. value "+fmtMoney(c.price):"",isRefi(c)&&c.ms.ctc&&!c.ms.funded&&rescInfo(c)?`Funds ${fmtShort(rescInfo(c).funds)}`:"",ap?"Appraisal "+fmtMoney(c.apprValue)+(ap.cls==="ok"?" ✓":" · "+ap.text):"",lu?"Last update "+fmtShort(new Date(lu.t)):"No update sent yet"].filter(Boolean).map(esc).join(" · ")}</div>
         ${o.length?`<div class="r-cond"><b>Open conditions (${o.length})</b><ul class="${o.length>5?"two":""}">${o.map(x=>`<li>☐ ${posOf(c,x)}. ${esc(x.text)}${x.req?` <span class="r-m">(req ${fmtShort(parseD(x.req))})</span>`:""}${whoOf(x)!=="b"?` <span class="r-m">(${whoOf(x)==="lo"?"LO":"Realtor"})</span>`:""}</li>`).join("")}</ul></div>`:`<div class="r-line r-m">No open conditions</div>`}
         <div class="r-notes"></div></div>`;};
     const blockP=c=>`<div class="r-cust r-pro"><div class="r-h"><div><b class="r-nm">${nm(c)}</b> <span class="r-m">${esc([c.phone,c.email].filter(Boolean).join(" · "))}</span></div>
-        <div class="r-m">${esc(LOANS[c.loan]||"")} ${esc(PURP[c.purpose]||"")}${c.price?" · "+esc(fmtMoney(c.price)):""} · last activity ${c.updated?fmtShort(new Date(c.updated)):"—"}</div></div><div class="r-notes r-n1"></div></div>`;
+        <div class="r-m">${esc(loanName(c))}${c.price?" · "+esc(fmtMoney(c.price)):""} · last activity ${c.updated?fmtShort(new Date(c.updated)):"—"}</div></div><div class="r-notes r-n1"></div></div>`;
     const ps=$("printSheet");
     ps.innerHTML=`<div class="rpt">
       <div class="ph"><div><h1>Daily pipeline report</h1><div>${act.length} active loan${act.length===1?"":"s"} · ${pros.length} prospect${pros.length===1?"":"s"}</div></div>
@@ -1783,14 +1885,17 @@ dialog form{padding:16px;display:grid;gap:12px}
     const head=t=>`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="border-bottom:2px solid ${BLUE};padding:0 0 3px 0;${F}">${fc(BLUE,"3","12","<b>"+esc(t)+"</b>")}</td></tr></table>`+sp(6);
     const ph=t=>`[${t}]`;
     const me=($("me")?.value||"").trim(), intro=($("annMsg")?.value??CLOSE_INTRO).trim();
+    const R=isRefi(c), rs=R?rescInfo(c):null, fundsHead=R?"Funds needed at closing (or cash back)":"Funds needed at closing";
+    const bye=R?"It's been a pleasure working with you, and congratulations on your new loan!":"It's been a pleasure working with you, and I can't wait to see you get your keys!";
     const when=c.closingAt?fmtLong(c.closingAt):(c.closing?parseD(c.closing).toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"}):ph("closing date and time"));
     const titleName=c.title||ph("title company"), titlePhone=c.titlePhone||ph("title company phone");
     const where=c.closeLoc==="other"?(c.closeLocOther||ph("closing location")):[c.title,c.titleAddr].filter(Boolean).join(", ")||ph("title company and address");
     const funds=c.fundsKnown?(c.closingFunds?(/^\$/.test(c.closingFunds.trim())?c.closingFunds.trim():"$"+c.closingFunds.trim()):ph("amount")):"";
     const rows=[["Date &amp; time",esc(when)],["Where",esc(where)],["Title company",esc(titleName)+" · "+esc(titlePhone)],
-      ...(c.closer?[["Closing agent",esc(c.closer)]]:[]),...(c.realtor?[["Your realtor",esc([c.realtor,c.realtorPhone].filter(Boolean).join(" · "))]]:[])];
+      ...(c.closer?[["Closing agent",esc(c.closer)]]:[]),...(c.realtor?[["Your realtor",esc([c.realtor,c.realtorPhone].filter(Boolean).join(" · "))]]:[]),
+      ...(R&&rs?[["Cancellation period",esc(`Ends at midnight ${fmtDay(rs.ends)}. Your loan funds ${fmtDay(rs.funds)}.`)]]:[])];
     const detail=`<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">${rows.map(([k,v])=>`<tr><td valign="top" style="padding:0 14px 5px 0;${F};white-space:nowrap"><b>${k}</b></td><td valign="top" style="padding:0 0 5px 0;${F}">${v}</td></tr>`).join("")}</table>`;
-    const dueTxt=c.cashierOK?"This amount is due by wire transfer or cashier's check (see below) before closing.":"This amount is due by wire transfer before closing.";
+    const dueTxt=R?"If this amount is due from you, it's due by wire transfer"+(c.cashierOK?" or cashier's check (see below)":"")+" before closing. If it's cash back to you, it's sent after the cancellation period ends.":c.cashierOK?"This amount is due by wire transfer or cashier's check (see below) before closing.":"This amount is due by wire transfer before closing.";
     const fundsHTML=c.fundsKnown?`<p style="margin:0">${fc(GREEN,"4","15","<b>"+esc(funds)+"</b>")}</p>`+sp(4)+`<p style="margin:0">${dueTxt}</p>`
       :`<p style="margin:0">We're working with our closer and the title company's closer to get you the final number you'll need for closing. In the meantime, here's the information you'll need once we have it for you.</p>`;
     const instrT=closeAttach
@@ -1807,23 +1912,23 @@ dialog form{padding:16px;display:grid;gap:12px}
       fc(GREEN,"2","9.5","<b>CLEAR TO CLOSE</b>")+`<br>`+fc(BLUE,"4","15","<b>Congratulations, you're clear to close! &#127881;</b>")+`</td></tr></table>`+sp(12)+
       `<p style="margin:0">${esc(intro).replace(/\n/g,"<br>")}</p>`+sp(14)+
       base.condsHTML+
-      head("Your closing")+detail+sp(12)+head("Funds needed at closing")+fundsHTML+sp(12)+
+      head("Your closing")+detail+sp(12)+head(fundsHead)+fundsHTML+sp(12)+
       head("Wiring instructions")+`<p style="margin:0">${instr}</p>`+sp(10)+
       (c.cashierOK?`<p style="margin:0">${esc(cashT)}</p>`+sp(10):"")+fraud+sp(14)+
       head("What to bring")+bullets+sp(10)+base.upHTML+
       (includeAll?base.tracker+sp(12):"")+
-      `<p style="margin:0">It's been a pleasure working with you, and I can't wait to see you get your keys!</p>`+sp(10)+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
+      `<p style="margin:0">${esc(bye)}</p>`+sp(10)+`<p style="margin:0">Thank you,<br>${esc(me||"[Your name]")}</p></div>`;
     const T=[`Hi ${greet(c)},`,"","Congratulations, you're clear to close!","",intro,"",...base.condsT,"YOUR CLOSING",
-      ...rows.map(([k,v])=>`${k.replace("&amp;","&")}: ${v.replace(/&amp;/g,"&").replace(/&#39;|&quot;/g,"")}`),"","FUNDS NEEDED AT CLOSING",
+      ...rows.map(([k,v])=>`${k.replace("&amp;","&")}: ${v.replace(/&amp;/g,"&").replace(/&#39;|&quot;/g,"")}`),"",fundsHead.toUpperCase(),
       c.fundsKnown?`${funds}. ${dueTxt}`:"We're working with our closer and the title company's closer to get you the final number you'll need for closing. In the meantime, here's the information you'll need once we have it for you.",
       "","WIRING INSTRUCTIONS",instrT,"",...(c.cashierOK?[cashT,""]:[]),
       `PROTECT YOURSELF FROM WIRE FRAUD: Wiring instructions will never change by email. Before sending any money, call ${titleName} at ${titlePhone}, the number in this email, not one from a new email or text, to confirm the instructions. If anything looks different or urgent, stop and call me first.`,"",
-      "WHAT TO BRING",...bring.map(b=>"• "+b),"",...base.upT,"It's been a pleasure working with you, and I can't wait to see you get your keys!","","Thank you,",me||"[Your name]"];
+      "WHAT TO BRING",...bring.map(b=>"• "+b),"",...base.upT,bye,"","Thank you,",me||"[Your name]"];
     return {subject:"You're clear to close! Your closing details",html:onWhite(html),text:T.join("\n"),ann:{name:"Clear to close (closing email)"},tracker:base.tracker,n:base.n,T7:base.T7,nx:base.nx};
   }
   function buildMailStd(c){
-    const ann=MS.find(m=>m.k===annKey), msg=($("annMsg")?.value??purposeFix(c,ann)).trim(), me=($("me")?.value||"").trim();
-    const n=doneCount(c), nx=nextStep(c), stage=stageOf(c), T7=MAIN.length;
+    const ann=msOf(c,annKey), msg=($("annMsg")?.value??purposeFix(c,ann)).trim(), me=($("me")?.value||"").trim();
+    const n=doneCount(c), nx=nextStep(c), stage=stageOf(c), T7=mainOf(c).length;
     const oc=openConds(c,"b"), condsOn=includeConds&&oc.length>0;
     const upHref=asHref(uploadLink(c)), withUp=upOn();
     const SITE0=location.protocol.startsWith("http")&&location.hostname.endsWith("github.io")?location.href:"https://jfb315-dotcom.github.io/";
@@ -1843,23 +1948,23 @@ dialog form{padding:16px;display:grid;gap:12px}
     // Filled square with a check for done, gold with the number for next, outlined for later steps.
     const step=(nd,i)=>{
       const st=nodeDone(c,nd)?"done":i===stage?"next":"", bg=st==="done"?GREEN:st==="next"?GOLD:"#FFFFFF", col=st?"#FFFFFF":GRAY;
-      const d=c.ms[nodeKey(nd)], subs=(nd.subs||[]).filter(k=>c.ms[k]).map(k=>msBy(k).short);
+      const d=c.ms[nodeKey(nd)], subs=(nd.subs||[]).filter(k=>c.ms[k]).map(k=>msOf(c,k).short);
       const box=`<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td width="26" height="26" align="center" valign="middle" bgcolor="${bg}" style="width:26px;height:26px;background:${bg};border:2px solid ${st?bg:"#C5CCD6"}">${fc(col,"2","10","<b>"+(st==="done"?"&#10003;":i+1)+"</b>")}</td></tr></table>`;
       return `<td width="22%" align="center" valign="top" style="width:22%;padding:0 2px;font-family:Calibri,Arial,Helvetica,sans-serif;font-size:8.5pt;line-height:1.25">${box}`+
         `<font face="Calibri, Arial, sans-serif"${st?"":` color="${GRAY}"`} style="font-size:8.5pt;line-height:1.25${st?"":";color:"+GRAY}">${st?"<b>":""}${esc(nd.name)}${st?"</b>":""}`+
         `${d?"<br>"+fmt(d):subs.length?"<br>&#10003; "+esc(subs.join(", ")):""}</font></td>`;};
-    const dash=i=>`<td width="4%" align="center" valign="top" style="width:4%;padding:6px 0 0 0;font-family:Calibri,Arial,sans-serif;font-size:10pt;line-height:14px;mso-line-height-rule:exactly">${fc(nodeDone(c,MAIN[i-1])?"#3E8E5A":GRAY,"2","10","<b>&#8212;</b>")}</td>`;
-    const trow=(from,pad)=>`<tr>${MAIN.slice(from,from+4).map((nd,j)=>(j?dash(from+j):"").replace("padding:6px","padding:"+(6+pad)+"px").replace("<td width=\"22%","<td width=\"22%")+step(nd,from+j).replace("padding:0 2px","padding:"+pad+"px 2px 0 2px")).join("")}</tr>`;
+    const dash=i=>`<td width="4%" align="center" valign="top" style="width:4%;padding:6px 0 0 0;font-family:Calibri,Arial,sans-serif;font-size:10pt;line-height:14px;mso-line-height-rule:exactly">${fc(nodeDone(c,mainOf(c)[i-1])?"#3E8E5A":GRAY,"2","10","<b>&#8212;</b>")}</td>`;
+    const trow=(from,pad)=>`<tr>${mainOf(c).slice(from,from+4).map((nd,j)=>(j?dash(from+j):"").replace("padding:6px","padding:"+(6+pad)+"px").replace("<td width=\"22%","<td width=\"22%")+step(nd,from+j).replace("padding:0 2px","padding:"+pad+"px 2px 0 2px")).join("")}</tr>`;
     const tracker=`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;max-width:520px">${trow(0,0)}${trow(4,12)}</table>`;
     // Main steps: mark in the first column. Sub-steps: indented one column, with their own small mark.
     const row=(mark,mc,txt,sub)=>sub
       ?`<tr><td width="26" style="width:26px;padding:0;${F}">&nbsp;</td><td valign="top" style="padding:0 0 4px 0;${F}">${fc(mc,"2","10",`<b>${mark}</b>`)}&nbsp;&nbsp;${txt}</td></tr>`
       :`<tr><td width="26" valign="top" style="width:26px;padding:0 0 5px 4px;${F}">${fc(mc,"","",`<b>${mark}</b>`)}</td><td valign="top" style="padding:0 0 5px 0;${F}">${txt}</td></tr>`;
-    const rows=MAIN.map((nd,i)=>{
+    const rows=mainOf(c).map((nd,i)=>{
       const d=c.ms[nodeKey(nd)], isNext=i===stage;
       const mark=d?"&#10003;":isNext?"&#9679;":"&#9675;", mc=d?GREEN:isNext?GOLD:GRAY;
       const txt=d?`<b>${esc(nd.name)}</b> ${fc("#6E7681","","",fmt(d))}`:isNext?fc(GOLD,"","",`<b>Next: ${esc(nd.name)}</b>`):fc(GRAY,"","",esc(nd.name));
-      return row(mark,mc,txt,false)+(nd.subs||[]).map(k=>{const sd=c.ms[k], m=msBy(k);
+      return row(mark,mc,txt,false)+(nd.subs||[]).map(k=>{const sd=c.ms[k], m=msOf(c,k);
         const when=k==="closingSched"&&sd&&c.closingAt?" "+fc(BLUE,"2","10",`<b>${esc(fmtWhen(c.closingAt))}</b>`):"";
         return row(sd?"&#10003;":"&#9675;",sd?GREEN:GRAY,fc(sd?"#333333":GRAY,"2","10",esc(m.name)+(sd&&!when?" "+fc("#6E7681","2","10",fmt(sd)):"")+when),true);}).join("");
     }).join("");
@@ -1888,8 +1993,8 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(condsOn){T.push("ITEMS STILL NEEDED","The underwriter is asking for the following. Please send them as soon as you can.");oc.forEach((x,i)=>T.push(`${i+1}. ${x.text}`));T.push("");}
     if(withUp){T.push(`Upload your documents securely here: ${upHref||"[upload link]"}`,"");}
     if(includeAll){T.push(`YOUR LOAN PROGRESS (${n} of ${T7} steps complete)`);
-      MAIN.forEach((nd,i)=>{const d=c.ms[nodeKey(nd)];T.push(d?`✓ ${nd.name} (${fmt(d)})`:i===stage?`➜ Next: ${nd.name}`:`○ ${nd.name}`);
-        (nd.subs||[]).forEach(k=>{const sd=c.ms[k];T.push(`     ${sd?"✓":"○"} ${msBy(k).name}${sd?" ("+(k==="closingSched"&&c.closingAt?fmtWhen(c.closingAt):fmt(sd))+")":""}`);});});T.push("");}
+      mainOf(c).forEach((nd,i)=>{const d=c.ms[nodeKey(nd)];T.push(d?`✓ ${nd.name} (${fmt(d)})`:i===stage?`➜ Next: ${nd.name}`:`○ ${nd.name}`);
+        (nd.subs||[]).forEach(k=>{const sd=c.ms[k];T.push(`     ${sd?"✓":"○"} ${msOf(c,k).name}${sd?" ("+(k==="closingSched"&&c.closingAt?fmtWhen(c.closingAt):fmt(sd))+")":""}`);});});T.push("");}
     T.push("If you have any questions, just reply to this email or give me a call.","","Thank you,",me||"[Your name]");
     return {subject,html:onWhite(html),text:T.join("\n"),ann,tracker,n,T7,nx,condsHTML,upHTML,condsT,upT};
   }
@@ -1952,7 +2057,9 @@ dialog form{padding:16px;display:grid;gap:12px}
         // A new result replaces the open appraisal conditions from the last one; cleared ones stay in the record.
         c.conds=(c.conds||[]).filter(x=>!(x.apr&&!x.done));
         const p=num(c.price), short=p!==null&&v<p?p-v:0, added=[];
-        if(short){addAprCond(c,"value",`Appraisal came in at ${val}, ${fmtMoney(short)} below the ${fmtMoney(p)} purchase price. Resolve the shortfall (price change, borrower covers the difference, or appraisal review).`);added.push("low value");}
+        const la=num(c.loanAmt), ltv=x=>Math.round(la/x*1000)/10;
+        if(short&&isRefi(c)){addAprCond(c,"value",`Value came in at ${val}, ${fmtMoney(short)} under the ${fmtMoney(p)} estimate.${la?` LTV is now ${ltv(v)}% (was ${ltv(p)}%).`:""} Review the loan amount and program with the lender.`);added.push("value under estimate");}
+        else if(short){addAprCond(c,"value",`Appraisal came in at ${val}, ${fmtMoney(short)} below the ${fmtMoney(p)} purchase price. Resolve the shortfall (price change, borrower covers the difference, or appraisal review).`);added.push("low value");}
         if(rep){addAprCond(c,"repairs",`Appraisal is subject to repairs${rtxt?": "+rtxt:""}. Repairs must be completed and a final inspection done.`);added.push("repairs");}
         delete apprForm[c.id];c.notes=c.notes||[];
         if(added.length){delete c.ms.apprRecv;condOpen[c.id]=true;
@@ -1960,7 +2067,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         else{c.ms.apprRecv=today();annKey="apprRecv";includeUp=null;c.notes.push({t:stamp(),auto:true,text:`Appraisal received at ${val}. All good.`});}
         touch(c);save();renderClient(c);
         say(added.length?`Appraisal saved. ${added.length===2?"Two conditions":"A condition"} added (${added.join(" and ")}). The appraisal step stays open until ${added.length===2?"they're":"it's"} cleared.`
-          :p===null?"Appraisal saved and checked. Add the purchase price with Edit to compare the value.":"Appraisal value is at or above the purchase price. Appraisal received is checked.");
+          :p===null?`Appraisal saved and checked. Add the ${isRefi(c)?"estimated value":"purchase price"} with Edit to compare the value.`:`Appraisal value is at or above the ${isRefi(c)?"estimate":"purchase price"}. Appraisal received is checked.`);
         break;}
       case "editLock":{openForm(c);const f=$("cform"), sel=f.elements.rateLocked;
         if(sel.value!=="yes"){sel.value="yes";lockForm();}
@@ -1981,7 +2088,7 @@ dialog form{padding:16px;display:grid;gap:12px}
         const e=buildMail(c);
         if(await copyRich(e.html,e.text)){
           // A message you rewrote is kept as a note so you can see later what you sent; the standard wording only goes in the activity log.
-          const def=(closeMode?CLOSE_INTRO:purposeFix(c,MS.find(m=>m.k===annKey))).trim(), cur=($("annMsg")?.value||"").trim(), edited=!!cur&&cur!==def;
+          const def=(closeMode?CLOSE_INTRO:purposeFix(c,msOf(c,annKey))).trim(), cur=($("annMsg")?.value||"").trim(), edited=!!cur&&cur!==def;
           c.notes=c.notes||[];c.notes.push({t:stamp(),kind:"email",auto:true,subj:e.subject,text:`${e.ann.name}${edited?"\nMy message: "+cur:" (standard message)"}`});
           // Listing the borrower's open conditions in the email is a request for them, so they're marked Requested today.
           let marked=0;if(includeConds)openConds(c,"b").forEach(x=>{if(!x.req){x.req=today();marked++;}});
@@ -2046,8 +2153,8 @@ dialog form{padding:16px;display:grid;gap:12px}
       const wasPros=ev.target.checked&&c.status==="prospect";if(wasPros)c.status="active";
       if(ev.target.checked){c.ms[k]=today();annKey=k;includeUp=null;if(k==="condAppr"&&openConds(c,"b").length)includeConds=true;}else delete c.ms[k];
       touch(c);save();renderClient(c);
-      if(wasPros)say(`${MS.find(m=>m.k===k).name} checked. ${c.first} moved from Prospects to Active.`);
-      else if(ev.target.checked)say(`${MS.find(m=>m.k===k).name} checked. The update email is ready to copy.`);
+      if(wasPros)say(`${msOf(c,k).name} checked. ${c.first} moved from Prospects to Active.`);
+      else if(ev.target.checked)say(`${msOf(c,k).name} checked. The update email is ready to copy.`);
     }else if(kd&&ev.target.value){c.ms[kd]=ev.target.value;touch(c);save();renderClient(c);}
   });
 
