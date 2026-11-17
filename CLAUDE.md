@@ -98,6 +98,8 @@ Storage keys in use (keep the names; old data must keep loading):
   keyed by client id (`condOpen`, `msOpen`, `clearedOpen`, `earlyOpen`).
 - Milestones are defined once: `MS` (keys), `MAIN` (the 8-step chain with sub-steps) and `PATH`
   (order for "Next"). Saved clients hold these keys, so do not rename or drop steps casually.
+  Refi/HECM (`kindOf`) rename steps and add sub-steps: use `msOf(c,k)`, `mainOf(c)`, `msList(c)`, `pathOf(c)`,
+  never `MS`/`MAIN` directly. Refi `price` = estimated value; `rescInfo` uses the TRID business-day rule.
 - Statuses: `active`, `prospect`, `inactive` (none = active). Conditions: `who` is `b`/`lo`/`r`; `pos` is the drag
   order; the shown number is the place in its section (`posOf`); `n` is the reference number, `uw` = processor's.
 - Phone inputs are `type="tel"` and format themselves to `555-201-4400` (`fmtPhone`).

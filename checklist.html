@@ -137,6 +137,7 @@ button,select,input{font:inherit;color:inherit}
         <label><input type="radio" name="loan" value="va"><span>VA</span></label>
         <label><input type="radio" name="loan" value="usda"><span>USDA</span></label>
         <label><input type="radio" name="loan" value="jumbo"><span>Jumbo</span></label>
+        <label><input type="radio" name="loan" value="hecm"><span>HECM / reverse</span></label>
       </div>
     </fieldset>
     <fieldset>
@@ -211,7 +212,7 @@ button,select,input{font:inherit;color:inherit}
 
 <script>
 (function(){
-  const LOANS={conv:"conventional",fha:"FHA",va:"VA",usda:"USDA",jumbo:"jumbo"};
+  const LOANS={conv:"conventional",fha:"FHA",va:"VA",usda:"USDA",jumbo:"jumbo",hecm:"HECM reverse mortgage"};
 
   // Each item: id, name, why (one line), tip, show(state), tag, usual (picked by "Select the usual items")
   const CATS=[
@@ -297,7 +298,14 @@ button,select,input{font:inherit;color:inherit}
       {id:"usda2",name:"Child care cost records",why:"Some expenses can be subtracted from household income for the USDA limit.",show:s=>s.loan==="usda",tag:"USDA, if it applies"},
       {id:"j1",usual:1,name:"Full tax returns for the last 2 years",why:"Jumbo lenders review every income source and deduction, even for W-2 employees.",show:s=>s.loan==="jumbo"&&s.who==="w2",tag:"Jumbo"},
       {id:"j2",usual:1,name:"Statements for every account you'll use for reserves",why:"Jumbo loans often require 6 to 12 months of payments in reserve after closing.",show:s=>s.loan==="jumbo",tag:"Jumbo",
-        tip:"Send 2 to 3 months, all pages, including retirement and brokerage accounts."}
+        tip:"Send 2 to 3 months, all pages, including retirement and brokerage accounts."},
+      {id:"hecm1",usual:1,name:"HECM counseling certificate, signed by every borrower",why:"Every borrower has to finish counseling with a HUD-approved counselor before the loan can move forward.",show:s=>s.loan==="hecm",tag:"HECM"},
+      {id:"hecm2",usual:1,name:"Proof of age for each borrower",why:"Every borrower on a reverse mortgage must be at least 62. A driver's license or birth certificate showing your date of birth works.",show:s=>s.loan==="hecm",tag:"HECM"},
+      {id:"hecm3",usual:1,name:"Property tax bills and proof they were paid for the last 2 years",why:"A reverse mortgage requires taxes to stay current, so the lender reviews your payment history.",show:s=>s.loan==="hecm",tag:"HECM"},
+      {id:"hecm4",usual:1,name:"Nearest relative's contact information",why:"Required for a reverse mortgage: someone who doesn't live with you. Send their name, address, phone number, relationship to you and email address.",show:s=>s.loan==="hecm",tag:"HECM"},
+      {id:"hecm5",name:"Non-borrowing spouse's ID and date of birth",why:"A spouse who isn't on the loan still has to be listed, and their age affects the loan amount.",show:s=>s.loan==="hecm",tag:"HECM, if it applies"},
+      {id:"hecm6",name:"Trust documents, if your home is held in a trust",why:"The lender reviews the trust to confirm it allows the reverse mortgage.",show:s=>s.loan==="hecm",tag:"HECM, if it applies"},
+      {id:"hecm7",name:"Power of attorney, if someone will sign for a borrower",why:"The lender has to approve the power of attorney before closing.",show:s=>s.loan==="hecm",tag:"HECM, if it applies"}
     ]},
     {name:"Tips to avoid delays", tips:true, items:[
       {id:"m1",short:"Send every page of every statement, even blank ones.",usual:1,name:"Send every page",why:"Include every page of every statement, even the ones that say \"this page intentionally left blank.\""},
@@ -381,7 +389,7 @@ button,select,input{font:inherit;color:inherit}
         <button class="tbtn" type="button" data-cat="${esc(c.name)}">${allOn?"Clear section":"Select all"}</button></div>
         <ul class="items">${c.items.map(i=>`<li class="item${sel[i.id]?" on":""}">
           <input type="checkbox" id="c-${i.id}" data-id="${i.id}"${sel[i.id]?" checked":""}>
-          <label for="c-${i.id}">${esc(i.name)}${i.tag?`<span class="tag${/FHA|VA|USDA|Jumbo/.test(i.tag)?" loan":""}">${esc(i.tag)}</span>`:""}</label>
+          <label for="c-${i.id}">${esc(i.name)}${i.tag?`<span class="tag${/FHA|VA|USDA|Jumbo|HECM/.test(i.tag)?" loan":""}">${esc(i.tag)}</span>`:""}</label>
           <p class="why">${esc(i.why)}</p>
           ${c.tips?"":`<label class="whyadd"><input type="checkbox" data-why="${i.id}"${whyFor(i)?" checked":""}> Add this explanation to the email</label>`}
           ${i.years?`<div class="yrs" role="group" aria-label="Years to request">${YEARS.map(y=>`<label><input type="checkbox" data-year="${y}"${yrs[y]?" checked":""}> ${y===Y?`${y} (most recent stub)`:`${y} (final stub)`}</label>`).join("")}</div>`:""}
@@ -396,9 +404,9 @@ button,select,input{font:inherit;color:inherit}
     const tip=i=>i.tip&&tipOn[i.id];
     const name=$("bname").value.trim(), me=$("me").value.trim();
     const n=docs.reduce((a,c)=>a+c.items.length,0);
-    const loan=LOANS[s.loan], what=s.purpose==="buy"?"home purchase":"refinance";
-    const subject=`Documents needed for your ${loan} ${what}`;
-    const intro=`Thanks for starting your ${loan} ${what} with me! To keep your loan moving, please send the ${n===1?"item":"items"} below. Clear photos or PDFs are fine, and you're welcome to send them as you gather them.`;
+    const loan=LOANS[s.loan], what=s.loan==="hecm"?(s.purpose==="buy"?"for purchase":""):s.purpose==="buy"?"home purchase":"refinance";
+    const subject=`Documents needed for your ${[loan,what].filter(Boolean).join(" ")}`;
+    const intro=`Thanks for starting your ${[loan,what].filter(Boolean).join(" ")} with me! To keep your loan moving, please send the ${n===1?"item":"items"} below. Clear photos or PDFs are fine, and you're welcome to send them as you gather them.`;
     const upOn=$("optUp").checked, ulink=isLink($("ulink").value.trim())?$("ulink").value.trim():"", href=/^https?:\/\//i.test(ulink)?ulink:(ulink?"https://"+ulink:"");
     const upText="Click the button below to upload your documents securely.";
     // A colored table cell rather than a picture: Outlook attaches pasted pictures, and replies without attachments then lose them.
