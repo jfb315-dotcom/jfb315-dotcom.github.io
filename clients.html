@@ -581,10 +581,11 @@ dialog form{padding:16px;display:grid;gap:12px}
     <h3 class="fsub">Loan info <span class="muted small">(for your reference)</span></h3>
     <div class="fgrid">
       <label class="field"><span id="lblPrice">Purchase price</span><input name="price" data-money inputmode="decimal" autocomplete="off" placeholder="$450,000"></label>
-      <label class="field">Loan amount<input name="loanAmt" data-money inputmode="decimal" autocomplete="off" placeholder="$360,000"></label>
+      <label class="field"><span id="lblLoan">Loan amount</span><input name="loanAmt" data-money inputmode="decimal" autocomplete="off" placeholder="$360,000"></label>
       <label class="field"><span id="lblDown">Down payment</span><input name="down" data-money inputmode="decimal" autocomplete="off" placeholder="Leave blank to figure it"></label>
       <label class="field">Rate<input name="rate" inputmode="decimal" autocomplete="off" placeholder="6.875%"></label>
     </div>
+    <p class="small" id="fhaHint" role="status" style="margin:-4px 0 0" hidden></p>
     <div class="fgrid">
       <label class="field">Rate locked?<select name="rateLocked"><option value="">Not locked</option><option value="yes">Locked</option></select></label>
       <label class="field lockf">Lock date<input name="lockDate" type="date"></label>
@@ -984,6 +985,9 @@ dialog form{padding:16px;display:grid;gap:12px}
 
   // ---------- Loan numbers: $450,000 and 6.875% ----------
   const num=v=>{const n=parseFloat(String(v||"").replace(/[^0-9.]/g,""));return isNaN(n)?null:n;};
+  // FHA finances the 1.75% upfront MIP on top of the base loan; the total is rounded down to the dollar.
+  const UFMIP=.0175;
+  const fhaTot=c=>{const b=c&&c.loan==="fha"?num(c.loanAmt):null;if(!b)return null;const t=Math.floor(b*(1+UFMIP)+1e-6);return {base:b,mip:t-b,total:t};};
   function fmtMoney(v){const n=num(v);if(n===null)return String(v||"").trim();
     return "$"+n.toLocaleString("en-US",{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2});}
   function fmtRate(v){const n=num(v);return n===null?String(v||"").trim():n+"%";}
@@ -1026,7 +1030,9 @@ dialog form{padding:16px;display:grid;gap:12px}
   function loanNums(c){
     const p=num(c.price), l=num(c.loanAmt), d=num(c.down)??(p!==null&&l!==null&&p>=l?p-l:null), out=[], R=isRefi(c), kd=kindOf(c);
     if(c.price)out.push([R?"Estimated value":"Purchase price",fmtMoney(c.price)]);
-    if(c.loanAmt)out.push(["Loan amount",fmtMoney(c.loanAmt)+(p&&l!==null?` (${Math.round(l/p*1000)/10}% LTV)`:"")]);
+    const F=fhaTot(c);
+    if(c.loanAmt)out.push([F?"Base loan amount":"Loan amount",fmtMoney(c.loanAmt)+(p&&l!==null?` (${Math.round(l/p*1000)/10}% LTV)`:"")]);
+    if(F)out.push(["Total loan amount",fmtMoney(F.total)+` (includes ${fmtMoney(F.mip)} upfront MIP)`]);
     if(d!==null)out.push([R?"Equity":"Down payment",fmtMoney(d)+(p?` (${Math.round(d/p*1000)/10}%)`:"")]);
     if(kd==="refi"&&c.refiType)out.push(["Refi type",c.refiType==="cash"?"Cash-out"+(c.cashOut?" "+fmtMoney(c.cashOut):""):"Rate/term"]);
     if(c.rate)out.push(["Rate",fmtRate(c.rate)]);
@@ -1217,7 +1223,7 @@ dialog form{padding:16px;display:grid;gap:12px}
   $("cform").addEventListener("change",e=>{if(e.target.name==="rateLocked")lockForm();
     if(e.target.name==="loan"&&e.target.value==="hecm")e.target.form.elements.purpose.value="refi"; // a reverse mortgage here is a refinance
     if(["loan","purpose","refiType"].includes(e.target.name))kindForm();});
-  $("cform").addEventListener("input",e=>{if(e.target.name==="dob"||e.target.name==="coDob")kindForm();});
+  $("cform").addEventListener("input",e=>{if(e.target.name==="dob"||e.target.name==="coDob")kindForm();if(e.target.name==="loanAmt")fhaForm();});
   // Refinance and reverse mortgage fields show only for those loans; the realtor folds away on a refinance.
   function kindForm(){
     const f=$("cform"), el=f.elements, kd=kindOf({loan:el.loan.value,purpose:el.purpose.value}), R=kd!=="buy";
@@ -1226,11 +1232,19 @@ dialog form{padding:16px;display:grid;gap:12px}
     f.querySelectorAll(".rtf").forEach(e=>e.hidden=kd!=="refi"||e.classList.contains("cashf")&&el.refiType.value!=="cash");
     $("lblPrice").textContent=R?"Estimated value":"Purchase price";
     $("lblDown").textContent=R?"Equity":"Down payment";
+    fhaForm();
     el.price.placeholder=R?"$400,000":"$450,000";
     showRe(!R||["realtor","realtorPhone","realtorEmail","tcName","tcPhone","tcEmail"].some(k=>el[k].value));
     const ages=agesOf({first:el.first.value,coFirst:el.coFirst.value,dob:el.dob.value,coDob:$("coBox").hidden?"":el.coDob.value}), young=ages.some(([,a])=>a<62);
     $("ageHint").innerHTML=kd!=="hecm"?"":!ages.length?`<span class="muted">Enter dates of birth to see ages. Every HECM borrower must be at least 62.</span>`:
       `Age${ages.length>1?"s":""}: <b>${esc(ages.map(([n,a])=>`${n||"Borrower"} ${a}`).join(", "))}</b>`+(young?` <b style="color:var(--bad)">· under 62, check HECM eligibility</b>`:"");
+  }
+  function fhaForm(){
+    const el=$("cform").elements, fha=el.loan.value==="fha", F=fhaTot({loan:el.loan.value,loanAmt:el.loanAmt.value});
+    $("lblLoan").textContent=fha?"Base loan amount":"Loan amount";
+    $("fhaHint").hidden=!fha;
+    $("fhaHint").innerHTML=!fha?"":F?`Total loan amount with the 1.75% upfront MIP financed: <b>${esc(fmtMoney(F.total))}</b> (MIP ${esc(fmtMoney(F.mip))}). Confirm against the lender's figures.`
+      :`<span class="muted">Enter the base loan amount. The 1.75% upfront MIP is added to figure the total loan amount.</span>`;
   }
   function showRe(on){
     $("reBox").hidden=!on;$("reToggle").hidden=on;$("reToggle").setAttribute("aria-expanded",on);
@@ -1773,7 +1787,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     const p=num(c.price), la=num(c.loanAmt), dn=num(c.down)??(p!==null&&la!==null&&p>=la?p-la:null);
     const nb=(l,v,sub)=>`<div><div class="l">${l}</div><div class="v">${v||"—"}</div><div class="s">${sub||"&nbsp;"}</div></div>`;
     const R=isRefi(c), av=num(c.apprValue), rs=R?rescInfo(c):null;
-    const nums=nb(R?"Est. value":"Price",c.price&&E(fmtMoney(c.price)))+nb("Loan amount",c.loanAmt&&E(fmtMoney(c.loanAmt)),p&&la!==null?Math.round(la/p*1000)/10+"% LTV":"")+
+    const nums=nb(R?"Est. value":"Price",c.price&&E(fmtMoney(c.price)))+nb(fhaTot(c)?"Base loan":"Loan amount",c.loanAmt&&E(fmtMoney(c.loanAmt)),(p&&la!==null?Math.round(la/p*1000)/10+"% LTV":"")+(fhaTot(c)?`${p&&la!==null?" · ":""}Total ${E(fmtMoney(fhaTot(c).total))}`:""))+
       nb(R?"Equity":"Down payment",dn!==null&&E(fmtMoney(dn)),p&&dn!==null?Math.round(dn/p*1000)/10+"%":"")+nb("Rate",c.rate&&E(fmtRate(c.rate)),L.locked?"Locked":"Not locked")+
       nb("Appraised",c.apprValue&&E(fmtMoney(c.apprValue))+(ap&&ap.cls==="ok"?" ✓":""),ap?(ap.cls==="ok"?(R&&av&&la!==null?Math.round(la/av*1000)/10+"% LTV":c.ms.apprRecv?"Received "+dShort(c.ms.apprRecv):"&nbsp;"):E(ap.text)):"");
     const stg=stageOf(c), trk=mainOf(c).map((nd,i)=>{const d=c.ms[nodeKey(nd)], st=nodeDone(c,nd)?"done":i===stg?"next":"";
@@ -1854,7 +1868,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     const blockA=c=>{const cur=current(c), nx=nextStep(c), lu=lastUpdate(c), ap=apprStatus(c), o=openConds(c);
       const close=c.closingAt?fmtWhen(c.closingAt):c.closing?fmt(c.closing)+" (target)":"No closing date";
       return `<div class="r-cust"><div class="r-h"><div><b class="r-nm">${nm(c)}</b>${c.phone?` <span class="r-m">${esc(c.phone)}</span>`:""}</div><div class="r-cl"><b>${esc(close)}</b></div></div>
-        <div class="r-line">${esc(loanName(c))}${c.lender?" · "+esc(c.lender):""}${c.loanAmt?" · "+esc(fmtMoney(c.loanAmt)):""}
+        <div class="r-line">${esc(loanName(c))}${c.lender?" · "+esc(c.lender):""}${c.loanAmt?" · "+esc(fmtMoney(fhaTot(c)?fhaTot(c).total:c.loanAmt))+(fhaTot(c)?" total":""):""}
           · <b>${cur?esc(cur.name):"Not started"}</b>${nx?` → next: ${esc(nx.name)}`:""}</div>
         <div class="r-line r-m">${[cdTxt(c),lockTxt(c),isRefi(c)&&c.price?"Est. value "+fmtMoney(c.price):"",isRefi(c)&&c.ms.ctc&&!c.ms.funded&&rescInfo(c)?`Funds ${fmtShort(rescInfo(c).funds)}`:"",ap?"Appraisal "+fmtMoney(c.apprValue)+(ap.cls==="ok"?" ✓":" · "+ap.text):"",lu?"Last update "+fmtShort(new Date(lu.t)):"No update sent yet"].filter(Boolean).map(esc).join(" · ")}</div>
         ${o.length?`<div class="r-cond"><b>Open conditions (${o.length})</b><ul class="${o.length>5?"two":""}">${o.map(x=>`<li>☐ ${posOf(c,x)}. ${esc(x.text)}${x.req?` <span class="r-m">(req ${fmtShort(parseD(x.req))})</span>`:""}${whoOf(x)!=="b"?` <span class="r-m">(${whoOf(x)==="lo"?"LO":"Realtor"})</span>`:""}</li>`).join("")}</ul></div>`:`<div class="r-line r-m">No open conditions</div>`}
