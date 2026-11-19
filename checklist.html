@@ -306,6 +306,8 @@ button,select,input{font:inherit;color:inherit}
     {name:"Loan program", items:[
       {id:"fha2",name:"Explanations for any collections or judgments",why:"FHA reviews these closely and may require some to be paid or on a payment plan.",show:s=>s.loan==="fha",tag:"FHA"},
       {id:"fha3",name:"Spouse's debts (community property states)",why:"FHA counts a spouse's debts even when the spouse isn't on the loan.",show:s=>s.loan==="fha",tag:"FHA"},
+      {id:"fha401k",name:"Proof your 401(k) or retirement funds were cashed out and deposited",why:"Retirement funds can be used toward your funds to close, but they must be cashed out and deposited into your checking or savings account first, and we need proof of that. This includes any cash already sitting inside the retirement account: it also has to be withdrawn and deposited into a checking or savings account. Please send the withdrawal confirmation from your plan and the bank statement showing the deposit.",show:s=>s.loan==="fha",tag:"FHA, if it applies",
+        tip:"Talk to me before you request the withdrawal, so we know how much you need after any taxes or penalties are taken out."},
       {id:"va1",name:"Certificate of Eligibility (COE)",why:"Proves you qualify for a VA loan. I can usually get it online for you.",show:s=>s.loan==="va",tag:"VA"},
       {id:"va2",usual:1,name:"DD-214 (member copy 4) or statement of service",why:"Veterans send the DD-214; active-duty borrowers send a statement of service from their commander.",show:s=>s.loan==="va",tag:"VA",
         tip:"It needs to be member copy 4, which shows the character of service."},
