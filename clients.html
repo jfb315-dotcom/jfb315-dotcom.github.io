@@ -257,6 +257,9 @@ details.phms[open]>summary{border-bottom:0}
 .clist .creq{display:inline-flex;align-items:center;gap:6px;margin:4px 0 0 26px;font-size:var(--t-xs);font-weight:600;color:var(--muted);cursor:pointer}
 .clist .creq input{width:14px;height:14px;margin:0}
 .clist .creq.on{color:var(--goodtxt)}
+.clist .creqw{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:4px 0 0 26px}
+.clist .creqw .creq{margin:0}
+.clist .creqd{width:auto;height:auto;margin:0;font-size:var(--t-xs);padding:2px 4px;border:1px solid var(--rule);background:var(--panel);color:var(--ink)}
 @media (max-width:640px){.cord{display:inline-flex}.cmovebtn{display:none}.cmovesel{display:inline-block}}
 .cgroup h4{font-size:var(--t-sm);margin:0;padding:8px 0 2px;border-bottom:2px solid var(--brass);color:var(--brass)}
 .cgroup+.cgroup h4{border-bottom-color:var(--muted);color:var(--muted)}
@@ -590,7 +593,7 @@ dialog form{padding:16px;display:grid;gap:12px}
       <label class="field">Rate locked?<select name="rateLocked"><option value="">Not locked</option><option value="yes">Locked</option></select></label>
       <label class="field lockf">Lock date<input name="lockDate" type="date"></label>
       <label class="field lockf">Lock length (days)<input name="lockDays" inputmode="numeric" autocomplete="off" placeholder="30"></label>
-      <label class="field lockf">Lender's expiration <span class="muted" style="font-weight:400">(if different)</span><input name="lockExp" type="date"></label>
+      <label class="field lockf">Lock expiration <span class="muted" style="font-weight:400">(change it if the lender's differs)</span><input name="lockExp" type="date"></label>
     </div>
     <p class="small lockf" id="lockExp" role="status" style="margin:-4px 0 0"></p>
     <div class="dlgbtns">
@@ -963,6 +966,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(c)["first","last","email","phone","coFirst","coLast","coEmail","coPhone","address","realtor","realtorPhone","realtorEmail","tcName","tcPhone","tcEmail","title","titlePhone","titleAddr","closer","lender","lenderUrl","price","loanAmt","down","rate","rateLocked","lockDate","lockDays","lockExp","loan","purpose","who","closing","dob","coDob","refiType","cashOut","curLender","payoff","curRate","curPmt"].forEach(k=>{if(c[k]!=null)f.elements[k].value=c[k];});
     showCo(!!(c&&(c.coFirst||c.coLast||c.coEmail||c.coPhone)));
     showTc(!!(c&&(c.tcName||c.tcPhone||c.tcEmail)));
+    {const a=c&&lockInfo({rateLocked:"yes",lockDate:c.lockDate,lockDays:c.lockDays}).exp;f.dataset.autoExp=a?ymd(a):"";}
     autoFill={};fillLists();lockForm();kindForm();
     f.elements.prospect.checked=c?c.status==="prospect":newAsProspect;
     $("dlg").showModal();f.elements.first.focus();
@@ -998,9 +1002,10 @@ dialog form{padding:16px;display:grid;gap:12px}
   // A date typed from the lender's lock confirmation always wins over the worked-out one.
   function lockInfo(c){
     if(c.rateLocked!=="yes")return {locked:false};
-    const start=parseD(c.lockDate), days=parseInt(c.lockDays,10), given=parseD(c.lockExp);
+    const start=parseD(c.lockDate), days=parseInt(c.lockDays,10);let given=parseD(c.lockExp);
     let exp=null,raw=null;
     if(start&&days>0){raw=new Date(start);raw.setDate(raw.getDate()+days);exp=new Date(raw);while(!workday(exp))exp.setDate(exp.getDate()-1);}
+    if(given&&exp&&+given===+exp)given=null; // the box was filled in for you; only a changed date counts as the lender's
     if(given)exp=given;
     if(!exp)return {locked:true,exp:null};
     const t=new Date(), left=Math.round((exp-new Date(t.getFullYear(),t.getMonth(),t.getDate()))/864e5);
@@ -1214,6 +1219,8 @@ dialog form{padding:16px;display:grid;gap:12px}
     const f=$("cform"), on=f.elements.rateLocked.value==="yes";
     f.querySelectorAll(".lockf").forEach(e=>e.hidden=!on);
     if(on&&!f.elements.lockDate.value)f.elements.lockDate.value=today();
+    const auto=lockInfo({rateLocked:"yes",lockDate:f.elements.lockDate.value,lockDays:f.elements.lockDays.value}).exp, ex=f.elements.lockExp;
+    if(on&&auto&&(!ex.value||ex.value===f.dataset.autoExp)){ex.value=ymd(auto);f.dataset.autoExp=ex.value;}
     const L=lockInfo({rateLocked:f.elements.rateLocked.value,lockDate:f.elements.lockDate.value,lockDays:f.elements.lockDays.value,lockExp:f.elements.lockExp.value,closing:f.elements.closing.value,closingAt:editing&&editing.closingAt});
     $("lockExp").innerHTML=!on?"":!L.exp?`<span class="muted">Enter the lock length to see when it expires.</span>`:L.lender?`Lock expires <b>${fmtDay(L.exp)}</b> <span class="muted">(the date you entered from the lender)</span>`+(L.beforeClose?` <b style="color:var(--bad)">· before the closing date</b>`:""):
       `Lock expires <b>${fmtDay(L.exp)}</b>${L.moved?` <span class="muted">(${fmtDay(L.raw)} falls on a ${workday(L.raw)?"":L.raw.getDay()%6===0?"weekend":"holiday"}, so it moves back)</span>`:""}`+
@@ -1281,7 +1288,7 @@ dialog form{padding:16px;display:grid;gap:12px}
     const pros=f.elements.prospect.checked;
     const relCond=c=>{if(kindOf(c)!=="hecm"||c.relAdded)return;c.relAdded=true;
       addCond(c,"b","Nearest relative (someone who doesn't live with you): name, address, phone number, relationship and email address.");};
-    if(editing){Object.assign(editing,data);relCond(editing);
+    if(editing){Object.assign(editing,data);relCond(editing);if(data.rateLocked==="yes"&&data.lockDate)linkReq(editing,"lock",data.lockDate);
       if(pros)editing.status="prospect";else if(editing.status==="prospect")editing.status="active";
       touch(editing);save();render();say("Client updated.");}
     else{
@@ -1360,6 +1367,12 @@ dialog form{padding:16px;display:grid;gap:12px}
     c.conds.push({id:uid(),n:max+1,pos:nextPos(c,who),text,who,done:false,added:stamp(),...(extra||{})});
   }
   const addAprCond=(c,kind,text)=>addCond(c,"lo",text,{apr:kind});
+  // A condition about ordering the appraisal or the rate lock shares its Requested date with Appraisal ordered or the lock date.
+  const linkOf=x=>x.apr?null:/apprais/i.test(x.text)?"appr":/\block(ed|s)?\b|\bcoc\b/i.test(x.text)?"lock":null;
+  const linkReq=(c,kind,d)=>(c.conds||[]).forEach(x=>{if(!x.done&&x.req&&linkOf(x)===kind)x.req=d;});
+  function setReq(c,x,d){x.req=d;const k=linkOf(x);if(!k)return;
+    if(k==="appr")c.ms.apprOrdered=d;else{c.rateLocked="yes";c.lockDate=d;}
+    linkReq(c,k,d);}
 
   function cdBlock(c){
     const ci=cdInfo(c);
@@ -1751,7 +1764,7 @@ dialog form{padding:16px;display:grid;gap:12px}
           <span class="cact"><button class="tbtn primary" type="button" data-act="condSave" data-id="${x.id}">Save</button><button class="tbtn" type="button" data-act="condCancel">Cancel</button></span></li>`;
         return `<li class="${x.done?"done":""}"${x.done?"":` draggable="true" data-dragcond="${x.id}"`}><span class="cn"${x.done?"":' title="Drag to reorder"'}>${x.done?"✓":pn}</span>
           <div class="cmain"><label><input type="checkbox" data-cond="${x.id}"${x.done?" checked":""} aria-label="Cleared"><span class="ct">${esc(x.text)}${x.uw?` <span class="uwn" title="Number on the processor's list">#${x.n}</span>`:""}</span></label>
-            ${x.done?(x.req?`<span class="creq">Requested ${fmtShort(parseD(x.req))}</span>`:""):`<label class="creq${x.req?" on":""}"><input type="checkbox" data-condreq="${x.id}"${x.req?" checked":""}> Requested${x.req?" "+fmtShort(parseD(x.req)):""}</label>`}</div>
+            ${x.done?(x.req?`<span class="creq">Requested ${fmtShort(parseD(x.req))}</span>`:""):`<span class="creqw"><label class="creq${x.req?" on":""}"><input type="checkbox" data-condreq="${x.id}"${x.req?" checked":""}> Requested</label>${x.req?`<input type="date" class="creqd" data-condreqdate="${x.id}" value="${esc(x.req)}" aria-label="Date requested">`:""}${x.req&&linkOf(x)?`<span class="muted small">${linkOf(x)==="appr"?"same as Appraisal ordered":"same as the lock date"}</span>`:""}</span>`}</div>
           <span class="cact">${x.done?"":`<span class="cord"><button class="cmove" data-condup="${x.id}" aria-label="Move up"${pn===1?" disabled":""}>↑</button><button class="cmove" data-conddown="${x.id}" aria-label="Move down">↓</button></span>`}<button class="cmove" data-condedit="${x.id}" title="Edit the wording">Edit</button>
             ${CGROUPS.filter(g=>g[0]!==who).map(g=>`<button class="cmove cmovebtn" data-condto="${x.id}" data-to="${g[0]}" title="Move to ${g[2]} conditions">→ ${g[0]==="lo"?"LO":g[2][0].toUpperCase()+g[2].slice(1)}</button>`).join("")}
             <select class="cmovesel" data-condmove="${x.id}" aria-label="Move to another section"><option value="">Move to…</option>${CGROUPS.filter(g=>g[0]!==who).map(g=>`<option value="${g[0]}">${g[2][0].toUpperCase()+g[2].slice(1)}</option>`).join("")}</select>
@@ -2152,7 +2165,9 @@ dialog form{padding:16px;display:grid;gap:12px}
         if(aprDone)say("Appraisal conditions cleared. Appraisal received is now checked.");else if(!openConds(c).length&&x.done)say("All conditions cleared!");}return;}
     if(ev.target.name==="condWho"){condWho=ev.target.value;return;}
     if(ev.target.dataset.condreq){const x=(c.conds||[]).find(y=>y.id===ev.target.dataset.condreq);
-      if(x){if(ev.target.checked)x.req=today();else delete x.req;touch(c);save();renderClient(c);}return;}
+      if(x){if(ev.target.checked){const k=linkOf(x);setReq(c,x,k==="appr"?c.ms.apprOrdered||today():k==="lock"&&c.rateLocked==="yes"&&c.lockDate||today());}else delete x.req;touch(c);save();renderClient(c);}return;}
+    if(ev.target.dataset.condreqdate){const x=(c.conds||[]).find(y=>y.id===ev.target.dataset.condreqdate);
+      if(x&&ev.target.value){setReq(c,x,ev.target.value);touch(c);save();renderClient(c);if(linkOf(x))say(linkOf(x)==="appr"?"Date changed here and on Appraisal ordered.":"Date changed here and on the rate lock.");}return;}
     if(ev.target.dataset.condmove!==undefined){const x=(c.conds||[]).find(y=>y.id===ev.target.dataset.condmove), to=ev.target.value;
       if(x&&to){x.pos=nextPos(c,to);x.who=to;touch(c);save();renderClient(c);say(`Moved to ${whoName(x)} conditions.`);}return;}
     if(ev.target.dataset.psel){const set=procSel[c.id]=procSel[c.id]||new Set();ev.target.checked?set.add(ev.target.dataset.psel):set.delete(ev.target.dataset.psel);
@@ -2165,11 +2180,11 @@ dialog form{padding:16px;display:grid;gap:12px}
     if(ev.target.name==="apprRep"){const b=$("apprRepBox");if(b)b.hidden=ev.target.value!=="yes";return;}
     if(k){
       const wasPros=ev.target.checked&&c.status==="prospect";if(wasPros)c.status="active";
-      if(ev.target.checked){c.ms[k]=today();annKey=k;includeUp=null;if(k==="condAppr"&&openConds(c,"b").length)includeConds=true;}else delete c.ms[k];
+      if(ev.target.checked){c.ms[k]=today();annKey=k;includeUp=null;if(k==="condAppr"&&openConds(c,"b").length)includeConds=true;if(k==="apprOrdered")linkReq(c,"appr",c.ms[k]);}else delete c.ms[k];
       touch(c);save();renderClient(c);
       if(wasPros)say(`${msOf(c,k).name} checked. ${c.first} moved from Prospects to Active.`);
       else if(ev.target.checked)say(`${msOf(c,k).name} checked. The update email is ready to copy.`);
-    }else if(kd&&ev.target.value){c.ms[kd]=ev.target.value;touch(c);save();renderClient(c);}
+    }else if(kd&&ev.target.value){c.ms[kd]=ev.target.value;if(kd==="apprOrdered")linkReq(c,"appr",kd&&ev.target.value);touch(c);save();renderClient(c);}
   });
 
   document.addEventListener("toggle",ev=>{const d=ev.target;if(!d.matches)return;if(d.matches("details[data-alog]"))logOpen[d.dataset.alog]=d.open;if(d.matches("details[data-msopen]"))msOpen[d.dataset.msopen]=d.open;if(d.matches("details[data-clopen]"))clearedOpen[d.dataset.clopen]=d.open;if(d.matches("details[data-addc]"))addOpen[d.dataset.addc]=d.open;},true);
