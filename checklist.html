@@ -67,7 +67,8 @@ button,select,input{font:inherit;color:inherit}
 .toast{font-size:var(--t-sm);color:var(--goodtxt);font-weight:600;min-height:1.3em;margin:0}
 
 /* Checklist */
-.cat{margin-top:24px}
+.cat{margin-top:24px;scroll-margin-top:72px}
+.cat.sit .cathead h2::before{content:"Added: ";color:var(--brass)}
 .cathead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 .cathead .tbtn{padding:4px 8px;font-size:var(--t-sm)}
 .items{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--rule)}
@@ -225,6 +226,29 @@ button,select,input{font:inherit;color:inherit}
       {id:"rent",name:"12 months of rent payment history",why:"Shows you pay housing costs on time, which matters most when you have little credit history.",
         show:s=>s.purpose==="buy",tag:"If renting",tip:"Canceled checks or bank statements showing the payments work best. Payments made by cash or money order are hard to verify."}
     ]},
+    {name:"Gift funds", sit:"gift", items:[
+      {id:"giftl",usual:1,name:"Signed gift letter",why:"States the money is a gift and doesn't need to be repaid.",show:s=>s.gift,tag:"Gift",
+        tip:"I'll send you the gift letter form to use."},
+      {id:"giftd",usual:1,name:"Giver's bank statement showing the funds",why:"Shows the person giving the gift had the money in their own account before it was sent.",show:s=>s.gift,tag:"Gift"},
+      {id:"giftp",usual:1,name:"Proof of the gift transfer",why:"The check, wire receipt or transfer record showing the money moving to you or the title company.",show:s=>s.gift,tag:"Gift"},
+      {id:"giftr",usual:1,name:"Your bank statement showing the gift deposit",why:"Shows the gift landed in your account, if it wasn't sent straight to the title company.",show:s=>s.gift,tag:"Gift, if it applies"}
+    ]},
+    {name:"Other properties and rental income", sit:"rental", items:[
+      {id:"reo",usual:1,name:"Mortgage statements for your other properties",why:"Your other housing payments count toward your monthly debts.",show:s=>s.rental,tag:"Other properties"},
+      {id:"reotax",usual:1,name:"Property tax bills and insurance for your other properties",why:"Needed when taxes and insurance aren't included in the mortgage payment, or the property is paid off.",show:s=>s.rental,tag:"Other properties"},
+      {id:"reohoa",name:"HOA statements for your other properties",why:"HOA dues count toward your monthly debts.",show:s=>s.rental,tag:"If it applies"},
+      {id:"lease",usual:1,name:"Signed leases for rental properties",why:"Rental income can help you qualify when it's documented.",show:s=>s.rental,tag:"Rental"},
+      {id:"schede",name:"Schedule E from your tax returns for the last 2 years",why:"Shows the rental income and expenses you reported, which is how most lenders figure rental income.",show:s=>s.rental,tag:"Rental",
+        tip:"If you already sent full tax returns, Schedule E is included and you don't need to send it again."}
+    ]},
+    {name:"Divorce, bankruptcy or foreclosure", sit:"credit", items:[
+      {id:"divorce",usual:1,name:"Final divorce decree, marital dissolution agreement and parenting plan",why:"Please send the final divorce decree, the marital dissolution agreement and the parenting plan, if you have one, plus any amendments or modifications made since. Send every page of each document, including any later court orders that changed support or the property split. Together these show alimony or child support and which debts and property belong to whom.",show:s=>s.credit,tag:"Divorce"},
+      {id:"support",name:"Proof of child support or alimony payments",why:"Shows payments received for at least the last few months, and that they'll continue for at least 3 more years if used as income.",show:s=>s.credit,tag:"Divorce, if it applies"},
+      {id:"bk",usual:1,name:"Bankruptcy discharge papers",why:"Confirms the discharge date, since every loan program has a waiting period after a bankruptcy.",show:s=>s.credit,tag:"Bankruptcy"},
+      {id:"bkpet",name:"Full bankruptcy petition with all schedules",why:"Shows which debts were included, so the underwriter can match them to your credit report.",show:s=>s.credit,tag:"Bankruptcy"},
+      {id:"fc",usual:1,name:"Foreclosure, short sale or deed-in-lieu records",why:"A recorded deed or settlement statement confirms the date the property was transferred, which starts the waiting period.",show:s=>s.credit,tag:"Foreclosure"},
+      {id:"fcloe",usual:1,name:"Letter explaining what happened",why:"A short signed letter about the cause (job loss, illness, divorce) and what's different now.",show:s=>s.credit,tag:"Explanation"}
+    ]},
     {name:"Income", items:[
       {id:"stubs",usual:1,name:"Pay stubs for the last 30 days",why:"Shows your current pay rate and year-to-date earnings.",show:s=>s.who==="w2",
         tip:"Send every stub from the last 30 days, not just the latest one. They must show your name, employer and year-to-date totals."},
@@ -261,19 +285,12 @@ button,select,input{font:inherit;color:inherit}
         tip:"Send every page, even blank ones. Any deposit other than regular pay or benefits may need a short letter and a paper trail."},
       {id:"invest",name:"Most recent investment and retirement statements",why:"Can count toward reserves, which are the months of payments you'd have left after closing."},
       {id:"emd",name:"Proof your earnest money cleared",why:"A copy of the check or wire receipt and the bank statement showing it left your account.",show:s=>s.purpose==="buy"},
-      {id:"giftl",usual:1,name:"Signed gift letter",why:"States the money is a gift and doesn't need to be repaid.",show:s=>s.gift,tag:"Gift",
-        tip:"I'll send you the gift letter form to use."},
-      {id:"giftp",usual:1,name:"Proof of the gift transfer",why:"The giver's bank statement or wire receipt showing the money moving to you or the title company.",show:s=>s.gift,tag:"Gift"},
       {id:"bizfunds",name:"CPA letter if using business funds",why:"Confirms that taking the money out won't hurt the business.",show:s=>s.who==="self",tag:"If it applies"},
       {id:"sale",name:"Settlement statement from selling your current home",why:"Shows the sale proceeds you plan to use.",show:s=>s.purpose==="buy",tag:"If it applies"}
     ]},
     {name:"Credit and debts", items:[
       {id:"inq",name:"Letter explaining recent credit inquiries",why:"Confirms whether recent inquiries led to any new debt."},
-      {id:"late",name:"Letter explaining any late payments or collections",why:"A short explanation helps the underwriter see it was a one-time event."},
-      {id:"divorce",usual:1,name:"Divorce decree and any settlement agreement",why:"Shows alimony or child support and which debts belong to whom.",show:s=>s.credit,tag:"If it applies"},
-      {id:"bk",usual:1,name:"Bankruptcy discharge papers or foreclosure records",why:"Confirms the dates, since every loan program has a waiting period after these events.",show:s=>s.credit,tag:"If it applies"},
-      {id:"reo",usual:1,name:"Mortgage statements, tax bills and insurance for your other properties",why:"Your other housing payments count toward your monthly debts.",show:s=>s.rental},
-      {id:"lease",usual:1,name:"Signed leases for rental properties",why:"Rental income can help you qualify when it's documented.",show:s=>s.rental}
+      {id:"late",name:"Letter explaining any late payments or collections",why:"A short explanation helps the underwriter see it was a one-time event."}
     ]},
     {name:"Property", items:[
       {id:"contract",usual:1,name:"Signed purchase contract with all addendums",why:"Sets the price, dates and terms the loan has to match.",show:s=>s.purpose==="buy",
@@ -289,6 +306,8 @@ button,select,input{font:inherit;color:inherit}
     {name:"Loan program", items:[
       {id:"fha2",name:"Explanations for any collections or judgments",why:"FHA reviews these closely and may require some to be paid or on a payment plan.",show:s=>s.loan==="fha",tag:"FHA"},
       {id:"fha3",name:"Spouse's debts (community property states)",why:"FHA counts a spouse's debts even when the spouse isn't on the loan.",show:s=>s.loan==="fha",tag:"FHA"},
+      {id:"fha401k",name:"Retirement funds (401(k), IRA) used for closing",why:"If you're using retirement money for your down payment or closing costs, it has to be withdrawn and deposited into your checking or savings account before closing. This applies to the whole amount you're using, even money in the account that isn't invested. Please send your latest retirement account statement, the withdrawal paperwork from your plan showing the amount, and your bank statement showing the deposit.",show:s=>s.loan==="fha",tag:"FHA, if it applies",
+        tip:"Talk to me before you request the withdrawal, so we know how much you need after any taxes or penalties are taken out."},
       {id:"va1",name:"Certificate of Eligibility (COE)",why:"Proves you qualify for a VA loan. I can usually get it online for you.",show:s=>s.loan==="va",tag:"VA"},
       {id:"va2",usual:1,name:"DD-214 (member copy 4) or statement of service",why:"Veterans send the DD-214; active-duty borrowers send a statement of service from their commander.",show:s=>s.loan==="va",tag:"VA",
         tip:"It needs to be member copy 4, which shows the character of service."},
@@ -385,7 +404,7 @@ button,select,input{font:inherit;color:inherit}
     const s=state();
     list.innerHTML=visible(s).map(c=>{
       const allOn=c.items.every(i=>sel[i.id]);
-      return `<section class="cat"><div class="cathead"><h2>${esc(c.name)}</h2>
+      return `<section class="cat${c.sit?" sit":""}"${c.sit?` id="sec-${c.sit}"`:""}><div class="cathead"><h2>${esc(c.name)}</h2>
         <button class="tbtn" type="button" data-cat="${esc(c.name)}">${allOn?"Clear section":"Select all"}</button></div>
         <ul class="items">${c.items.map(i=>`<li class="item${sel[i.id]?" on":""}">
           <input type="checkbox" id="c-${i.id}" data-id="${i.id}"${sel[i.id]?" checked":""}>
@@ -497,7 +516,19 @@ button,select,input{font:inherit;color:inherit}
     const row=ev.target.closest(".item");
     if(row&&!ev.target.closest("input,label")){const cb=row.querySelector("input");cb.checked=!cb.checked;cb.dispatchEvent(new Event("change",{bubbles:true}));}
   });
-  form.addEventListener("change",ev=>{if(ev.target.id==="optWhy"){whyX={};saveWhy();}renderList();});
+  form.addEventListener("change",ev=>{
+    if(ev.target.id==="optWhy"){whyX={};saveWhy();}
+    // Situation boxes add their own section near the top, so the new items are easy to see.
+    const sc=CATS.find(c=>c.sit&&c.sit===ev.target.name);
+    if(sc){
+      if(ev.target.checked)sc.items.forEach(i=>{if(i.usual)sel[i.id]=1;});else sc.items.forEach(i=>delete sel[i.id]);
+      saveSel();renderList();
+      if(ev.target.checked){const el=$("sec-"+sc.sit);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});
+        say(`Added a "${sc.name}" section with ${sc.items.filter(i=>i.usual).length} items checked.`);}
+      else say(`Removed the "${sc.name}" items.`);
+      return;
+    }
+    renderList();});
   form.addEventListener("input",ev=>{
     if(ev.target.id==="ulink"){const v=ev.target.value.trim();
       if(v&&!isLink(v))$("upnote").textContent="That doesn't look like a web link. Copy your Dropbox request link and paste it here.";else showSaved();}
